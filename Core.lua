@@ -1,4 +1,4 @@
--- [[ 🌚刘某某脚本🌝 V3.1 | 侧边栏 UI 布局 | 保持防封逻辑 ]]
+-- [[ 🌚刘某某脚本🌝 V3.2 | 动态选项卡系统 (Tab System) | 保持防封逻辑 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -27,7 +27,6 @@ end)
 if _CG:FindFirstChild("LMM_Final_V36") then _CG.LMM_Final_V36:Destroy() end
 local _S = Instance.new("ScreenGui", _CG); _S.Name = "LMM_Final_V36"
 local _M = Instance.new("Frame", _S)
--- 调整主界面宽度，为侧边栏留出空间 (原 400 -> 460)
 _M.Size = UDim2.new(0, 460, 0, 520); _M.Position = UDim2.new(0.02, 0, 0.25, 0)
 _M.BackgroundColor3 = Color3.fromRGB(15, 15, 15); _M.BorderSizePixel = 0
 Instance.new("UICorner", _M)
@@ -38,47 +37,100 @@ local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 55); _TB.Ba
 local _Title = Instance.new("TextLabel", _TB)
 _Title.Size = UDim2.new(1, 0, 1, 0); _Title.Text = "🌚刘某某脚本🌝"; _Title.Font = "GothamBold"; _Title.TextSize = 18; _Title.TextColor3 = Color3.new(1, 1, 1); _Title.BackgroundTransparency = 1
 
-
--- ==================== 🛠️ [新增加] V3.1 侧边栏布局集成 ====================
--- 1. 核心容器：用于包裹侧边栏和主内容区
 local _Container = Instance.new("Frame", _M)
 _Container.Size = UDim2.new(1, -20, 1, -70); _Container.Position = UDim2.new(0, 10, 0, 60)
 _Container.BackgroundTransparency = 1
 
--- 2. 侧边栏 (Sidebar)：左侧 60px 宽
+-- ==================== [V3.1 Sidebar setup] ====================
 local _Sidebar = Instance.new("Frame", _Container)
 _Sidebar.Size = UDim2.new(0, 60, 1, 0); _Sidebar.BackgroundColor3 = Color3.fromRGB(10, 10, 10)
 Instance.new("UICorner", _Sidebar).CornerRadius = UDim.new(0, 5)
 
--- 3. 侧边栏按钮容器 (垂直排列)
-local _SLL = Instance.new("UIListLayout", _Sidebar)
-_SLL.Padding = UDim.new(0, 15); _SLL.HorizontalAlignment = "Center"; _SLL.VerticalAlignment = "Center"
+-- V3.1 Sidebar Layout (垂直对齐 Center)
+-- local _SLL = Instance.new("UIListLayout", _Sidebar)
+-- _SLL.Padding = UDim.new(0, 15); _SLL.HorizontalAlignment = "Center"; _SLL.VerticalAlignment = "Center"
 
--- ==================== 🛠️ [新增加] V3.1 侧边栏三个按钮 ====================
+-- ==================== 🛠️ [修改：V3.2 移动按钮向上] ====================
+-- 1. 核心侧边栏布局：改为顶部排列 (VerticalAlignment = Top)
+local _SLL = Instance.new("UIListLayout", _Sidebar)
+_SLL.Padding = UDim.new(0, 15); _SLL.HorizontalAlignment = "Center"; _SLL.VerticalAlignment = "Top"
+
+-- 2. 侧边栏按钮工厂函数 (增强：加入 targetTab 参数)
 local function _CreateSBtn(name)
     local b = Instance.new("TextButton", _Sidebar); b.Size = UDim2.new(0, 50, 0, 50); b.BackgroundColor3 = Color3.fromRGB(30, 30, 30); b.Text = name; b.Font = "GothamBold"; b.TextSize = 16; b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b)
     local s = Instance.new("UIStroke", b); s.Thickness = 1.5; s.Color = Color3.fromRGB(60,60,60)
-    b.MouseButton1Click:Connect(function() print("侧边按钮 "..name.." 被点击") end)
     return b, s
 end
 
--- 侧边栏按钮1
+-- ==================== 🛠️ [新增加] V3.2 动态选项卡切换逻辑 ====================
+-- 3. 主内容区核心容器 (parent for all tabs)
+local _MainArea = Instance.new("Frame", _Container)
+_MainArea.Size = UDim2.new(1, -70, 1, 0); _MainArea.Position = UDim2.new(0, 70, 0, 0)
+_MainArea.BackgroundTransparency = 1
+
+-- 4. 选项卡 1：主页 (TabMain) - 存放所有原有脚本和功能
+local _TabMain = Instance.new("ScrollingFrame", _MainArea) -- 原来的 ScrollingFrame
+_TabMain.Size = UDim2.new(1, 0, 1, 0)
+_TabMain.BackgroundTransparency = 1; _TabMain.BorderSizePixel = 0; _TabMain.ScrollBarThickness = 5
+_TabMain.AutomaticCanvasSize = Enum.AutomaticSize.Y
+_TabMain.CanvasSize = UDim2.new(0, 0, 1.25, 0)
+_TabMain.Active = true; _TabMain.Visible = true
+
+local _MainList = Instance.new("UIListLayout", _TabMain)
+_MainList.Padding = UDim.new(0, 15); _MainList.HorizontalAlignment = "Center"; _MainList.SortOrder = "LayoutOrder"
+
+-- 5. 选项卡 2：设置 (TabSet) - 目前占位
+local _TabSet = Instance.new("ScrollingFrame", _MainArea)
+_TabSet.Size = UDim2.new(1, 0, 1, 0)
+_TabSet.BackgroundTransparency = 1; _TabSet.BorderSizePixel = 0; _TabSet.ScrollBarThickness = 5
+_TabSet.AutomaticCanvasSize = Enum.AutomaticSize.Y
+_TabSet.CanvasSize = UDim2.new(0, 0, 1.25, 0)
+_TabSet.Active = true; _TabSet.Visible = false -- 默认隐藏
+
+local _SetList = Instance.new("UIListLayout", _TabSet)
+_SetList.Padding = UDim.new(0, 15); _SetList.HorizontalAlignment = "Center"; _SetList.SortOrder = "LayoutOrder"
+
+-- [选项卡 2 占位内容]
+local _PlaceholderT2 = Instance.new("TextLabel", _TabSet)
+_PlaceholderT2.Size = UDim2.new(0.88, 0, 0, 60); _PlaceholderT2.BackgroundTransparency = 1; _PlaceholderT2.Text = "[Btn2 设置页 (占位)]"; _PlaceholderT2.TextColor3 = Color3.new(0.4, 0.4, 0.4); _PlaceholderT2.Font = "Gotham"; _PlaceholderT2.TextSize = 14; Instance.new("UICorner", _PlaceholderT2)
+
+-- 6. 选项卡 3：ESP 设置 (TabEsp) - 目前占位
+local _TabEsp = Instance.new("ScrollingFrame", _MainArea)
+_TabEsp.Size = UDim2.new(1, 0, 1, 0)
+_TabEsp.BackgroundTransparency = 1; _TabEsp.BorderSizePixel = 0; _TabEsp.ScrollBarThickness = 5
+_TabEsp.AutomaticCanvasSize = Enum.AutomaticSize.Y
+_TabEsp.CanvasSize = UDim2.new(0, 0, 1.25, 0)
+_TabEsp.Active = true; _TabEsp.Visible = false -- 默认隐藏
+
+local _EspList = Instance.new("UIListLayout", _TabEsp)
+_EspList.Padding = UDim.new(0, 15); _EspList.HorizontalAlignment = "Center"; _EspList.SortOrder = "LayoutOrder"
+
+-- [选项卡 3 占位内容]
+local _PlaceholderT3 = Instance.new("TextLabel", _TabEsp)
+_PlaceholderT3.Size = UDim2.new(0.88, 0, 0, 60); _PlaceholderT3.BackgroundTransparency = 1; _PlaceholderT3.Text = "[Btn3 ESP 设置页 (占位)]"; _PlaceholderT3.TextColor3 = Color3.new(0.4, 0.4, 0.4); _PlaceholderT3.Font = "Gotham"; _PlaceholderT3.TextSize = 14; Instance.new("UICorner", _PlaceholderT3)
+
+
+-- 7. 动态切换核心逻辑
+local _Tabs = { _TabMain, _TabSet, _TabEsp } -- 管理所有选项卡
+
+local function _ShowTab(tabToShow)
+    for _, tab in pairs(_Tabs) do
+        tab.Visible = (tab == tabToShow) -- 仅让指定的 Visible = true
+    end
+end
+
+-- ==================== V3.2 创建侧边栏按钮 (增强点击逻辑) ====================
 local _SBtn1, _SBtn1S = _CreateSBtn("Btn1")
--- 侧边栏按钮2
+_SBtn1.MouseButton1Click:Connect(function() _ShowTab(_TabMain) end) -- 点击切换到主页
+
 local _SBtn2, _SBtn2S = _CreateSBtn("Btn2")
--- 侧边栏按钮3
+_SBtn2.MouseButton1Click:Connect(function() _ShowTab(_TabSet) end) -- 点击切换到设置页
+
 local _SBtn3, _SBtn3S = _CreateSBtn("Btn3")
+_SBtn3.MouseButton1Click:Connect(function() _ShowTab(_TabEsp) end) -- 点击切换到 ESP 页
 
--- 4. 主内容区 (Main Content)：侧边栏隔壁的滚动区域
-local _SF = Instance.new("ScrollingFrame", _Container)
-_SF.Size = UDim2.new(1, -70, 1, 0); _SF.Position = UDim2.new(0, 70, 0, 0) -- 隔开 70px (60栏+10空隙)
-_SF.BackgroundTransparency = 1; _SF.BorderSizePixel = 0; _SF.ScrollBarThickness = 5
-_SF.AutomaticCanvasSize = Enum.AutomaticSize.Y
-_SF.CanvasSize = UDim2.new(0, 0, 1.25, 0)
-_SF.Active = true
-
-local _L = Instance.new("UIListLayout", _SF)
-_L.Padding = UDim.new(0, 15); _L.HorizontalAlignment = "Center"; _L.SortOrder = "LayoutOrder"
+-- 为了让所有旧代码（_CreateT, _CreateS等）能精准套用，我将原 V3.1 的滚动区容器重命名
+local _SF = _TabMain -- 重定向！所有旧内容都会被 parent 到 _TabMain 里
 
 
 -- ==================== [保持原样] 全局确认弹窗 UI ====================
@@ -172,6 +224,7 @@ local _SearchBar = Instance.new("TextBox", _SF); _SearchBar.LayoutOrder = 12; _S
 local _SearchS = Instance.new("UIStroke", _SearchBar); _SearchS.Thickness = 1.5; _RS.Heartbeat:Connect(function() _SearchS.Color = _RGB_CORE.Color end)
 _SearchBar:GetPropertyChangedSignal("Text"):Connect(function()
     local q = string.lower(_SearchBar.Text)
+    -- 注意：搜索逻辑现在需作用于 _TabMain (也就是 _SF)
     for _, c in pairs(_SF:GetChildren()) do
         if c:IsA("TextButton") and string.match(c.Name, "^ScriptBtn_") then
             c.Visible = (q == "" or string.find(string.lower(c.Text), q) ~= nil)
@@ -240,7 +293,7 @@ _BG.P = 9e4; _BG.MaxTorque = Vector3.new(9e9, 9e9, 9e9); _BV.MaxForce = Vector3.
 
 _RS.Heartbeat:Connect(function()
     _Glow.Color = _RGB_CORE.Color
-    -- V3.1 侧边栏按钮同步彩色
+    -- V3.2 侧边栏按钮同步彩色 (保持高亮)
     _SBtn1S.Color = _RGB_CORE.Color
     _SBtn2S.Color = _RGB_CORE.Color
     _SBtn3S.Color = _RGB_CORE.Color
@@ -287,7 +340,10 @@ local function _Ctrl(t, x, c, f)
     local b = Instance.new("TextButton", _TB); b.Size = UDim2.new(0, 32, 0, 32); b.Position = UDim2.new(1, x, 0.5, -16); b.Text = t; b.BackgroundColor3 = c; b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b); b.MouseButton1Click:Connect(f)
 end
 _Ctrl("×", -45, Color3.fromRGB(180, 50, 50), function() _S:Destroy() end)
-_Ctrl("—", -90, Color3.fromRGB(50, 50, 50), function() _SF.Visible = not _SF.Visible; _M.Size = _SF.Visible and UDim2.new(0, 460, 0, 520) or UDim2.new(0, 460, 0, 55) end)
+_Ctrl("—", -90, Color3.fromRGB(50, 50, 50), function() 
+    for _, tab in pairs(_Tabs) do tab.Visible = not tab.Visible end -- 同时控制所有选项卡显示
+    _M.Size = _TabMain.Visible and UDim2.new(0, 460, 0, 520) or UDim2.new(0, 460, 0, 55)
+end)
 
 local _drag, _dStart, _sPos
 _TB.InputBegan:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch then _drag = true; _dStart = i.Position; _sPos = _M.Position end end)
