@@ -1,4 +1,4 @@
--- [[ 🌚刘某某脚本🌝 V4.0 | 移除启动确认 | 按钮点击确认 | ESP全功能 ]]
+-- [[ 🌚刘某某脚本🌝 V4.0 | 移除启动确认 | 按钮点击确认 | ESP全功能实装 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -7,7 +7,7 @@ local _UIS = game:GetService("UserInputService")
 local _LP = _P.LocalPlayer
 local _Cam = workspace.CurrentCamera
 
--- 状态容器
+-- 状态容器 (包含透视、穿墙、速度、飞行)
 local _G_LMM_88 = { 
     v_0x1 = false, -- 描边
     v_0x1_box = false, -- 方框
@@ -20,7 +20,7 @@ local _G_LMM_88 = {
 }
 local _RGB_CORE = { Color = Color3.new(1,0,0) }
 
--- RGB 驱动
+-- RGB 边缘发光驱动
 task.spawn(function()
     local c = 0
     while true do
@@ -34,26 +34,26 @@ end)
 if _CG:FindFirstChild("LMM_Final_V40") then _CG.LMM_Final_V40:Destroy() end
 local _S = Instance.new("ScreenGui", _CG); _S.Name = "LMM_Final_V40"
 
--- ==================== 🛠️ 1. 核心确认函数 (点击按钮时触发) ====================
-local function _ShowConfirmUI(scriptName, callback)
-    local _CBG = Instance.new("Frame", _S)
-    _CBG.Size = UDim2.new(1, 0, 1, 0); _CBG.BackgroundColor3 = Color3.new(0, 0, 0); _CBG.BackgroundTransparency = 0.5; _CBG.ZIndex = 50
+-- ==================== 🛠️ 1. 局部确认 UI (点击按钮时弹出) ====================
+local function _ShowConfirmPopup(scriptName, callback)
+    local _CPG = Instance.new("Frame", _S)
+    _CPG.Size = UDim2.new(1, 0, 1, 0); _CPG.BackgroundColor3 = Color3.new(0, 0, 0); _CPG.BackgroundTransparency = 0.5; _CPG.ZIndex = 50
     
-    local _CBox = Instance.new("Frame", _CBG)
+    local _CBox = Instance.new("Frame", _CPG)
     _CBox.Size = UDim2.new(0, 280, 0, 150); _CBox.Position = UDim2.new(0.5, -140, 0.5, -75); _CBox.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
     Instance.new("UICorner", _CBox); local _s = Instance.new("UIStroke", _CBox); _s.Color = Color3.fromRGB(100, 100, 100); _s.Thickness = 2
     
     local _Txt = Instance.new("TextLabel", _CBox)
     _Txt.Size = UDim2.new(1, 0, 0, 60); _Txt.Text = "确定要运行\n[" .. scriptName .. "] 吗？"; _Txt.TextColor3 = Color3.new(1,1,1); _Txt.Font = "GothamBold"; _Txt.TextSize = 14; _Txt.BackgroundTransparency = 1
     
-    local _Yes = Instance.new("TextButton", _CBox); _Yes.Size = UDim2.new(0, 100, 0, 35); _Yes.Position = UDim2.new(0.15, 0, 0.65, 0); _Yes.BackgroundColor3 = Color3.fromRGB(40,40,40); _Yes.Text = "运行"; _Yes.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", _Yes)
+    local _Yes = Instance.new("TextButton", _CBox); _Yes.Size = UDim2.new(0, 100, 0, 35); _Yes.Position = UDim2.new(0.15, 0, 0.65, 0); _Yes.BackgroundColor3 = Color3.fromRGB(40,40,40); _Yes.Text = "确定"; _Yes.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", _Yes)
     local _No = Instance.new("TextButton", _CBox); _No.Size = UDim2.new(0, 100, 0, 35); _No.Position = UDim2.new(0.55, 0, 0.65, 0); _No.BackgroundColor3 = Color3.fromRGB(40,40,40); _No.Text = "取消"; _No.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", _No)
     
-    _Yes.MouseButton1Click:Connect(function() _CBG:Destroy(); callback() end)
-    _No.MouseButton1Click:Connect(function() _CBG:Destroy() end)
+    _Yes.MouseButton1Click:Connect(function() _CPG:Destroy(); callback() end)
+    _No.MouseButton1Click:Connect(function() _CPG:Destroy() end)
 end
 
--- ==================== 🛠️ 2. 主 UI 框架 (直接显示) ====================
+-- ==================== 🛠️ 2. 主 UI 框架 (启动即显示) ====================
 local _M = Instance.new("Frame", _S)
 _M.Size = UDim2.new(0, 520, 0, 520); _M.Position = UDim2.new(0.02, 0, 0.25, 0)
 _M.BackgroundColor3 = Color3.fromRGB(15, 15, 15); _M.BorderSizePixel = 0; _M.Visible = true; _M.ClipsDescendants = true
@@ -82,7 +82,7 @@ local function _CreateSBtn(name, page)
 end
 _CreateSBtn("基本功能", _P1); _CreateSBtn("不用钥匙库", _P2); _CreateSBtn("需要钥匙库", _P3); _CreateSBtn("介绍以及更新", _P4)
 
--- ==================== 🛠️ 3. 按钮工厂 (修复逻辑) ====================
+-- ==================== 🛠️ 3. 按钮工厂 (修复开关状态) ====================
 local function _CreateT(name, key, order, parent)
     local b = Instance.new("TextButton", parent); b.LayoutOrder = order; b.Size = UDim2.new(0.9, 0, 0, 50); b.BackgroundColor3 = Color3.fromRGB(35, 35, 35); b.Text = name; b.Font = "GothamBold"; b.TextSize = 14; b.TextColor3 = Color3.new(1, 1, 1); Instance.new("UICorner", b)
     local i = Instance.new("Frame", b); i.Size = UDim2.new(0, 6, 0.6, 0); i.Position = UDim2.new(0, 8, 0.2, 0); i.BackgroundColor3 = Color3.fromRGB(200, 0, 0); i.BorderSizePixel = 0
@@ -99,17 +99,17 @@ _CreateT("内置穿墙", "v_0x2", 13, _P1)
 _CreateT("速度开关", "v_0x3", 14, _P1)
 _CreateT("飞行开关", "v_0x4", 15, _P1)
 
--- 免密脚本库按钮 (加入确认 UI)
+-- 脚本库按钮 (点击后弹窗确认)
 local function _CreateS(name, url, p)
     local b = Instance.new("TextButton", p); b.Size = UDim2.new(0.9, 0, 0, 50); b.BackgroundColor3 = Color3.fromRGB(30,30,30); b.Text = name; b.TextColor3 = Color3.new(1,1,1); b.Name = "S_"..name; Instance.new("UICorner", b)
     b.MouseButton1Click:Connect(function() 
-        _ShowConfirmUI(name, function() loadstring(game:HttpGet(url))() end) 
+        _ShowConfirmPopup(name, function() loadstring(game:HttpGet(url))() end) 
     end)
 end
 _CreateS("Nameless Admin", "https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source", _P2)
 _CreateS("自动连点器", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", _P2)
 
--- ==================== ⚙️ 4. 核心逻辑引擎 (加固版) ====================
+-- ==================== ⚙️ 4. 核心功能引擎 (实装 ESP) ====================
 local _FlyVelo = nil
 
 _RS.Stepped:Connect(function()
@@ -120,43 +120,57 @@ end)
 
 _RS.RenderStepped:Connect(function()
     _Glow.Color = _RGB_CORE.Color
-    if not _LP.Character or not _LP.Character:FindFirstChild("Humanoid") then return end
+    if not _LP.Character or not _LP.Character:FindFirstChild("HumanoidRootPart") then return end
     
     local hrp = _LP.Character.HumanoidRootPart
     local hum = _LP.Character.Humanoid
     
-    -- 速度与飞行逻辑修复
+    -- 速度与飞行
     hum.WalkSpeed = _G_LMM_88.v_0x3 and _G_LMM_88.v_val_1 or 16
     if _G_LMM_88.v_0x4 then
-        if not _FlyVelo then 
-            _FlyVelo = Instance.new("BodyVelocity", hrp); _FlyVelo.MaxForce = Vector3.new(9e9, 9e9, 9e9) 
-        end
+        if not _FlyVelo then _FlyVelo = Instance.new("BodyVelocity", hrp); _FlyVelo.MaxForce = Vector3.new(9e9, 9e9, 9e9) end
         _FlyVelo.Velocity = hum.MoveDirection.Magnitude > 0 and _Cam.CFrame.LookVector * _G_LMM_88.v_val_2 or Vector3.new(0,0,0)
-    elseif _FlyVelo then 
-        _FlyVelo:Destroy(); _FlyVelo = nil 
-    end
+    elseif _FlyVelo then _FlyVelo:Destroy(); _FlyVelo = nil end
     
-    -- ESP 系统 (描边+方框)
+    -- ESP 系统渲染
     for _, p in pairs(_P:GetPlayers()) do
         if p ~= _LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local targetHrp = p.Character.HumanoidRootPart
+            
             -- 1. 描边
             local hl = p.Character:FindFirstChild("LMM_HL") or Instance.new("Highlight", p.Character)
-            hl.Name = "LMM_HL"; hl.Enabled = _G_LMM_88.v_0x1
+            hl.Name = "LMM_HL"; hl.Enabled = _G_LMM_88.v_0x1; hl.FillTransparency = 0.5; hl.OutlineColor = Color3.new(1,1,1)
             
-            -- 2. 方框 (BillboardGui 方式更稳定)
-            local box = p.Character.HumanoidRootPart:FindFirstChild("LMM_Box")
+            -- 2. 方框 (BillboardGui 方式)
+            local box = targetHrp:FindFirstChild("LMM_Box")
             if _G_LMM_88.v_0x1_box then
                 if not box then
-                    box = Instance.new("BillboardGui", p.Character.HumanoidRootPart); box.Name = "LMM_Box"; box.Size = UDim2.new(4,0,5,0); box.AlwaysOnTop = true
+                    box = Instance.new("BillboardGui", targetHrp); box.Name = "LMM_Box"; box.Size = UDim2.new(4,0,5.5,0); box.AlwaysOnTop = true
                     local f = Instance.new("Frame", box); f.Size = UDim2.new(1,0,1,0); f.BackgroundTransparency = 1
                     local st = Instance.new("UIStroke", f); st.Thickness = 2; st.Color = Color3.new(1,1,1)
                 end
             elseif box then box:Destroy() end
+            
+            -- 3. 射线 (简单的 Tracer)
+            local line = _CG:FindFirstChild("LMM_Line_"..p.Name)
+            if _G_LMM_88.v_0x1_line then
+                local vector, onScreen = _Cam:WorldToViewportPoint(targetHrp.Position)
+                if onScreen then
+                    if not line then line = Instance.new("Frame", _S); line.Name = "LMM_Line_"..p.Name; line.BackgroundColor3 = Color3.new(1,1,1); line.BorderSizePixel = 0 end
+                    local startPos = Vector2.new(_Cam.ViewportSize.X/2, _Cam.ViewportSize.Y)
+                    local endPos = Vector2.new(vector.X, vector.Y)
+                    local dist = (endPos - startPos).Magnitude
+                    line.Size = UDim2.new(0, dist, 0, 1)
+                    line.Position = UDim2.new(0, (startPos.X + endPos.X)/2, 0, (startPos.Y + endPos.Y)/2)
+                    line.Rotation = math.deg(math.atan2(endPos.Y - startPos.Y, endPos.X - startPos.X))
+                    line.Visible = true
+                elseif line then line.Visible = false end
+            elseif line then line:Destroy() end
         end
     end
 end)
 
--- 窗口控制按钮 (cite: Saved Information - 替换逻辑在 Page 4)
+-- 窗口控制按钮
 local function _Ctrl(t, x, c, f)
     local b = Instance.new("TextButton", _TB); b.Size = UDim2.new(0, 30, 0, 30); b.Position = UDim2.new(1, x, 0.5, -15); b.Text = t; b.BackgroundColor3 = c; b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b); b.MouseButton1Click:Connect(f)
 end
@@ -166,6 +180,6 @@ _Ctrl("—", -80, Color3.fromRGB(60, 60, 60), function()
     _M.Size = _Container.Visible and UDim2.new(0, 520, 0, 520) or UDim2.new(0, 520, 0, 55)
 end)
 
--- 蓝色按钮 (Page 4)
+-- DISCORD 按钮
 local _D = Instance.new("TextButton", _P4); _D.Size = UDim2.new(0.9, 0, 0, 55); _D.BackgroundColor3 = Color3.fromRGB(88, 101, 242); _D.Text = "🔗 JOIN DISCORD"; _D.Font="GothamBold"; _D.TextSize=18; _D.TextColor3=Color3.new(1,1,1); Instance.new("UICorner", _D)
 _D.MouseButton1Click:Connect(function() setclipboard("https://discord.gg/cjpezEZub"); _D.Text = "已复制链接!" end)
