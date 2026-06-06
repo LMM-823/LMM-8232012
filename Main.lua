@@ -1,7 +1,9 @@
--- [[ 1. GitHub 界面框架：Main.lua ]]
+-- [[ 1. GitHub 界面框架：Main.lua (已完美修复拖拽视角与缩小按钮) ]]
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
 
+-- 清理旧 UI
 if CoreGui:FindFirstChild("AnimeLeagueUI") then
     CoreGui:FindFirstChild("AnimeLeagueUI"):Destroy()
 end
@@ -10,6 +12,13 @@ local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "AnimeLeagueUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
+
+-- 缓存本地玩家控制模块 (用于彻底锁视角)
+local LocalPlayer = Players.LocalPlayer
+local PlayerModule
+local success, err = pcall(function()
+    PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
+end)
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
@@ -23,23 +32,60 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 9)
 MainCorner.Parent = MainFrame
 
--- Delta 移动端完美防断触拖拽
+-- 创建一个悬浮小球（初始隐藏）
+local ToggleBtn = Instance.new("TextButton")
+ToggleBtn.Name = "ToggleBtn"
+ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
+ToggleBtn.Position = UDim2.new(0, 10, 0.5, -25)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(114, 70, 196)
+ToggleBtn.Text = "AL"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 16
+ToggleBtn.Visible = false
+ToggleBtn.Parent = ScreenGui
+
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 25)
+BtnCorner.Parent = ToggleBtn
+
+-- 悬浮球的点击事件 (显示主框架，隐藏自己)
+ToggleBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    ToggleBtn.Visible = false
+end)
+
+-- 优化后的防断触拖拽 + 彻底锁定角色/视角移动
 local dragging, dragInput, dragStart, startPos
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = MainFrame.Position
+        
+        -- 当开始拖动 UI 时，禁用游戏视角控制，防止角色和屏幕跟着转动
+        if PlayerModule and PlayerModule.GetControls then
+            pcall(function() PlayerModule:GetControls():Disable() end)
+        end
+        
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            if input.UserInputState == Enum.UserInputState.End then 
+                dragging = false 
+                -- 放开手指时，恢复游戏视角和角色控制
+                if PlayerModule and PlayerModule.GetControls then
+                    pcall(function() PlayerModule:GetControls():Enable() end)
+                end
+            end
         end)
     end
 end)
+
 MainFrame.InputChanged:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
         dragInput = input
     end
 end)
+
 UserInputService.InputChanged:Connect(function(input)
     if input == dragInput and dragging then
         local delta = input.Position - dragStart
@@ -65,6 +111,7 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.BackgroundTransparency = 1
 Title.Parent = TopBar
 
+-- 【新加】右侧打叉按钮 (×)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Size = UDim2.new(0, 32, 0, 32)
@@ -76,6 +123,24 @@ CloseBtn.Font = Enum.Font.Gotham
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Parent = TopBar
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+
+-- 【新加】打叉左边的缩小按钮 (—)
+local MinimizeBtn = Instance.new("TextButton")
+MinimizeBtn.Name = "MinimizeBtn"
+MinimizeBtn.Size = UDim2.new(0, 32, 0, 32)
+MinimizeBtn.Position = UDim2.new(1, -76, 0.5, -16)  -- 正好排在关闭按钮的左边
+MinimizeBtn.Text = "—"
+MinimizeBtn.TextColor3 = Color3.fromRGB(160, 160, 165)
+MinimizeBtn.TextSize = 16
+MinimizeBtn.Font = Enum.Font.GothamBold
+MinimizeBtn.BackgroundTransparency = 1
+MinimizeBtn.Parent = TopBar
+
+-- 缩小按钮点击事件 (隐藏主框架，显示左侧小悬浮球)
+MinimizeBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = false
+    ToggleBtn.Visible = true
+end)
 
 local TabBar = Instance.new("Frame")
 TabBar.Name = "TabBar"
@@ -221,4 +286,4 @@ if TabButtons["🌵 Main"] then
     TabButtons["🌵 Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
     Pages["🌵 Main"].Visible = true
 end
-print("[ANIME LEAGUE] 云端 UI 加载完毕！")
+print("[ANIME LEAGUE] 云端新版 UI 已经全部加载完毕！")
