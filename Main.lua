@@ -1,9 +1,7 @@
--- [[ 1. GitHub 上的 Main.lua ]]
+-- [[ 1. GitHub 界面框架：Main.lua ]]
 local CoreGui = game:GetService("CoreGui")
-local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
 
--- 清理旧 UI
 if CoreGui:FindFirstChild("AnimeLeagueUI") then
     CoreGui:FindFirstChild("AnimeLeagueUI"):Destroy()
 end
@@ -25,7 +23,7 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 9)
 MainCorner.Parent = MainFrame
 
--- Delta 移动端拖拽
+-- Delta 移动端完美防断触拖拽
 local dragging, dragInput, dragStart, startPos
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -223,4 +221,4 @@ if TabButtons["🌵 Main"] then
     TabButtons["🌵 Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
     Pages["🌵 Main"].Visible = true
 end
-print("[ANIME LEAGUE] 云端 UI 渲染框架完美加载！")
+print("[ANIME LEAGUE] 云端 UI 加载完毕！")
