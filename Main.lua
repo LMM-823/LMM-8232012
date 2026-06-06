@@ -1,7 +1,7 @@
--- [[ 1. GitHub 界面框架：Main.lua (已完美修复拖拽视角与缩小按钮) ]]
+-- [[ 1. GitHub 界面框架：Main.lua (绝对锁定视角 + 强显缩小按钮) ]]
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 
 -- 清理旧 UI
 if CoreGui:FindFirstChild("AnimeLeagueUI") then
@@ -13,12 +13,8 @@ ScreenGui.Name = "AnimeLeagueUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
--- 缓存本地玩家控制模块 (用于彻底锁视角)
-local LocalPlayer = Players.LocalPlayer
-local PlayerModule
-local success, err = pcall(function()
-    PlayerModule = require(LocalPlayer:WaitForChild("PlayerScripts"):WaitForChild("PlayerModule"))
-end)
+-- 缓存摄像机
+local Camera = Workspace.CurrentCamera
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
@@ -32,30 +28,30 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 9)
 MainCorner.Parent = MainFrame
 
--- 创建一个悬浮小球（初始隐藏）
+-- 创建左侧悬浮小球（初始隐藏）
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "ToggleBtn"
-ToggleBtn.Size = UDim2.new(0, 50, 0, 50)
-ToggleBtn.Position = UDim2.new(0, 10, 0.5, -25)
+ToggleBtn.Size = UDim2.new(0, 46, 0, 46)
+ToggleBtn.Position = UDim2.new(0, 15, 0.5, -23)
 ToggleBtn.BackgroundColor3 = Color3.fromRGB(114, 70, 196)
 ToggleBtn.Text = "AL"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 16
+ToggleBtn.TextSize = 14
 ToggleBtn.Visible = false
 ToggleBtn.Parent = ScreenGui
 
 local BtnCorner = Instance.new("UICorner")
-BtnCorner.CornerRadius = UDim.new(0, 25)
+BtnCorner.CornerRadius = UDim.new(0, 23)
 BtnCorner.Parent = ToggleBtn
 
--- 悬浮球的点击事件 (显示主框架，隐藏自己)
+-- 悬浮球点击弹回主界面
 ToggleBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = true
     ToggleBtn.Visible = false
 end)
 
--- 优化后的防断触拖拽 + 彻底锁定角色/视角移动
+-- 【暴力锁视角方案】拖拽时直接剥夺官方 Camera 控制权
 local dragging, dragInput, dragStart, startPos
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -63,17 +59,17 @@ MainFrame.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPos = MainFrame.Position
         
-        -- 当开始拖动 UI 时，禁用游戏视角控制，防止角色和屏幕跟着转动
-        if PlayerModule and PlayerModule.GetControls then
-            pcall(function() PlayerModule:GetControls():Disable() end)
+        -- 核心突破：手指只要摸到UI，背景视角瞬间冻结
+        if Camera then
+            Camera.CameraType = Enum.CameraType.Scriptable
         end
         
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then 
                 dragging = false 
-                -- 放开手指时，恢复游戏视角和角色控制
-                if PlayerModule and PlayerModule.GetControls then
-                    pcall(function() PlayerModule:GetControls():Enable() end)
+                -- 手指放开，背景视角立马恢复正常
+                if Camera then
+                    Camera.CameraType = Enum.CameraType.Custom
                 end
             end
         end)
@@ -111,35 +107,39 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.BackgroundTransparency = 1
 Title.Parent = TopBar
 
--- 【新加】右侧打叉按钮 (×)
+-- 【精准定位】右侧关闭按钮 (×)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
-CloseBtn.Size = UDim2.new(0, 32, 0, 32)
-CloseBtn.Position = UDim2.new(1, -42, 0.5, -16)
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -40, 0.5, -15) -- 紧贴右边缘
 CloseBtn.Text = "×"
 CloseBtn.TextColor3 = Color3.fromRGB(160, 160, 165)
-CloseBtn.TextSize = 26
+CloseBtn.TextSize = 24
 CloseBtn.Font = Enum.Font.Gotham
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Parent = TopBar
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- 【新加】打叉左边的缩小按钮 (—)
+-- 【精准定位】并排在左侧的缩小按钮 (—)
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Name = "MinimizeBtn"
-MinimizeBtn.Size = UDim2.new(0, 32, 0, 32)
-MinimizeBtn.Position = UDim2.new(1, -76, 0.5, -16)  -- 正好排在关闭按钮的左边
+MinimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+MinimizeBtn.Position = UDim2.new(1, -75, 0.5, -15) -- 完美靠在关闭按钮左边，绝对不会出界
 MinimizeBtn.Text = "—"
 MinimizeBtn.TextColor3 = Color3.fromRGB(160, 160, 165)
-MinimizeBtn.TextSize = 16
+MinimizeBtn.TextSize = 14
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.BackgroundTransparency = 1
 MinimizeBtn.Parent = TopBar
 
--- 缩小按钮点击事件 (隐藏主框架，显示左侧小悬浮球)
+-- 缩小事件
 MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false
     ToggleBtn.Visible = true
+    -- 确保缩小隐藏后视角处于正常状态
+    if Camera then
+        Camera.CameraType = Enum.CameraType.Custom
+    end
 end)
 
 local TabBar = Instance.new("Frame")
@@ -286,4 +286,4 @@ if TabButtons["🌵 Main"] then
     TabButtons["🌵 Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
     Pages["🌵 Main"].Visible = true
 end
-print("[ANIME LEAGUE] 云端新版 UI 已经全部加载完毕！")
+print("[ANIME LEAGUE] 云端绝对防御版 UI 加载完毕！")
