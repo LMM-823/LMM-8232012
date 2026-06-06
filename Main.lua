@@ -1,5 +1,4 @@
-
--- [[ 1. GitHub 界面框架：Main.lua (满屏触控拦截锁视角 + 智能判定拖拽 + 星空色系) ]]
+-- [[ 1. GitHub 界面框架：Main.lua (绝对锁定视角 + 强显缩小按钮) ]]
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
@@ -14,29 +13,14 @@ ScreenGui.Name = "AnimeLeagueUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
+-- 缓存摄像机
 local Camera = Workspace.CurrentCamera
-
--- 【星空色系：高级暗夜星空渐变】
-local GalaxyColor = Color3.fromRGB(83, 58, 172)       -- 星空核心（高贵蓝紫）
-local GalaxyDark = Color3.fromRGB(20, 18, 24)         -- 星空夜幕底色
-local GalaxyTabBg = Color3.fromRGB(31, 28, 38)        -- 标签栏暗色
-local GalaxyBtnBg = Color3.fromRGB(41, 37, 51)        -- 按钮组件底色
-
--- 【核心黑科技：满屏全透明触控拦截层（专治移动端视角跟随穿透）】
-local ShieldFrame = Instance.new("TextButton")
-ShieldFrame.Name = "TouchShield"
-ShieldFrame.Size = UDim2.new(1, 0, 1, 0)
-ShieldFrame.BackgroundTransparency = 1
-ShieldFrame.Text = ""
-ShieldFrame.Modal = true -- 强制把移动端官方视角的控制权剥夺截断
-ShieldFrame.Visible = false
-ShieldFrame.Parent = ScreenGui
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
 MainFrame.Size = UDim2.new(0, 520, 0, 360)
 MainFrame.Position = UDim2.new(0.5, -260, 0.5, -180)
-MainFrame.BackgroundColor3 = GalaxyDark
+MainFrame.BackgroundColor3 = Color3.fromRGB(23, 21, 28)
 MainFrame.BorderSizePixel = 0
 MainFrame.Parent = ScreenGui
 
@@ -44,74 +28,30 @@ local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 9)
 MainCorner.Parent = MainFrame
 
--- 【全新升级：可自由拖拽星空悬浮球】
+-- 创建左侧悬浮小球（初始隐藏）
 local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "ToggleBtn"
-ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
-ToggleBtn.Position = UDim2.new(0, 15, 0.5, -24)
-ToggleBtn.BackgroundColor3 = GalaxyColor
+ToggleBtn.Size = UDim2.new(0, 46, 0, 46)
+ToggleBtn.Position = UDim2.new(0, 15, 0.5, -23)
+ToggleBtn.BackgroundColor3 = Color3.fromRGB(114, 70, 196)
 ToggleBtn.Text = "AL"
 ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 ToggleBtn.Font = Enum.Font.GothamBold
-ToggleBtn.TextSize = 15
+ToggleBtn.TextSize = 14
 ToggleBtn.Visible = false
 ToggleBtn.Parent = ScreenGui
 
-local ballCorner = Instance.new("UICorner")
-ballCorner.CornerRadius = UDim.new(0, 24)
-ballCorner.Parent = ToggleBtn
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 23)
+BtnCorner.Parent = ToggleBtn
 
--- ==========================================
--- 🧠 模块1：悬浮球智能拖拽逻辑 (不转视角、放开不误触)
--- ==========================================
-local ballDragging, ballInput, ballStart, ballPos
-local dragDistance = 0 -- 记录拖动距离，防止放开时误触弹开界面
-
-ToggleBtn.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-        ballDragging = true
-        ballStart = input.Position
-        ballPos = ToggleBtn.Position
-        dragDistance = 0
-        
-        -- 开启绝对防御拦截层 + 锁死Camera
-        ShieldFrame.Visible = true
-        if Camera then Camera.CameraType = Enum.CameraType.Scriptable end
-        
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then 
-                ballDragging = false 
-                ShieldFrame.Visible = false
-                if Camera then Camera.CameraType = Enum.CameraType.Custom end
-                
-                -- 【智能点击过滤】：如果手指移动距离非常小，说明是单纯的点击，触发还原主界面
-                if dragDistance < 8 then
-                    MainFrame.Visible = true
-                    ToggleBtn.Visible = false
-                end
-            end
-        end)
-    end
+-- 悬浮球点击弹回主界面
+ToggleBtn.MouseButton1Click:Connect(function()
+    MainFrame.Visible = true
+    ToggleBtn.Visible = false
 end)
 
-ToggleBtn.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-        ballInput = input
-    end
-end)
-
-UserInputService.InputChanged:Connect(function(input)
-    if input == ballInput and ballDragging then
-        local delta = input.Position - ballStart
-        dragDistance = dragDistance + delta.Magnitude -- 累加滑动路程
-        ToggleBtn.Position = UDim2.new(ballPos.X.Scale, ballPos.X.Offset + delta.X, ballPos.Y.Scale, ballPos.Y.Offset + delta.Y)
-    end
-end)
-
-
--- ==========================================
--- 🧠 模块2：主界面拖拽逻辑 (开启满屏Modal拦截防视角抖动)
--- ==========================================
+-- 【暴力锁视角方案】拖拽时直接剥夺官方 Camera 控制权
 local dragging, dragInput, dragStart, startPos
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -119,14 +59,18 @@ MainFrame.InputBegan:Connect(function(input)
         dragStart = input.Position
         startPos = MainFrame.Position
         
-        ShieldFrame.Visible = true
-        if Camera then Camera.CameraType = Enum.CameraType.Scriptable end
+        -- 核心突破：手指只要摸到UI，背景视角瞬间冻结
+        if Camera then
+            Camera.CameraType = Enum.CameraType.Scriptable
+        end
         
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then 
                 dragging = false 
-                ShieldFrame.Visible = false
-                if Camera then Camera.CameraType = Enum.CameraType.Custom end
+                -- 手指放开，背景视角立马恢复正常
+                if Camera then
+                    Camera.CameraType = Enum.CameraType.Custom
+                end
             end
         end)
     end
@@ -145,10 +89,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-
--- ==========================================
--- 🧠 模块3：UI 顶栏与缩放关闭按钮定位
--- ==========================================
 local TopBar = Instance.new("Frame")
 TopBar.Name = "TopBar"
 TopBar.Size = UDim2.new(1, 0, 0, 42)
@@ -167,11 +107,11 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.BackgroundTransparency = 1
 Title.Parent = TopBar
 
--- 精准并排：右侧关闭按钮 (×)
+-- 【精准定位】右侧关闭按钮 (×)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
+CloseBtn.Position = UDim2.new(1, -40, 0.5, -15) -- 紧贴右边缘
 CloseBtn.Text = "×"
 CloseBtn.TextColor3 = Color3.fromRGB(160, 160, 165)
 CloseBtn.TextSize = 24
@@ -180,11 +120,11 @@ CloseBtn.BackgroundTransparency = 1
 CloseBtn.Parent = TopBar
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- 精准并排：靠在左边的缩小按钮 (—)
+-- 【精准定位】并排在左侧的缩小按钮 (—)
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Name = "MinimizeBtn"
 MinimizeBtn.Size = UDim2.new(0, 30, 0, 30)
-MinimizeBtn.Position = UDim2.new(1, -75, 0.5, -15)
+MinimizeBtn.Position = UDim2.new(1, -75, 0.5, -15) -- 完美靠在关闭按钮左边，绝对不会出界
 MinimizeBtn.Text = "—"
 MinimizeBtn.TextColor3 = Color3.fromRGB(160, 160, 165)
 MinimizeBtn.TextSize = 14
@@ -192,23 +132,21 @@ MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.BackgroundTransparency = 1
 MinimizeBtn.Parent = TopBar
 
--- 缩小按钮点击事件 (隐藏大界面，亮出星空悬浮球)
+-- 缩小事件
 MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false
     ToggleBtn.Visible = true
-    ShieldFrame.Visible = false
-    if Camera then Camera.CameraType = Enum.CameraType.Custom end
+    -- 确保缩小隐藏后视角处于正常状态
+    if Camera then
+        Camera.CameraType = Enum.CameraType.Custom
+    end
 end)
 
-
--- ==========================================
--- 🧠 模块4：选项卡及分页按钮渲染
--- ==========================================
 local TabBar = Instance.new("Frame")
 TabBar.Name = "TabBar"
 TabBar.Size = UDim2.new(1, -32, 0, 38)
 TabBar.Position = UDim2.new(0, 16, 0, 42)
-TabBar.BackgroundColor3 = GalaxyTabBg
+TabBar.BackgroundColor3 = Color3.fromRGB(30, 28, 36)
 TabBar.Parent = MainFrame
 
 local TabBarCorner = Instance.new("UICorner")
@@ -240,7 +178,7 @@ local function CreateTab(tabName, order)
     local TabBtn = Instance.new("TextButton")
     TabBtn.Name = tabName .. "_Btn"
     TabBtn.Size = UDim2.new(0, 100, 0, 28)
-    TabBtn.BackgroundColor3 = GalaxyBtnBg
+    TabBtn.BackgroundColor3 = Color3.fromRGB(38, 36, 44)
     TabBtn.Text = tabName
     TabBtn.TextColor3 = Color3.fromRGB(170, 170, 175)
     TabBtn.Font = Enum.Font.GothamBold
@@ -258,7 +196,7 @@ local function CreateTab(tabName, order)
     Page.BackgroundTransparency = 1
     Page.Visible = false
     Page.ScrollBarThickness = 3
-    Page.ScrollBarImageColor3 = Color3.fromRGB(65, 60, 80)
+    Page.ScrollBarImageColor3 = Color3.fromRGB(70, 68, 80)
     Page.CanvasSize = UDim2.new(0, 0, 0, 0)
     Page.Parent = PageContainer
 
@@ -282,11 +220,11 @@ local function CreateTab(tabName, order)
 
     TabBtn.MouseButton1Click:Connect(function()
         for name, btn in pairs(TabButtons) do
-            btn.BackgroundColor3 = GalaxyBtnBg
+            btn.BackgroundColor3 = Color3.fromRGB(38, 36, 44)
             btn.TextColor3 = Color3.fromRGB(170, 170, 175)
         end
         for name, pg in pairs(Pages) do pg.Visible = false end
-        TabBtn.BackgroundColor3 = GalaxyColor
+        TabBtn.BackgroundColor3 = Color3.fromRGB(114, 70, 196)
         TabBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         Page.Visible = true
     end)
@@ -298,7 +236,7 @@ local function CreateEmptyButton(tabName, order)
 
     local RowFrame = Instance.new("Frame")
     RowFrame.Size = UDim2.new(1, 0, 0, 40)
-    RowFrame.BackgroundColor3 = GalaxyTabBg
+    RowFrame.BackgroundColor3 = Color3.fromRGB(30, 28, 36)
     RowFrame.BorderSizePixel = 0
     RowFrame.LayoutOrder = order
     RowFrame.Parent = targetPage
@@ -321,7 +259,7 @@ local function CreateEmptyButton(tabName, order)
     local ClickButton = Instance.new("TextButton")
     ClickButton.Size = UDim2.new(0, 85, 0, 26)
     ClickButton.Position = UDim2.new(1, -98, 0.5, -13)
-    ClickButton.BackgroundColor3 = GalaxyBtnBg
+    ClickButton.BackgroundColor3 = Color3.fromRGB(48, 45, 56)
     ClickButton.Text = "1"
     ClickButton.TextColor3 = Color3.fromRGB(200, 200, 205)
     ClickButton.Font = Enum.Font.GothamBold
@@ -344,9 +282,8 @@ for i = 1, 4 do CreateEmptyButton("👁️ Visuals", i) end
 for i = 1, 3 do CreateEmptyButton("⚙️ Settings", i) end
 
 if TabButtons["🌵 Main"] then
-    TabButtons["🌵 Main"].BackgroundColor3 = GalaxyColor
+    TabButtons["🌵 Main"].BackgroundColor3 = Color3.fromRGB(114, 70, 196)
     TabButtons["🌵 Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
     Pages["🌵 Main"].Visible = true
 end
-
-print("[ANIME LEAGUE] 终极防视角穿透星空版 UI 全面加载成功！")
+print("[ANIME LEAGUE] 云端绝对防御版 UI 加载完毕！")
