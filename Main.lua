@@ -1,60 +1,71 @@
--- [[ 1. GitHub 界面框架：全新 Neon Dark 极简极速版 ]]
+-- [[ 1. GitHub 界面框架：极致复刻截图质感版 ]]
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
+local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
-local LocalPlayer = game:GetService("Players").LocalPlayer
+local LocalPlayer = Players.LocalPlayer
 local Camera = Workspace.CurrentCamera
 
--- 清理旧 UI
-if CoreGui:FindFirstChild("NeonUI") then CoreGui:FindFirstChild("NeonUI"):Destroy() end
+if CoreGui:FindFirstChild("AnimeLeagueUI") then CoreGui:FindFirstChild("AnimeLeagueUI"):Destroy() end
 
-local ScreenGui = Instance.new("ScreenGui", CoreGui); ScreenGui.Name = "NeonUI"; ScreenGui.ResetOnSpawn = false
+local ScreenGui = Instance.new("ScreenGui", CoreGui); ScreenGui.Name = "AnimeLeagueUI"; ScreenGui.ResetOnSpawn = false
+local ShieldFrame = Instance.new("TextButton", ScreenGui); ShieldFrame.Size = UDim2.new(1,0,1,0); ShieldFrame.BackgroundTransparency = 1; ShieldFrame.Text = ""; ShieldFrame.Modal = true; ShieldFrame.Visible = false
 
--- 【Neon 配色方案】
-local Colors = {
-    Bg = Color3.fromRGB(15, 15, 20),
-    Tab = Color3.fromRGB(25, 25, 35),
-    Accent = Color3.fromRGB(0, 255, 170), -- 霓虹绿
-    Text = Color3.fromRGB(230, 230, 230)
-}
+-- 【质感色彩体系】
+local BGColor = Color3.fromRGB(18, 18, 22)      -- 深邃底色
+local TabColor = Color3.fromRGB(28, 28, 35)      -- 标签栏暗色
+local BtnColor = Color3.fromRGB(38, 38, 48)      -- 按钮块色彩
+local Accent = Color3.fromRGB(135, 95, 230)      -- 高级紫/蓝强调色
 
--- 核心主界面
-local MainFrame = Instance.new("Frame", ScreenGui)
-MainFrame.Size = UDim2.new(0, 450, 0, 300); MainFrame.Position = UDim2.new(0.5, -225, 0.5, -150)
-MainFrame.BackgroundColor3 = Colors.Bg; MainFrame.BorderSizePixel = 0; Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
-MainFrame.ClipsDescendants = true; MainFrame.Active = true; MainFrame.Draggable = true
+-- 主界面 (极度复刻圆角与比例)
+local MainFrame = Instance.new("Frame", ScreenGui); MainFrame.Size = UDim2.new(0, 500, 0, 320); MainFrame.Position = UDim2.new(0.5, -250, 0.5, -160)
+MainFrame.BackgroundColor3 = BGColor; MainFrame.BorderSizePixel = 0; Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 16)
+MainFrame.Active = true
 
--- 标题栏
-local Title = Instance.new("TextLabel", MainFrame); Title.Size = UDim2.new(1, 0, 0, 40); Title.BackgroundTransparency = 1
-Title.Text = "NEON HUB | v1.0"; Title.TextColor3 = Colors.Accent; Title.Font = Enum.Font.GothamBold; Title.TextSize = 18
+-- 拖拽逻辑 (顶级丝滑)
+local function setupDrag(obj)
+    local dragging, dragStart, startPos
+    obj.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true; dragStart = input.Position; startPos = obj.Position; ShieldFrame.Visible = true
+            if Camera then Camera.CameraType = Enum.CameraType.Scriptable end
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart; obj.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+        end
+    end)
+    UserInputService.InputEnded:Connect(function(input) 
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then 
+            dragging = false; ShieldFrame.Visible = false; if Camera then Camera.CameraType = Enum.CameraType.Custom end 
+        end
+    end)
+end
+setupDrag(MainFrame)
 
--- 关闭按钮
-local CloseBtn = Instance.new("TextButton", Title); CloseBtn.Size = UDim2.new(0, 30, 0, 30); CloseBtn.Position = UDim2.new(1, -35, 0, 5)
-CloseBtn.Text = "×"; CloseBtn.BackgroundTransparency = 1; CloseBtn.TextColor3 = Color3.new(1,1,1); CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
+-- 标签栏布局 (高度仿照截图)
+local TabBar = Instance.new("Frame", MainFrame); TabBar.Size = UDim2.new(1, -30, 0, 45); TabBar.Position = UDim2.new(0, 15, 0, 15); TabBar.BackgroundColor3 = TabColor; Instance.new("UICorner", TabBar).CornerRadius = UDim.new(0, 12)
+local PageContainer = Instance.new("ScrollingFrame", MainFrame); PageContainer.Size = UDim2.new(1, -30, 1, -80); PageContainer.Position = UDim2.new(0, 15, 0, 70); PageContainer.BackgroundTransparency = 1; Instance.new("UIListLayout", PageContainer).Padding = UDim.new(0, 8)
 
--- 内容区域
-local PageContainer = Instance.new("ScrollingFrame", MainFrame); PageContainer.Size = UDim2.new(1, -20, 1, -50); PageContainer.Position = UDim2.new(0, 10, 0, 45)
-PageContainer.BackgroundTransparency = 1; PageContainer.ScrollBarThickness = 2; Instance.new("UIListLayout", PageContainer).Padding = UDim.new(0, 8)
-
--- 极简按钮封装
-local function AddFeature(text, callback)
-    local b = Instance.new("TextButton", PageContainer); b.Size = UDim2.new(1, 0, 0, 45); b.BackgroundColor3 = Colors.Tab
-    b.Text = text; b.TextColor3 = Colors.Text; b.Font = Enum.Font.Gotham; b.TextSize = 14; b.AutoButtonColor = false
-    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
-    b.MouseButton1Click:Connect(callback)
-    
-    b.MouseEnter:Connect(function() b.BackgroundColor3 = Color3.fromRGB(35, 35, 50) end)
-    b.MouseLeave:Connect(function() b.BackgroundColor3 = Colors.Tab end)
+local function CreateTab(name)
+    local TabBtn = Instance.new("TextButton", TabBar); TabBtn.Size = UDim2.new(0.23, 0, 0.8, 0); TabBtn.BackgroundColor3 = BtnColor; TabBtn.Text = name; TabBtn.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", TabBtn).CornerRadius = UDim.new(0, 8)
+    local Page = Instance.new("ScrollingFrame", PageContainer); Page.Size = UDim2.new(1, 0, 1, 0); Page.BackgroundTransparency = 1; Page.Visible = false; Instance.new("UIListLayout", Page).Padding = UDim.new(0, 8)
+    TabBtn.MouseButton1Click:Connect(function() for _,p in pairs(PageContainer:GetChildren()) do if p:IsA("ScrollingFrame") then p.Visible = false end end; Page.Visible = true end)
+    return Page
 end
 
--- 功能逻辑注入
-local Speed = 50
-AddFeature("⚡ 速度切换 (50/100)", function(b) Speed = (Speed == 50) and 100 or 50; LocalPlayer.Character.Humanoid.WalkSpeed = Speed; b.Text = "当前速度: "..Speed end)
-AddFeature("🛡️ 穿墙 (Noclip)", function(b) 
-    RunService.Stepped:Connect(function() for _,p in pairs(LocalPlayer.Character:GetDescendants()) do if p:IsA("BasePart") then p.CanCollide = false end end end)
-    b.Text = "已开启穿墙"
-end)
-AddFeature("🔗 Discord", function() setclipboard("https://discord.gg/cjpezEZub") end)
+local MainTab = CreateTab("Main")
+local SettingsTab = CreateTab("Settings")
 
-print("Neon UI 加载成功")
+-- 极简按钮复刻
+local function AddB(p, t, c)
+    local b = Instance.new("TextButton", p); b.Size = UDim2.new(1, 0, 0, 45); b.BackgroundColor3 = BtnColor; b.Text = t; b.TextColor3 = Color3.new(1,1,1); Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8); b.MouseButton1Click:Connect(c)
+end
+
+AddB(MainTab, "⚡ 速度: 50", function(b) SpeedVal = (SpeedVal == 50) and 100 or 50; b.Text = "速度: "..SpeedVal end)
+AddB(MainTab, "🛡️ 穿墙 (Noclip)", function() end)
+AddB(SettingsTab, "🔗 JOIN DISCORD", function() setclipboard("https://discord.gg/cjpezEZub") end)
+
+MainTab.Visible = true
