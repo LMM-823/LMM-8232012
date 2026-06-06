@@ -1,8 +1,7 @@
--- [[ 1. GitHub 界面框架：Main.lua (终极底层触控死锁视角 + 独立点击热区星空悬浮球) ]]
+-- [[ 1. GitHub 界面框架：Main.lua (基于稳定版修改：星空色 + 修复悬浮球拖拽) ]]
 local CoreGui = game:GetService("CoreGui")
 local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
-local Players = game:GetService("Players")
 
 -- 清理旧 UI
 if CoreGui:FindFirstChild("AnimeLeagueUI") then
@@ -14,47 +13,14 @@ ScreenGui.Name = "AnimeLeagueUI"
 ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
+-- 缓存摄像机
 local Camera = Workspace.CurrentCamera
-local LocalPlayer = Players.LocalPlayer
 
--- 【暗夜星空宇宙色系】
-local GalaxyColor = Color3.fromRGB(83, 58, 172)       -- 星空璀璨蓝紫
-local GalaxyDark = Color3.fromRGB(20, 18, 24)         -- 暗夜主色底框
-local GalaxyTabBg = Color3.fromRGB(31, 28, 38)        -- 沉浸式标签底框
-local GalaxyBtnBg = Color3.fromRGB(41, 37, 51)        -- 按钮底框
-
--- 临时存储原始相机参数（用于秒恢复）
-local origMinDist, origMaxDist = 0.5, 70
-if Camera then
-    origMinDist = Camera.MinZoomDistance
-    origMaxDist = Camera.MaxZoomDistance
-end
-
--- ==========================================
--- 🔒 核心黑科技：移动端视角的绝对防御锁
--- ==========================================
-local function LockCameraInPlace()
-    if Camera then
-        pcall(function()
-            -- 暴力将相机的缩放距离锁死在当前的物理距离，系统彻底无法旋转和拉伸
-            local currentDist = (Camera.CoordinateFrame.p - Camera.Focus.p).Magnitude
-            Camera.MinZoomDistance = currentDist
-            Camera.MaxZoomDistance = currentDist
-            Camera.CameraType = Enum.CameraType.Scriptable
-        end)
-    end
-end
-
-local function UnlockCamera()
-    if Camera then
-        pcall(function()
-            -- 完美一秒恢复玩家的自由视角
-            Camera.CameraType = Enum.CameraType.Custom
-            Camera.MinZoomDistance = origMinDist
-            Camera.MaxZoomDistance = origMaxDist
-        end)
-    end
-end
+-- 【完美星空色系：高级暗夜渐变】
+local GalaxyColor = Color3.fromRGB(83, 58, 172)       -- 星空核心高贵蓝紫（代替原来的紫色）
+local GalaxyDark = Color3.fromRGB(20, 18, 24)         -- 暗夜宇宙黑底色
+local GalaxyTabBg = Color3.fromRGB(31, 28, 38)        -- 标签栏色调
+local GalaxyBtnBg = Color3.fromRGB(41, 37, 51)        -- 页面按钮底色
 
 local MainFrame = Instance.new("Frame")
 MainFrame.Name = "MainFrame"
@@ -62,67 +28,49 @@ MainFrame.Size = UDim2.new(0, 520, 0, 360)
 MainFrame.Position = UDim2.new(0.5, -260, 0.5, -180)
 MainFrame.BackgroundColor3 = GalaxyDark
 MainFrame.BorderSizePixel = 0
-MainFrame.Active = true -- 拦截UI内部的点击
 MainFrame.Parent = ScreenGui
 
 local MainCorner = Instance.new("UICorner")
 MainCorner.CornerRadius = UDim.new(0, 9)
 MainCorner.Parent = MainFrame
 
-
--- ==========================================
--- 🚀 模块1：完美独立拖拽与点击的【星空悬浮球】
--- ==========================================
-local ToggleBtn = Instance.new("Frame") -- 改用Frame做载体，防止Button底层的系统点按手势干扰拖拽
+-- 创建一个悬浮小球（初始隐藏）- 全新星空色
+local ToggleBtn = Instance.new("TextButton")
 ToggleBtn.Name = "ToggleBtn"
-ToggleBtn.Size = UDim2.new(0, 52, 0, 52)
-ToggleBtn.Position = UDim2.new(0, 20, 0.5, -26)
+ToggleBtn.Size = UDim2.new(0, 48, 0, 48)
+ToggleBtn.Position = UDim2.new(0, 15, 0.5, -24)
 ToggleBtn.BackgroundColor3 = GalaxyColor
+ToggleBtn.Text = "AL"
+ToggleBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleBtn.Font = Enum.Font.GothamBold
+ToggleBtn.TextSize = 15
 ToggleBtn.Visible = false
-ToggleBtn.Active = true
 ToggleBtn.Parent = ScreenGui
 
-local ballCorner = Instance.new("UICorner")
-ballCorner.CornerRadius = UDim.new(0, 26)
-ballCorner.Parent = ToggleBtn
+local BtnCorner = Instance.new("UICorner")
+BtnCorner.CornerRadius = UDim.new(0, 24)
+BtnCorner.Parent = ToggleBtn
 
--- 悬浮球中心的文字
-local ballText = Instance.new("TextLabel")
-ballText.Size = UDim2.new(1, 0, 1, 0)
-ballText.BackgroundTransparency = 1
-ballText.Text = "AL"
-ballText.TextColor3 = Color3.fromRGB(255, 255, 255)
-ballText.Font = Enum.Font.GothamBold
-ballText.TextSize = 16
-ballText.Parent = ToggleBtn
-
--- 【核心改进】：在悬浮球最上方覆盖一个专门用来点击的无触控穿透小按钮，点它100%秒回界面
-local ClickArea = Instance.new("TextButton")
-ClickArea.Size = UDim2.new(1, 0, 1, 0)
-ClickArea.BackgroundTransparency = 1
-ClickArea.Text = ""
-ClickArea.ZIndex = 5 -- 确保在最上层
-ClickArea.Parent = ToggleBtn
-
-ClickArea.MouseButton1Click:Connect(function()
+-- 悬浮球的点击事件 (恢复主框架，隐藏自己)
+ToggleBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = true
     ToggleBtn.Visible = false
-    UnlockCamera()
 end)
 
--- 悬浮球的底层无视距安全拖拽逻辑
+-- 【完美修复】给缩小悬浮球加上平滑移动逻辑 (同时锁视角)
 local ballDragging, ballInput, ballStart, ballPos
 ToggleBtn.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         ballDragging = true
         ballStart = input.Position
         ballPos = ToggleBtn.Position
-        LockCameraInPlace() -- 手指碰到的瞬间，背景视角彻底死锁
+        
+        if Camera then Camera.CameraType = Enum.CameraType.Scriptable end
         
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then 
                 ballDragging = false 
-                UnlockCamera() -- 放开手指，一秒放回视角
+                if Camera then Camera.CameraType = Enum.CameraType.Custom end
             end
         end)
     end
@@ -141,22 +89,20 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-
--- ==========================================
--- 🚀 模块2：主界面拖拽锁死背景视角逻辑
--- ==========================================
+-- 主大框架拖拽逻辑 (带防背景视角乱转)
 local dragging, dragInput, dragStart, startPos
 MainFrame.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
         startPos = MainFrame.Position
-        LockCameraInPlace() -- 开始拖大面板，视角死锁
+        
+        if Camera then Camera.CameraType = Enum.CameraType.Scriptable end
         
         input.Changed:Connect(function()
             if input.UserInputState == Enum.UserInputState.End then 
                 dragging = false 
-                UnlockCamera() -- 拖完放开，视角恢复
+                if Camera then Camera.CameraType = Enum.CameraType.Custom end
             end
         end)
     end
@@ -175,10 +121,6 @@ UserInputService.InputChanged:Connect(function(input)
     end
 end)
 
-
--- ==========================================
--- 🚀 模块3：UI 顶栏与精确定位的缩放关闭按钮
--- ==========================================
 local TopBar = Instance.new("Frame")
 TopBar.Name = "TopBar"
 TopBar.Size = UDim2.new(1, 0, 0, 42)
@@ -197,42 +139,38 @@ Title.TextXAlignment = Enum.TextXAlignment.Left
 Title.BackgroundTransparency = 1
 Title.Parent = TopBar
 
--- 精准靠边：右侧关闭按钮 (×)
+-- 右侧关闭按钮 (×)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Name = "CloseBtn"
-CloseBtn.Size = UDim2.new(0, 32, 0, 32)
-CloseBtn.Position = UDim2.new(1, -44, 0.5, -16)
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -40, 0.5, -15)
 CloseBtn.Text = "×"
-CloseBtn.TextColor3 = Color3.fromRGB(165, 165, 170)
+CloseBtn.TextColor3 = Color3.fromRGB(160, 160, 165)
 CloseBtn.TextSize = 24
 CloseBtn.Font = Enum.Font.Gotham
 CloseBtn.BackgroundTransparency = 1
 CloseBtn.Parent = TopBar
 CloseBtn.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
 
--- 精准并排：靠在关闭按钮左侧的缩小按钮 (—)
+-- 打叉左边的缩小按钮 (—)
 local MinimizeBtn = Instance.new("TextButton")
 MinimizeBtn.Name = "MinimizeBtn"
-MinimizeBtn.Size = UDim2.new(0, 32, 0, 32)
-MinimizeBtn.Position = UDim2.new(1, -82, 0.5, -16)
+MinimizeBtn.Size = UDim2.new(0, 30, 0, 30)
+MinimizeBtn.Position = UDim2.new(1, -75, 0.5, -15)
 MinimizeBtn.Text = "—"
-MinimizeBtn.TextColor3 = Color3.fromRGB(165, 165, 170)
+MinimizeBtn.TextColor3 = Color3.fromRGB(160, 160, 165)
 MinimizeBtn.TextSize = 14
 MinimizeBtn.Font = Enum.Font.GothamBold
 MinimizeBtn.BackgroundTransparency = 1
 MinimizeBtn.Parent = TopBar
 
--- 缩小按钮点击
+-- 缩小按钮点击事件 (隐藏主框架，显示左侧小悬浮球)
 MinimizeBtn.MouseButton1Click:Connect(function()
     MainFrame.Visible = false
     ToggleBtn.Visible = true
-    UnlockCamera()
+    if Camera then Camera.CameraType = Enum.CameraType.Custom end
 end)
 
-
--- ==========================================
--- 🚀 模块4：页面渲染与选项卡逻辑
--- ==========================================
 local TabBar = Instance.new("Frame")
 TabBar.Name = "TabBar"
 TabBar.Size = UDim2.new(1, -32, 0, 38)
@@ -287,7 +225,7 @@ local function CreateTab(tabName, order)
     Page.BackgroundTransparency = 1
     Page.Visible = false
     Page.ScrollBarThickness = 3
-    Page.ScrollBarImageColor3 = Color3.fromRGB(65, 60, 80)
+    Page.ScrollBarImageColor3 = Color3.fromRGB(70, 68, 80)
     Page.CanvasSize = UDim2.new(0, 0, 0, 0)
     Page.Parent = PageContainer
 
@@ -377,5 +315,4 @@ if TabButtons["🌵 Main"] then
     TabButtons["🌵 Main"].TextColor3 = Color3.fromRGB(255, 255, 255)
     Pages["🌵 Main"].Visible = true
 end
-
-print("[ANIME LEAGUE] 移动端绝对物理级防转视角 UI 已全面就绪！")
+print("[ANIME LEAGUE] 星空星轨稳定版 UI 加载完毕！")
