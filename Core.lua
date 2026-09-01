@@ -24,49 +24,40 @@ function Core.Tween(obj, props, time, style, dir)
     _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
 end
 
--- 二次确认弹窗 UI
+-- 【新增】通用确认弹窗UI函数 (在脚本区点击按钮时调用)
 function Core.ShowConfirm(title, desc, onConfirm)
-    -- 获取或创建弹窗专用容器
-    local parentGui = _CG:FindFirstChild("LMM_ConfirmGui") or _LP:WaitForChild("PlayerGui"):FindFirstChildOfClass("ScreenGui")
-    
+    -- 获取或创建 CoreGui 容器
+    local parentGui = _CG:FindFirstChild("LMM_ConfirmGui")
     if not parentGui then
         parentGui = Instance.new("ScreenGui")
         parentGui.Name = "LMM_ConfirmGui"
         parentGui.ResetOnSpawn = false
-        -- 尝试挂载到 CoreGui，若权限不足则回退到 PlayerGui
         pcall(function() parentGui.Parent = _CG end)
-        if not parentGui.Parent then
-            parentGui.Parent = _LP:WaitForChild("PlayerGui")
-        end
+        if not parentGui.Parent then parentGui.Parent = _LP:WaitForChild("PlayerGui") end
     end
 
-    -- 防止重复弹窗
-    if parentGui:FindFirstChild("LMM_ConfirmMask") then
-        parentGui.LMM_ConfirmMask:Destroy()
+    -- 防止重复创建
+    if parentGui:FindFirstChild("ConfirmMask") then
+        parentGui.ConfirmMask:Destroy()
     end
 
-    -- 背景遮罩
-    local mask = Instance.new("Frame")
-    mask.Name = "LMM_ConfirmMask"
+    -- 背景黑色半透明遮罩
+    local mask = Instance.new("Frame", parentGui)
+    mask.Name = "ConfirmMask"
     mask.Size = UDim2.new(1, 0, 1, 0)
     mask.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     mask.BackgroundTransparency = 1
-    mask.ZIndex = 9999
-    mask.Parent = parentGui
+    mask.ZIndex = 99999
 
-    -- 弹窗卡片
-    local box = Instance.new("Frame")
-    box.Name = "ConfirmBox"
+    -- 弹窗框体
+    local box = Instance.new("Frame", mask)
     box.Size = UDim2.new(0, 300, 0, 160)
     box.Position = UDim2.new(0.5, 0, 0.5, 0)
     box.AnchorPoint = Vector2.new(0.5, 0.5)
     box.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     box.BorderSizePixel = 0
-    box.Parent = mask
+    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
 
-    local corner = Instance.new("UICorner", box)
-    corner.CornerRadius = UDim.new(0, 10)
-    
     local stroke = Instance.new("UIStroke", box)
     stroke.Color = Color3.fromRGB(60, 60, 80)
     stroke.Thickness = 1.5
@@ -74,25 +65,25 @@ function Core.ShowConfirm(title, desc, onConfirm)
     -- 标题
     local titleLbl = Instance.new("TextLabel", box)
     titleLbl.Size = UDim2.new(1, -20, 0, 30)
-    titleLbl.Position = UDim2.new(0, 10, 0, 10)
+    titleLbl.Position = UDim2.new(0, 10, 0, 8)
     titleLbl.BackgroundTransparency = 1
     titleLbl.Text = title or "提示"
     titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
     titleLbl.TextSize = 16
     titleLbl.Font = Enum.Font.SourceSansBold
 
-    -- 内容文本
+    -- 描述说明
     local descLbl = Instance.new("TextLabel", box)
     descLbl.Size = UDim2.new(1, -20, 0, 50)
     descLbl.Position = UDim2.new(0, 10, 0, 40)
     descLbl.BackgroundTransparency = 1
-    descLbl.Text = desc or "是否确定开启该脚本？"
+    descLbl.Text = desc or "确定要执行此操作吗？"
     descLbl.TextColor3 = Color3.fromRGB(180, 180, 190)
     descLbl.TextSize = 14
     descLbl.TextWrapped = true
     descLbl.Font = Enum.Font.SourceSans
 
-    -- 确认按钮
+    -- 确定按钮
     local btnYes = Instance.new("TextButton", box)
     btnYes.Size = UDim2.new(0.38, 0, 0, 32)
     btnYes.Position = UDim2.new(0.1, 0, 1, -42)
@@ -114,24 +105,17 @@ function Core.ShowConfirm(title, desc, onConfirm)
     btnNo.TextSize = 14
     Instance.new("UICorner", btnNo).CornerRadius = UDim.new(0, 6)
 
-    -- 入场动画
+    -- 入场淡入
     Core.Tween(mask, {BackgroundTransparency = 0.5}, 0.2)
 
-    -- 关闭逻辑
-    local function closeBox()
-        Core.Tween(mask, {BackgroundTransparency = 1}, 0.15)
-        task.delay(0.15, function()
-            mask:Destroy()
-        end)
-    end
-
+    -- 点击逻辑
     btnYes.MouseButton1Click:Connect(function()
-        closeBox()
+        mask:Destroy()
         if onConfirm then onConfirm() end
     end)
 
     btnNo.MouseButton1Click:Connect(function()
-        closeBox()
+        mask:Destroy()
     end)
 end
 
