@@ -1,6 +1,6 @@
 -- [[ 🌚刘某某脚本 V3.9.0 | Main.lua - UI 界面与主入口 ]]
 
--- 自动请求 GitHub Raw 加载 Core 模块
+-- 自动请求 GitHub Raw 加载 Core 模块 (请确保这里的链接是你 Core.lua 的 raw 链接)
 local Core = loadstring(game:HttpGet("https://raw.githubusercontent.com/LMM-823/LMM-8232012/main/Core.lua"))()
 
 local _P = game:GetService("Players")
@@ -311,7 +311,7 @@ _CreateT(_Page1, "内置ESP方框", "v_esp_box", 12); _CreateColorBar(_Page1, "c
 -- Page 2: 脚本合集
 local _SearchBox = Instance.new("TextBox", _Page2)
 _SearchBox.LayoutOrder = 1; _SearchBox.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox.BackgroundColor3 = Color3.fromRGB(16, 16, 26); _SearchBox.BackgroundTransparency = 0.25
-_SearchBox.PlaceholderText = "🔍 搜索精彩脚本..."; _SearchBox.Text = ""; _SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+_SearchBox.PlaceholderText = "🔍 搜索无Key脚本..."; _SearchBox.Text = ""; _SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 _SearchBox.PlaceholderColor3 = Color3.fromRGB(130, 130, 150); _SearchBox.Font = Enum.Font.GothamMedium; _SearchBox.TextSize = 13; _SearchBox.ZIndex = 2
 Instance.new("UICorner", _SearchBox).CornerRadius = UDim.new(0, 10)
 local _SearchStroke = Instance.new("UIStroke", _SearchBox); _SearchStroke.Thickness = 1; _SearchStroke.Color = Color3.fromRGB(38, 38, 55)
@@ -327,39 +327,32 @@ _SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
 end)
 
 _CreateS(_Page2, "mm2 no key", "https://raw.githubusercontent.com/kaisudlnw-png/robloxmm2autofarm/refs/heads/main/autofarmmm2", 2)
-_CreateS(_Page2, "AIMBOT (自瞄)", "https://rawscripts.net/raw/Universal-Script-Aimbot-Mobile-34677", 3)
-_CreateS(_Page2, "RIVALS NO KEY", "https://raw.githubusercontent.com/idkmsnscriptronlox/Shadow-/refs/heads/main/Shadow", 4)
-_CreateS(_Page2, "Infinite Yield (万能脚本)", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", 5)
-_CreateS(_Page2, "Nameless Admin", "https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source", 6)
-_CreateS(_Page2, "Owl Hub (极简稳定版)", "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt", 7)
+_CreateS(_Page2, "AIMBOT (自喵)", "https://rawscripts.net/raw/Universal-Script-Aimbot-Mobile-34677", 3)
+_CreateS(_Page2, "heavyweight Fishing", "https://raw.githubusercontent.com/joustingmatch/Ouroboros/main/loader.lua", 4)
 
-local _ACBtn = Instance.new("TextButton", _Page2); _ACBtn.LayoutOrder = 8; _ACBtn.Size = UDim2.new(0.98, 0, 0, 42); _ACBtn.BackgroundColor3 = Color3.fromRGB(18, 18, 28); _ACBtn.BackgroundTransparency = 0.25; _ACBtn.Text = "   ⚡ 自动连点器（刘某某）"; _ACBtn.Font = Enum.Font.GothamMedium; _ACBtn.TextSize = 13; _ACBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _ACBtn.TextXAlignment = Enum.TextXAlignment.Left; _ACBtn.ZIndex = 2; _ACBtn.AutoButtonColor = false; Instance.new("UICorner", _ACBtn).CornerRadius = UDim.new(0, 10)
-local _ACS = Instance.new("UIStroke", _ACBtn); _ACS.Thickness = 1; _ACS.Color = Color3.fromRGB(38, 38, 55)
-_ACBtn.MouseEnter:Connect(function() Tween(_ACBtn, {BackgroundColor3 = Color3.fromRGB(28, 28, 44)}, 0.2); Tween(_ACS, {Color = Color3.fromRGB(129, 140, 248)}, 0.2) end)
-_ACBtn.MouseLeave:Connect(function() Tween(_ACBtn, {BackgroundColor3 = Color3.fromRGB(18, 18, 28)}, 0.2); Tween(_ACS, {Color = Color3.fromRGB(38, 38, 55)}, 0.2) end)
-_ACBtn.MouseButton1Click:Connect(function()
-    loadstring([[
-        local ScreenGui = Instance.new("ScreenGui", game:GetService("CoreGui"))
-        local MainFrame = Instance.new("Frame", ScreenGui)
-        local Title = Instance.new("TextLabel", MainFrame)
-        local ToggleBtn = Instance.new("TextButton", MainFrame)
-        local SpeedInput = Instance.new("TextBox", MainFrame)
-        local MainStroke = Instance.new("UIStroke", MainFrame)
-        MainFrame.Size = UDim2.new(0, 220, 0, 160); MainFrame.Position = UDim2.new(0.5, -110, 0.4, -90); MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18); MainFrame.BackgroundTransparency = 0.1; MainFrame.Active = true; MainFrame.Draggable = true; Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
-        MainStroke.Thickness = 1.4; MainStroke.Color = Color3.fromRGB(99, 102, 241)
-        Title.BackgroundTransparency = 1; Title.Position = UDim2.new(0, 14, 0, 8); Title.Size = UDim2.new(1, -40, 0, 30); Title.Font = Enum.Font.GothamBold; Title.Text = "⚡ 自动连点器"; Title.TextColor3 = Color3.fromRGB(240,240,250); Title.TextSize = 14
-        SpeedInput.BackgroundColor3 = Color3.fromRGB(20, 20, 30); SpeedInput.Position = UDim2.new(0.1, 0, 0.32, 0); SpeedInput.Size = UDim2.new(0.8, 0, 0, 34); SpeedInput.Text = "0.05"; SpeedInput.TextColor3 = Color3.fromRGB(240,240,250); Instance.new("UICorner", SpeedInput).CornerRadius = UDim.new(0, 8)
-        ToggleBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241); ToggleBtn.Position = UDim2.new(0.1, 0, 0.62, 0); ToggleBtn.Size = UDim2.new(0.8, 0, 0, 38); ToggleBtn.Text = "开启连点"; ToggleBtn.TextColor3 = Color3.fromRGB(255,255,255); ToggleBtn.Font = Enum.Font.GothamBold; Instance.new("UICorner", ToggleBtn).CornerRadius = UDim.new(0, 8)
-        local clicking = false; local vim = game:GetService("VirtualInputManager")
-        ToggleBtn.MouseButton1Click:Connect(function() clicking = not clicking; if clicking then ToggleBtn.Text = "停止连点"; ToggleBtn.BackgroundColor3 = Color3.fromRGB(239, 68, 68); task.spawn(function() while clicking do vim:SendMouseButtonEvent(0,0,0,true,game,0); vim:SendMouseButtonEvent(0,0,0,false,game,0); task.wait(tonumber(SpeedInput.Text) or 0.05) end end) else ToggleBtn.Text = "开启连点"; ToggleBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241) end end)
-        local Close = Instance.new("TextButton", MainFrame); Close.Size = UDim2.new(0, 25, 0, 25); Close.Position = UDim2.new(1, -30, 0, 8); Close.Text = "×"; Close.TextColor3 = Color3.fromRGB(200,200,210); Close.BackgroundTransparency = 1; Close.MouseButton1Click:Connect(function() ScreenGui:Destroy() end)
-    ]])()
+-- 新增：脚本库 key 分类标签及搜索栏
+local _KeyCategoryLabel = Instance.new("TextLabel", _Page2)
+_KeyCategoryLabel.LayoutOrder = 5; _KeyCategoryLabel.Size = UDim2.new(0.98, 0, 0, 30)
+_KeyCategoryLabel.BackgroundTransparency = 1; _KeyCategoryLabel.Text = "🔑 脚本库 key"
+_KeyCategoryLabel.TextColor3 = Color3.fromRGB(129, 140, 248); _KeyCategoryLabel.Font = Enum.Font.GothamBold
+_KeyCategoryLabel.TextSize = 13; _KeyCategoryLabel.TextXAlignment = Enum.TextXAlignment.Left; _KeyCategoryLabel.ZIndex = 2
+
+local _KeySearchBox = Instance.new("TextBox", _Page2)
+_KeySearchBox.LayoutOrder = 6; _KeySearchBox.Size = UDim2.new(0.98, 0, 0, 40); _KeySearchBox.BackgroundColor3 = Color3.fromRGB(16, 16, 26); _KeySearchBox.BackgroundTransparency = 0.25
+_KeySearchBox.PlaceholderText = "🔍 搜索 Key 脚本..."; _KeySearchBox.Text = ""; _KeySearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+_KeySearchBox.PlaceholderColor3 = Color3.fromRGB(130, 130, 150); _KeySearchBox.Font = Enum.Font.GothamMedium; _KeySearchBox.TextSize = 13; _KeySearchBox.ZIndex = 2
+Instance.new("UICorner", _KeySearchBox).CornerRadius = UDim.new(0, 10)
+local _KeySearchStroke = Instance.new("UIStroke", _KeySearchBox); _KeySearchStroke.Thickness = 1; _KeySearchStroke.Color = Color3.fromRGB(38, 38, 55)
+_DecorateInput(_KeySearchBox)
+
+_KeySearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+    local query = _KeySearchBox.Text:lower()
+    for _, child in pairs(_Page2:GetChildren()) do
+        if child:IsA("TextButton") and child ~= _SearchBox and child ~= _KeySearchBox then
+            -- 预留 Key 脚本搜索过滤
+        end
+    end
 end)
-
-local _DCB = Instance.new("TextButton", _Page2); _DCB.LayoutOrder = 9; _DCB.Size = UDim2.new(0.98, 0, 0, 42); _DCB.BackgroundColor3 = Color3.fromRGB(88, 101, 242); _DCB.Text = "🔗 JOIN DISCORD COMMUNITY"; _DCB.TextColor3 = Color3.fromRGB(255, 255, 255); _DCB.Font = Enum.Font.GothamBold; _DCB.TextSize = 13; _DCB.ZIndex = 2; _DCB.AutoButtonColor = false; Instance.new("UICorner", _DCB).CornerRadius = UDim.new(0, 10)
-_DCB.MouseEnter:Connect(function() Tween(_DCB, {BackgroundColor3 = Color3.fromRGB(108, 121, 255)}, 0.2) end)
-_DCB.MouseLeave:Connect(function() Tween(_DCB, {BackgroundColor3 = Color3.fromRGB(88, 101, 242)}, 0.2) end)
-_DCB.MouseButton1Click:Connect(function() setclipboard("https://discord.gg/cjpezEZub") end)
 
 -- Page 3: 更新日志
 local function _CreateLogEntry(version, date, desc, order)
