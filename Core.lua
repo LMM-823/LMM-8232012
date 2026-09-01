@@ -1,4 +1,3 @@
-现在我再给你core
 -- [[ 🌚刘某某脚本 V3.9.0 | Core.lua - 核心逻辑模块 ]]
 
 local _P = game:GetService("Players")
