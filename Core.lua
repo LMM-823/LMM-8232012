@@ -1,213 +1,234 @@
--- [[ 🌚刘某某脚本🌝 V4.3 - Core.lua (核心与底层逻辑) ]]
+-- ==================== Core.lua ====================
+local Core = {}
 
-local _P = game:GetService("Players")
-local _RS = game:GetService("RunService")
-local _CG = game:GetService("CoreGui")
-local _UIS = game:GetService("UserInputService")
-local _TS = game:GetService("TweenService")
-local _LP = _P.LocalPlayer
-local _Cam = workspace.CurrentCamera
+function Core.Load(mainURL, coreURL)
+    local _P = game:GetService("Players")
+    local _RS = game:GetService("RunService")
+    local _CG = game:GetService("CoreGui")
+    local _UIS = game:GetService("UserInputService")
+    local _TS = game:GetService("TweenService")
+    local _LP = _P.LocalPlayer
+    local _Cam = workspace.CurrentCamera
 
--- ==================== 状态容器 ====================
-local _G_LMM_88 = {
-    v_0x1 = false,
-    v_0x2 = false,
-    v_0x3 = false,
-    v_val_1 = 50,
+    -- ==================== 状态容器 ====================
+    local _G_LMM_88 = {
+        v_0x1 = false,
+        v_0x2 = false,
+        v_0x3 = false,
+        v_val_1 = 50,
+        v_0x4 = false,
+        v_val_2 = 50,
+        v_esp_line = false,
+        v_esp_box = false,
+        v_freeze = false,
+        v_infjump = false,
+        c_esp = Color3.new(1,0,0),
+        c_line = Color3.new(1,0,0),
+        c_box = Color3.new(1,0,0)
+    }
 
-    v_0x4 = false,
-    v_val_2 = 50,
+    -- ==================== Tween ====================
+    local function Tween(obj, props, time, style, dir)
+        if not obj then return end
+        pcall(function()
+            _TS:Create(
+                obj,
+                TweenInfo.new(
+                    time or 0.25,
+                    style or Enum.EasingStyle.Quart,
+                    dir or Enum.EasingDirection.Out
+                ),
+                props
+            ):Play()
+        end)
+    end
 
-    v_esp_line = false,
-    v_esp_box = false,
-
-    v_freeze = false,
-    v_infjump = false,
-
-    c_esp = Color3.new(1,0,0),
-    c_line = Color3.new(1,0,0),
-    c_box = Color3.new(1,0,0)
-}
-
--- ==================== Tween 动画 ====================
-local function Tween(obj, props, time, style, dir)
-    if not obj then return end
+    -- ==================== 删除旧 UI ====================
     pcall(function()
-        _TS:Create(
-            obj,
-            TweenInfo.new(
-                time or 0.25,
-                style or Enum.EasingStyle.Quart,
-                dir or Enum.EasingDirection.Out
-            ),
-            props
-        ):Play()
+        local old = _CG:FindFirstChild("LMM_Final_V40")
+        if old then old:Destroy() end
     end)
+
+    -- ==================== ScreenGui ====================
+    local _S = Instance.new("ScreenGui")
+    _S.Name = "LMM_Final_V40"
+    _S.ResetOnSpawn = false
+    _S.IgnoreGuiInset = false
+    _S.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+    _S.Parent = _CG
+
+    -- ==================== 加载界面 ====================
+    local _LoadGui = Instance.new("Frame")
+    _LoadGui.Parent = _S
+    _LoadGui.Size = UDim2.new(0,320,0,110)
+    _LoadGui.Position = UDim2.new(0.5,-160,0.45,-55)
+    _LoadGui.BackgroundColor3 = Color3.fromRGB(12,12,20)
+    _LoadGui.BackgroundTransparency = 0.05
+    _LoadGui.BorderSizePixel = 0
+    _LoadGui.ZIndex = 100
+
+    Instance.new("UICorner",_LoadGui).CornerRadius = UDim.new(0,16)
+
+    local _LoadStroke = Instance.new("UIStroke")
+    _LoadStroke.Parent = _LoadGui
+    _LoadStroke.Thickness = 2
+    _LoadStroke.Color = Color3.fromRGB(99,102,241)
+
+    local _LoadGradient = Instance.new("UIGradient")
+    _LoadGradient.Parent = _LoadStroke
+    _LoadGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,Color3.fromRGB(99,102,241)),
+        ColorSequenceKeypoint.new(0.5,Color3.fromRGB(168,85,247)),
+        ColorSequenceKeypoint.new(1,Color3.fromRGB(59,130,246))
+    })
+
+    local _LoadText = Instance.new("TextLabel")
+    _LoadText.Parent = _LoadGui
+    _LoadText.Size = UDim2.new(1,0,1,0)
+    _LoadText.BackgroundTransparency = 1
+    _LoadText.Text = "✨ 刘某某脚本 V4.3 加载中..."
+    _LoadText.TextColor3 = Color3.fromRGB(245,245,247)
+    _LoadText.Font = Enum.Font.GothamBold
+    _LoadText.TextSize = 15
+    _LoadText.ZIndex = 101
+
+    local loadingTween = _TS:Create(
+        _LoadGradient,
+        TweenInfo.new(1.5,Enum.EasingStyle.Linear,Enum.EasingDirection.InOut,-1),
+        {Rotation = 360}
+    )
+    loadingTween:Play()
+
+    -- ==================== 主界面 ====================
+    local _M = Instance.new("Frame")
+    _M.Parent = _S
+    _M.Size = UDim2.new(0,580,0,380)
+    _M.Position = UDim2.new(0.5,-290,0.5,-190)
+    _M.BackgroundColor3 = Color3.fromRGB(11,11,18)
+    _M.BackgroundTransparency = 0.06
+    _M.BorderSizePixel = 0
+    _M.Visible = false
+    _M.ClipsDescendants = false
+    _M.ZIndex = 1
+
+    Instance.new("UICorner",_M).CornerRadius = UDim.new(0,18)
+
+    local _Glow = Instance.new("UIStroke")
+    _Glow.Parent = _M
+    _Glow.Thickness = 1.6
+
+    local _GlowGradient = Instance.new("UIGradient")
+    _GlowGradient.Parent = _Glow
+    _GlowGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0,Color3.fromRGB(99,102,241)),
+        ColorSequenceKeypoint.new(0.5,Color3.fromRGB(168,85,247)),
+        ColorSequenceKeypoint.new(1,Color3.fromRGB(59,130,246))
+    })
+
+    local _Shadow = Instance.new("ImageLabel")
+    _Shadow.Parent = _M
+    _Shadow.Size = UDim2.new(1,90,1,90)
+    _Shadow.Position = UDim2.new(0,-45,0,-45)
+    _Shadow.BackgroundTransparency = 1
+    _Shadow.Image = "rbxassetid://6014261993"
+    _Shadow.ImageColor3 = Color3.fromRGB(0,0,0)
+    _Shadow.ImageTransparency = 0.35
+    _Shadow.ScaleType = Enum.ScaleType.Slice
+    _Shadow.SliceCenter = Rect.new(49,49,450,450)
+    _Shadow.ZIndex = 0
+
+    local _BgImage = Instance.new("ImageLabel")
+    _BgImage.Parent = _M
+    _BgImage.Size = UDim2.new(1,0,1,0)
+    _BgImage.BackgroundTransparency = 1
+    _BgImage.Image = "rbxassetid://14392415174"
+    _BgImage.ImageTransparency = 0.92
+    _BgImage.ScaleType = Enum.ScaleType.Crop
+    _BgImage.ZIndex = 0
+
+    Instance.new("UICorner",_BgImage).CornerRadius = UDim.new(0,18)
+
+    -- 加载动画
+    task.spawn(function()
+        task.wait(1.8)
+        pcall(function() loadingTween:Cancel() end)
+        Tween(_LoadGui, {BackgroundTransparency = 1, Size = UDim2.new(0,300,0,100)}, 0.4)
+        Tween(_LoadText, {TextTransparency = 1}, 0.4)
+        Tween(_LoadStroke, {Transparency = 1}, 0.4)
+        task.wait(0.35)
+        if _LoadGui then _LoadGui:Destroy() end
+        _M.Visible = true
+        _M.Size = UDim2.new(0,520,0,340)
+        Tween(_M, {Size = UDim2.new(0,580,0,380)}, 0.5, Enum.EasingStyle.Back)
+    end)
+
+    local _TB = Instance.new("Frame")
+    _TB.Parent = _M
+    _TB.Size = UDim2.new(1,0,0,50)
+    _TB.Position = UDim2.new(0,0,0,0)
+    _TB.BackgroundTransparency = 1
+    _TB.Active = true
+    _TB.ZIndex = 20
+
+    local _Title = Instance.new("TextLabel")
+    _Title.Parent = _TB
+    _Title.Size = UDim2.new(1,-150,1,0)
+    _Title.Position = UDim2.new(0,20,0,0)
+    _Title.BackgroundTransparency = 1
+    _Title.Text = "🌚 刘某某脚本 <font color='rgb(129, 140, 248)'>V4.3</font>"
+    _Title.RichText = true
+    _Title.Font = Enum.Font.GothamBold
+    _Title.TextSize = 16
+    _Title.TextColor3 = Color3.fromRGB(255,255,255)
+    _Title.TextXAlignment = Enum.TextXAlignment.Left
+    _Title.ZIndex = 21
+
+    local _HeaderLine = Instance.new("Frame")
+    _HeaderLine.Parent = _M
+    _HeaderLine.Size = UDim2.new(1,-30,0,1)
+    _HeaderLine.Position = UDim2.new(0,15,0,50)
+    _HeaderLine.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    _HeaderLine.BackgroundTransparency = 0.92
+    _HeaderLine.BorderSizePixel = 0
+    _HeaderLine.ZIndex = 20
+
+    local _Sidebar = Instance.new("Frame")
+    _Sidebar.Parent = _M
+    _Sidebar.Size = UDim2.new(0,150,1,-65)
+    _Sidebar.Position = UDim2.new(0,12,0,58)
+    _Sidebar.BackgroundTransparency = 1
+    _Sidebar.Active = true
+    _Sidebar.ZIndex = 20
+
+    local _SideLayout = Instance.new("UIListLayout")
+    _SideLayout.Parent = _Sidebar
+    _SideLayout.Padding = UDim.new(0,6)
+    _SideLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+    _SideLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local _SplitLine = Instance.new("Frame")
+    _SplitLine.Parent = _M
+    _SplitLine.Size = UDim2.new(0,1,1,-65)
+    _SplitLine.Position = UDim2.new(0,168,0,58)
+    _SplitLine.BackgroundColor3 = Color3.fromRGB(255,255,255)
+    _SplitLine.BackgroundTransparency = 0.94
+    _SplitLine.BorderSizePixel = 0
+    _SplitLine.ZIndex = 20
+
+    local _ContentContainer = Instance.new("Frame")
+    _ContentContainer.Parent = _M
+    _ContentContainer.Size = UDim2.new(1,-182,1,-65)
+    _ContentContainer.Position = UDim2.new(0,176,0,58)
+    _ContentContainer.BackgroundTransparency = 1
+    _ContentContainer.Active = true
+    _ContentContainer.ClipsDescendants = true
+    _ContentContainer.ZIndex = 10
+
+    return {
+        _S = _S, _M = _M, _TB = _TB, _Sidebar = _Sidebar, _ContentContainer = _ContentContainer,
+        _HeaderLine = _HeaderLine, _SplitLine = _SplitLine, _Title = _Title, _G_LMM_88 = _G_LMM_88,
+        Tween = Tween
+    }
 end
 
--- ==================== 输入框特效 ====================
-local function _DecorateInput(input)
-    input.MouseEnter:Connect(function()
-        local stroke = input:FindFirstChildOfClass("UIStroke")
-        if stroke then Tween(stroke, { Color = Color3.fromRGB(129,140,248) }, 0.2) end
-    end)
-    input.MouseLeave:Connect(function()
-        if not input:IsFocused() then
-            local stroke = input:FindFirstChildOfClass("UIStroke")
-            if stroke then Tween(stroke, { Color = Color3.fromRGB(38,38,55) }, 0.2) end
-        end
-    end)
-    input.Focused:Connect(function()
-        local stroke = input:FindFirstChildOfClass("UIStroke")
-        if stroke then Tween(stroke, { Color = Color3.fromRGB(99,102,241) }, 0.2) end
-    end)
-    input.FocusLost:Connect(function()
-        local stroke = input:FindFirstChildOfClass("UIStroke")
-        if stroke then Tween(stroke, { Color = Color3.fromRGB(38,38,55) }, 0.2) end
-    end)
-end
-
--- ==================== 物理与底层监听 ====================
-local _BG = Instance.new("BodyGyro")
-local _BV = Instance.new("BodyVelocity")
-_BG.P = 9e4
-_BG.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-_BV.MaxForce = Vector3.new(9e9, 9e9, 9e9)
-
--- 无限跳
-_UIS.JumpRequest:Connect(function()
-    if not _G_LMM_88.v_infjump then return end
-    local char = _LP.Character
-    if not char then return end
-    local hum = char:FindFirstChildOfClass("Humanoid")
-    if hum then
-        pcall(function() hum:ChangeState(Enum.HumanoidStateType.Jumping) end)
-    end
-end)
-
--- 心跳循环 (速度、冰冻、穿墙、飞行、ESP)
-_RS.Heartbeat:Connect(function()
-    local char = _LP.Character
-    if char then
-        local hrp = char:FindFirstChild("HumanoidRootPart")
-        local hum = char:FindFirstChildOfClass("Humanoid")
-
-        if hrp and hum then
-            hum.WalkSpeed = _G_LMM_88.v_0x3 and _G_LMM_88.v_val_1 or 16
-            hrp.Anchored = _G_LMM_88.v_freeze
-
-            if _G_LMM_88.v_0x2 then
-                for _, part in ipairs(char:GetChildren()) do
-                    if part:IsA("BasePart") then part.CanCollide = false end
-                end
-            end
-
-            if _G_LMM_88.v_0x4 then
-                _BG.Parent = hrp
-                _BV.Parent = hrp
-                _BG.CFrame = _Cam.CFrame
-                if hum.MoveDirection.Magnitude > 0 then
-                    _BV.Velocity = _Cam.CFrame.LookVector * _G_LMM_88.v_val_2
-                else
-                    _BV.Velocity = Vector3.zero
-                end
-            else
-                _BG.Parent = nil
-                _BV.Parent = nil
-            end
-        end
-    end
-
-    -- ESP 循环
-    for _, player in ipairs(_P:GetPlayers()) do
-        if player ~= _LP then
-            local tChar = player.Character
-            if tChar then
-                local tHrp = tChar:FindFirstChild("HumanoidRootPart")
-                if tHrp then
-                    -- 高亮
-                    if _G_LMM_88.v_0x1 then
-                        local hl = tChar:FindFirstChild("LMM_ESP")
-                        if not hl then
-                            hl = Instance.new("Highlight")
-                            hl.Name = "LMM_ESP"
-                            hl.Parent = tChar
-                        end
-                        hl.FillColor = _G_LMM_88.c_esp
-                        hl.Enabled = true
-                    else
-                        local hl = tChar:FindFirstChild("LMM_ESP")
-                        if hl then hl:Destroy() end
-                    end
-
-                    -- 方框
-                    if _G_LMM_88.v_esp_box then
-                        local bb = tChar:FindFirstChild("LMM_BOX")
-                        if not bb then
-                            bb = Instance.new("BillboardGui")
-                            bb.Name = "LMM_BOX"
-                            bb.Parent = tChar
-                            bb.AlwaysOnTop = true
-                            bb.Size = UDim2.new(4.5, 0, 6, 0)
-                            bb.Adornee = tHrp
-                            local f = Instance.new("Frame")
-                            f.Name = "Frame"
-                            f.Parent = bb
-                            f.Size = UDim2.new(1, 0, 1, 0)
-                            f.BackgroundTransparency = 1
-                            local st = Instance.new("UIStroke")
-                            st.Name = "S"
-                            st.Parent = f
-                            st.Thickness = 1.5
-                        end
-                        local frame = bb:FindFirstChild("Frame")
-                        local st = frame and frame:FindFirstChild("S")
-                        if st then st.Color = _G_LMM_88.c_box end
-                        bb.Enabled = true
-                    else
-                        local bb = tChar:FindFirstChild("LMM_BOX")
-                        if bb then bb:Destroy() end
-                    end
-
-                    -- 射线
-                    local beam = tHrp:FindFirstChild("LMM_LINE_FIX")
-                    if _G_LMM_88.v_esp_line then
-                        if not beam then
-                            local localChar = _LP.Character
-                            local localHrp = localChar and localChar:FindFirstChild("HumanoidRootPart")
-                            if localHrp then
-                                beam = Instance.new("Beam")
-                                beam.Name = "LMM_LINE_FIX"
-                                beam.Parent = tHrp
-                                local a0 = localHrp:FindFirstChild("LMM_A0")
-                                if not a0 then
-                                    a0 = Instance.new("Attachment")
-                                    a0.Name = "LMM_A0"
-                                    a0.Parent = localHrp
-                                end
-                                local a1 = Instance.new("Attachment")
-                                a1.Name = "LMM_A1"
-                                a1.Parent = tHrp
-                                beam.Attachment0 = a0
-                                beam.Attachment1 = a1
-                                beam.Width0 = 0.08
-                                beam.Width1 = 0.08
-                                beam.FaceCamera = true
-                            end
-                        end
-                        if beam then beam.Color = ColorSequence.new(_G_LMM_88.c_line) end
-                    elseif beam then
-                        beam:Destroy()
-                    end
-                end
-            end
-        end
-    end
-end)
-
--- 返回给 Main 使用的共享表
-return {
-    Data = _G_LMM_88,
-    Tween = Tween,
-    DecorateInput = _DecorateInput
-}
+return Core
