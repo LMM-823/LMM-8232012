@@ -1,132 +1,227 @@
--- [[ 🌚刘某某脚本 V3.9.0 | Core.lua - 核心逻辑模块 ]]
+-- [[ 🌚刘某某脚本🌝 V4.2 | Core ]]
 
-local _P = game:GetService("Players")
-local _RS = game:GetService("RunService")
-local _UIS = game:GetService("UserInputService")
-local _TS = game:GetService("TweenService")
-local _LP = _P.LocalPlayer
-local _Cam = workspace.CurrentCamera
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
--- 全局状态容器
-getgenv()._G_LMM_88 = { 
-    v_0x1 = false, v_0x2 = false, v_0x3 = false, v_val_1 = 50, 
-    v_0x4 = false, v_val_2 = 50, v_esp_line = false, v_esp_box = false,
-    v_freeze = false, v_infjump = false,
-    c_esp = Color3.new(1,0,0), c_line = Color3.new(1,0,0), c_box = Color3.new(1,0,0)
-}
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
 
 local Core = {}
 
--- 动画辅助函数
-function Core.Tween(obj, props, time, style, dir)
-    if not obj then return end
-    _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
-end
+Core.State = nil
 
--- 无限跳逻辑监听
-_UIS.JumpRequest:Connect(function()
-    if getgenv()._G_LMM_88 and getgenv()._G_LMM_88.v_infjump then
-        local lChar = _LP.Character
-        if lChar and lChar:FindFirstChildOfClass("Humanoid") then
-            lChar:FindFirstChildOfClass("Humanoid"):ChangeState(Enum.HumanoidStateType.Jumping)
+-- =========================
+-- 无限跳
+-- =========================
+
+UserInputService.JumpRequest:Connect(function()
+    if not Core.State then
+        return
+    end
+
+    if Core.State.v_infjump then
+        local Character = LocalPlayer.Character
+        local Humanoid = Character and Character:FindFirstChildOfClass("Humanoid")
+
+        if Humanoid then
+            Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end
 end)
 
--- 底层运行驱动 (Speed / Fly / Noclip / Freeze / ESP)
-local _BG = Instance.new("BodyGyro")
-local _BV = Instance.new("BodyVelocity")
-_BG.P = 9e4
-_BG.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
-_BV.MaxForce = Vector3.new(9e9, 9e9, 9e9)
+-- =========================
+-- 飞行组件
+-- =========================
 
-_RS.Heartbeat:Connect(function()
-    local state = getgenv()._G_LMM_88
-    if not state then return end
+local BodyGyro = Instance.new("BodyGyro")
+local BodyVelocity = Instance.new("BodyVelocity")
 
-    local lChar = _LP.Character
-    if lChar and lChar:FindFirstChild("HumanoidRootPart") then
-        local lHrp = lChar.HumanoidRootPart
-        local hum = lChar:FindFirstChildOfClass("Humanoid")
-        if hum then
-            hum.WalkSpeed = state.v_0x3 and state.v_val_1 or 16
-            lHrp.Anchored = state.v_freeze
+BodyGyro.P = 9e4
+BodyGyro.MaxTorque = Vector3.new(9e9, 9e9, 9e9)
 
-            if state.v_0x2 then 
-                for _, p in pairs(lChar:GetChildren()) do 
-                    if p:IsA("BasePart") then p.CanCollide = false end 
-                end 
-            end
+BodyVelocity.MaxForce = Vector3.new(9e9, 9e9, 9e9)
 
-            if state.v_0x4 then
-                _BG.Parent = lHrp
-                _BV.Parent = lHrp
-                _BG.CFrame = _Cam.CFrame
-                _BV.Velocity = hum.MoveDirection.Magnitude > 0 and _Cam.CFrame.LookVector * state.v_val_2 or Vector3.zero
-            else 
-                _BG.Parent = nil
-                _BV.Parent = nil 
+-- =========================
+-- 主运行
+-- =========================
+
+RunService.Heartbeat:Connect(function()
+    local State = Core.State
+
+    if not State then
+        return
+    end
+
+    local Character = LocalPlayer.Character
+    if not Character then
+        return
+    end
+
+    local RootPart = Character:FindFirstChild("HumanoidRootPart")
+    local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+
+    if not RootPart or not Humanoid then
+        return
+    end
+
+    -- 速度
+    if State.v_0x3 then
+        Humanoid.WalkSpeed = State.v_val_1
+    else
+        Humanoid.WalkSpeed = 16
+    end
+
+    -- Freeze
+    if State.v_freeze then
+        RootPart.Anchored = true
+    else
+        RootPart.Anchored = false
+    end
+
+    -- Noclip
+    if State.v_0x2 then
+        for _, Part in ipairs(Character:GetChildren()) do
+            if Part:IsA("BasePart") then
+                Part.CanCollide = false
             end
         end
     end
 
-    for _, p in pairs(_P:GetPlayers()) do
-        if p ~= _LP and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-            local tChar = p.Character
-            local tHrp = tChar.HumanoidRootPart
+    -- Fly
+    if State.v_0x4 then
+        BodyGyro.Parent = RootPart
+        BodyVelocity.Parent = RootPart
 
-            -- ESP Highlight
-            if state.v_0x1 then
-                local hl = tChar:FindFirstChild("LMM_ESP") or Instance.new("Highlight", tChar)
-                hl.Name = "LMM_ESP"
-                hl.FillColor = state.c_esp
-                hl.Enabled = true
-            elseif tChar:FindFirstChild("LMM_ESP") then 
-                tChar.LMM_ESP:Destroy() 
-            end
+        BodyGyro.CFrame = Camera.CFrame
 
-            -- ESP Box
-            if state.v_esp_box then
-                local bb = tChar:FindFirstChild("LMM_BOX") or Instance.new("BillboardGui", tChar)
-                if bb.Name ~= "LMM_BOX" then 
-                    bb.Name = "LMM_BOX"
-                    bb.AlwaysOnTop = true
-                    bb.Size = UDim2.new(4.5, 0, 6, 0)
-                    bb.Adornee = tHrp
-                    local f = Instance.new("Frame", bb)
-                    f.Size = UDim2.new(1,0,1,0)
-                    f.BackgroundTransparency = 1
-                    local st = Instance.new("UIStroke", f)
-                    st.Name = "S"
-                    st.Thickness = 1.5 
+        if Humanoid.MoveDirection.Magnitude > 0 then
+            BodyVelocity.Velocity =
+                Camera.CFrame.LookVector * State.v_val_2
+        else
+            BodyVelocity.Velocity = Vector3.zero
+        end
+    else
+        BodyGyro.Parent = nil
+        BodyVelocity.Parent = nil
+    end
+
+    -- =========================
+    -- ESP
+    -- =========================
+
+    for _, Player in ipairs(Players:GetPlayers()) do
+        if Player ~= LocalPlayer then
+            local Target = Player.Character
+            local TargetRoot =
+                Target and Target:FindFirstChild("HumanoidRootPart")
+
+            if Target and TargetRoot then
+
+                -- Highlight
+                if State.v_0x1 then
+                    local Highlight =
+                        Target:FindFirstChild("LMM_ESP")
+
+                    if not Highlight then
+                        Highlight = Instance.new("Highlight")
+                        Highlight.Name = "LMM_ESP"
+                        Highlight.Parent = Target
+                    end
+
+                    Highlight.FillColor = State.c_esp
+                    Highlight.Enabled = true
+
+                else
+                    local Highlight =
+                        Target:FindFirstChild("LMM_ESP")
+
+                    if Highlight then
+                        Highlight:Destroy()
+                    end
                 end
-                bb.Frame.S.Color = state.c_box
-                bb.Enabled = true
-            elseif tChar:FindFirstChild("LMM_BOX") then 
-                tChar.LMM_BOX:Destroy() 
-            end
 
-            -- ESP Line
-            local beam = tHrp:FindFirstChild("LMM_LINE_FIX")
-            if state.v_esp_line then
-                if not beam and lChar and lChar:FindFirstChild("HumanoidRootPart") then
-                    beam = Instance.new("Beam", tHrp)
-                    beam.Name = "LMM_LINE_FIX"
-                    local a0 = lChar.HumanoidRootPart:FindFirstChild("LMM_A0") or Instance.new("Attachment", lChar.HumanoidRootPart)
-                    a0.Name = "LMM_A0"
-                    beam.Attachment0 = a0
-                    beam.Attachment1 = Instance.new("Attachment", tHrp)
-                    beam.Width0 = 0.08
-                    beam.Width1 = 0.08
-                    beam.FaceCamera = true
+                -- ESP Box
+                if State.v_esp_box then
+                    local Box =
+                        Target:FindFirstChild("LMM_BOX")
+
+                    if not Box then
+                        Box = Instance.new("BillboardGui")
+                        Box.Name = "LMM_BOX"
+                        Box.AlwaysOnTop = true
+                        Box.Size = UDim2.new(4.5, 0, 6, 0)
+                        Box.Adornee = TargetRoot
+                        Box.Parent = Target
+
+                        local Frame = Instance.new("Frame")
+                        Frame.Size = UDim2.new(1, 0, 1, 0)
+                        Frame.BackgroundTransparency = 1
+                        Frame.Parent = Box
+
+                        local Stroke = Instance.new("UIStroke")
+                        Stroke.Name = "S"
+                        Stroke.Thickness = 1.5
+                        Stroke.Parent = Frame
+                    end
+
+                    Box.Frame.S.Color = State.c_box
+                    Box.Enabled = true
+
+                else
+                    local Box =
+                        Target:FindFirstChild("LMM_BOX")
+
+                    if Box then
+                        Box:Destroy()
+                    end
                 end
-                if beam then beam.Color = ColorSequence.new(state.c_line) end
-            elseif beam then 
-                beam:Destroy() 
+
+                -- ESP Line
+                local Beam =
+                    TargetRoot:FindFirstChild("LMM_LINE_FIX")
+
+                if State.v_esp_line then
+                    if not Beam then
+                        local LocalRoot =
+                            Character:FindFirstChild("HumanoidRootPart")
+
+                        if LocalRoot then
+                            Beam = Instance.new("Beam")
+                            Beam.Name = "LMM_LINE_FIX"
+
+                            local A0 =
+                                LocalRoot:FindFirstChild("LMM_A0")
+
+                            if not A0 then
+                                A0 = Instance.new("Attachment")
+                                A0.Name = "LMM_A0"
+                                A0.Parent = LocalRoot
+                            end
+
+                            local A1 = Instance.new("Attachment")
+                            A1.Parent = TargetRoot
+
+                            Beam.Attachment0 = A0
+                            Beam.Attachment1 = A1
+                            Beam.Width0 = 0.08
+                            Beam.Width1 = 0.08
+                            Beam.FaceCamera = true
+                            Beam.Parent = TargetRoot
+                        end
+                    end
+
+                    if Beam then
+                        Beam.Color =
+                            ColorSequence.new(State.c_line)
+                    end
+
+                elseif Beam then
+                    Beam:Destroy()
+                end
             end
         end
     end
 end)
 
-getgenv().LMM_Core = Core
 return Core
