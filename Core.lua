@@ -2,9 +2,9 @@
 -- ===================================================
 -- 📅 更新日期：2026年9月1日
 -- 📝 更新日志 (V4.0.0)：
--- 1. 修复并更新了版本号标识为 V4.0.0。
--- 2. 在全局状态容器 `_G_LMM_88` 中正式加入 UI 颜色配置项 (`c_ui`)。
--- 3. 新增 `Core.SetUIColor` 方法，支持在设定界面最下方实现动态切换 UI 颜色。
+-- 1. [版本升级] 脚本版本由 V3.9.0 正式升级至 V4.0.0。
+-- 2. [状态扩展] 在全局状态容器 `_G_LMM_88` 中新增 `c_ui` 主题颜色配置。
+-- 3. [新增功能] 在核心库中加入 `Core.SetUIColor` 方法，支持在设定界面最下方实现换 UI 颜色。
 -- ===================================================
 
 local _P = game:GetService("Players")
@@ -14,13 +14,13 @@ local _TS = game:GetService("TweenService")
 local _LP = _P.LocalPlayer
 local _Cam = workspace.CurrentCamera
 
--- 全局状态容器
+-- 全局状态容器 (已在下方新增 c_ui 选项用于设定界面换 UI 颜色)
 getgenv()._G_LMM_88 = { 
     v_0x1 = false, v_0x2 = false, v_0x3 = false, v_val_1 = 50, 
     v_0x4 = false, v_val_2 = 50, v_esp_line = false, v_esp_box = false,
     v_freeze = false, v_infjump = false,
     c_esp = Color3.new(1,0,0), c_line = Color3.new(1,0,0), c_box = Color3.new(1,0,0),
-    c_ui = Color3.fromRGB(0, 120, 215) -- 【V4.0.0 新增】设定界面最下方可调的 UI 颜色
+    c_ui = Color3.fromRGB(0, 120, 215) -- 默认 UI 颜色
 }
 
 local Core = {}
@@ -31,11 +31,10 @@ function Core.Tween(obj, props, time, style, dir)
     _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
 end
 
--- 【V4.0.0 新增】设定界面最下方调用的换色函数
+-- 【V4.0.0 新增】设定界面最下方调用的换 UI 颜色函数
 function Core.SetUIColor(newColor)
     if typeof(newColor) == "Color3" then
         getgenv()._G_LMM_88.c_ui = newColor
-        -- 触发全局事件或通知 UI 刷新颜色
         if getgenv().LMM_UI_ColorChanged and typeof(getgenv().LMM_UI_ColorChanged) == "function" then
             getgenv().LMM_UI_ColorChanged(newColor)
         end
@@ -134,7 +133,7 @@ _RS.Heartbeat:Connect(function()
                     local a0 = lChar.HumanoidRootPart:FindFirstChild("LMM_A0") or Instance.new("Attachment", lChar.HumanoidRootPart)
                     a0.Name = "LMM_A0"
                     beam.Attachment0 = a0
-                    beam.Attachment1 = Instance.new("Attachment", tHrp)
+                    beam.Attachment1 = Instance.new("Attachment", tHpr)
                     beam.Width0 = 0.08
                     beam.Width1 = 0.08
                     beam.FaceCamera = true
