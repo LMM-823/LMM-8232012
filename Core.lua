@@ -3,8 +3,8 @@
 -- 📅 更新日期：2026年9月1日
 -- 📝 更新日志 (V4.0.0)：
 -- 1. [新增] 全局 UI 主题颜色配置项 (_G_LMM_88.c_ui)
--- 2. [新增] Core.SetUIColor() 动态换色接口，供设定界面最下方切换颜色调用
--- 3. [升级] 版本号与底层接口整合优化
+-- 2. [新增] Core.SetUIColor() 接口，用于设定界面动态切换主题色
+-- 3. [优化] 框架状态同步机制
 -- ===================================================
 
 local _P = game:GetService("Players")
@@ -20,8 +20,7 @@ getgenv()._G_LMM_88 = {
     v_0x4 = false, v_val_2 = 50, v_esp_line = false, v_esp_box = false,
     v_freeze = false, v_infjump = false,
     c_esp = Color3.new(1,0,0), c_line = Color3.new(1,0,0), c_box = Color3.new(1,0,0),
-    -- ⭐【V4.0.0 新增】：默认 UI 主题颜色（可在设定界面最下方修改）
-    c_ui = Color3.fromRGB(0, 120, 215)
+    c_ui = Color3.fromRGB(0, 120, 215) -- 默认为蓝色主题
 }
 
 local Core = {}
@@ -32,15 +31,12 @@ function Core.Tween(obj, props, time, style, dir)
     _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
 end
 
--- ⭐【V4.0.0 新增】：设定界面最下方更换 UI 颜色的接口
+-- 更换 UI 颜色辅助函数 (供 UI 界面调用)
 function Core.SetUIColor(newColor)
     if typeof(newColor) == "Color3" then
         getgenv()._G_LMM_88.c_ui = newColor
-        
-        -- 如果有绑定颜色更新事件则触发
-        local uiEvent = getgenv().LMM_UI_ColorChanged
-        if uiEvent and typeof(uiEvent.Fire) == "function" then
-            uiEvent:Fire(newColor)
+        if getgenv().LMM_UpdateThemeColor then
+            getgenv().LMM_UpdateThemeColor(newColor)
         end
     end
 end
