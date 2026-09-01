@@ -4,16 +4,16 @@ local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
 local _UIS = game:GetService("UserInputService")
 local _TS = game:GetService("TweenService")
-local _CG = game:GetService("CoreGui")
 local _LP = _P.LocalPlayer
 local _Cam = workspace.CurrentCamera
 
--- 全局状态容器
+-- 全局状态容器 (最下方已加入 UI 颜色选项 c_ui)
 getgenv()._G_LMM_88 = { 
     v_0x1 = false, v_0x2 = false, v_0x3 = false, v_val_1 = 50, 
     v_0x4 = false, v_val_2 = 50, v_esp_line = false, v_esp_box = false,
     v_freeze = false, v_infjump = false,
-    c_esp = Color3.new(1,0,0), c_line = Color3.new(1,0,0), c_box = Color3.new(1,0,0)
+    c_esp = Color3.new(1,0,0), c_line = Color3.new(1,0,0), c_box = Color3.new(1,0,0),
+    c_ui = Color3.fromRGB(0, 120, 215) -- 默认 UI 主题颜色（蓝色）
 }
 
 local Core = {}
@@ -24,94 +24,16 @@ function Core.Tween(obj, props, time, style, dir)
     _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
 end
 
--- 通用确认弹窗函数
-function Core.Confirm(title, desc, callback)
-    local sg = _CG:FindFirstChild("LMM_ConfirmUI")
-    if not sg then
-        sg = Instance.new("ScreenGui")
-        sg.Name = "LMM_ConfirmUI"
-        sg.ResetOnSpawn = false
-        pcall(function() sg.Parent = _CG end)
-        if not sg.Parent then sg.Parent = _LP:WaitForChild("PlayerGui") end
+-- 更换 UI 颜色辅助函数 (供设定界面最下方切换颜色时调用)
+function Core.SetUIColor(newColor)
+    if typeof(newColor) == "Color3" then
+        getgenv()._G_LMM_88.c_ui = newColor
+        -- 如果你的 UI 元素使用了特定标签或组，可以配合 BindableEvent 广播刷新
+        local uiEvent = getgenv().LMM_UI_ColorChanged
+        if uiEvent and typeof(uiEvent.Fire) == "function" then
+            uiEvent:Fire(newColor)
+        end
     end
-
-    if sg:FindFirstChild("Mask") then
-        sg.Mask:Destroy()
-    end
-
-    local mask = Instance.new("Frame", sg)
-    mask.Name = "Mask"
-    mask.Size = UDim2.new(1, 0, 1, 0)
-    mask.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-    mask.BackgroundTransparency = 1
-    mask.ZIndex = 999999
-
-    local box = Instance.new("Frame", mask)
-    box.Size = UDim2.new(0, 280, 0, 150)
-    box.Position = UDim2.new(0.5, 0, 0.5, 0)
-    box.AnchorPoint = Vector2.new(0.5, 0.5)
-    box.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
-    box.BorderSizePixel = 0
-    Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
-
-    local stroke = Instance.new("UIStroke", box)
-    stroke.Color = Color3.fromRGB(60, 60, 80)
-    stroke.Thickness = 1.5
-
-    local titleLbl = Instance.new("TextLabel", box)
-    titleLbl.Size = UDim2.new(1, 0, 0, 35)
-    titleLbl.BackgroundTransparency = 1
-    titleLbl.Text = title or "确认执行"
-    titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLbl.TextSize = 15
-    titleLbl.Font = Enum.Font.SourceSansBold
-
-    local descLbl = Instance.new("TextLabel", box)
-    descLbl.Size = UDim2.new(1, -20, 0, 45)
-    descLbl.Position = UDim2.new(0, 10, 0, 35)
-    descLbl.BackgroundTransparency = 1
-    descLbl.Text = desc or "是否确定开启该功能？"
-    descLbl.TextColor3 = Color3.fromRGB(180, 180, 190)
-    descLbl.TextSize = 13
-    descLbl.TextWrapped = true
-    descLbl.Font = Enum.Font.SourceSans
-
-    local btnYes = Instance.new("TextButton", box)
-    btnYes.Size = UDim2.new(0.38, 0, 0, 30)
-    btnYes.Position = UDim2.new(0.1, 0, 1, -40)
-    btnYes.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
-    btnYes.Text = "确定"
-    btnYes.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btnYes.Font = Enum.Font.SourceSansBold
-    btnYes.TextSize = 14
-    Instance.new("UICorner", btnYes).CornerRadius = UDim.new(0, 5)
-
-    local btnNo = Instance.new("TextButton", box)
-    btnNo.Size = UDim2.new(0.38, 0, 0, 30)
-    btnNo.Position = UDim2.new(0.52, 0, 1, -40)
-    btnNo.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
-    btnNo.Text = "取消"
-    btnNo.TextColor3 = Color3.fromRGB(200, 200, 200)
-    btnNo.Font = Enum.Font.SourceSans
-    btnNo.TextSize = 14
-    Instance.new("UICorner", btnNo).CornerRadius = UDim.new(0, 5)
-
-    Core.Tween(mask, {BackgroundTransparency = 0.5}, 0.2)
-
-    btnYes.MouseButton1Click:Connect(function()
-        Core.Tween(mask, {BackgroundTransparency = 1}, 0.15)
-        task.delay(0.15, function()
-            mask:Destroy()
-            if callback then callback() end
-        end)
-    end)
-
-    btnNo.MouseButton1Click:Connect(function()
-        Core.Tween(mask, {BackgroundTransparency = 1}, 0.15)
-        task.delay(0.15, function()
-            mask:Destroy()
-        end)
-    end)
 end
 
 -- 无限跳逻辑监听
