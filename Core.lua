@@ -1,4 +1,11 @@
--- [[ 🌚刘某某脚本 V3.9.0 | Core.lua - 核心逻辑模块 ]]
+-- [[ 🌚刘某某脚本 V4.0.0 | Core.lua - 核心逻辑模块 ]]
+-- ===================================================
+-- 📅 更新日期：2026年9月1日
+-- 📝 更新日志 (V4.0.0)：
+-- 1. [新增] 全局 UI 主题颜色配置项 (_G_LMM_88.c_ui)
+-- 2. [新增] Core.SetUIColor() 动态换色接口，供设定界面最下方切换颜色调用
+-- 3. [升级] 版本号与底层接口整合优化
+-- ===================================================
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -7,13 +14,14 @@ local _TS = game:GetService("TweenService")
 local _LP = _P.LocalPlayer
 local _Cam = workspace.CurrentCamera
 
--- 全局状态容器 (最下方已加入 UI 颜色选项 c_ui)
+-- 全局状态容器
 getgenv()._G_LMM_88 = { 
     v_0x1 = false, v_0x2 = false, v_0x3 = false, v_val_1 = 50, 
     v_0x4 = false, v_val_2 = 50, v_esp_line = false, v_esp_box = false,
     v_freeze = false, v_infjump = false,
     c_esp = Color3.new(1,0,0), c_line = Color3.new(1,0,0), c_box = Color3.new(1,0,0),
-    c_ui = Color3.fromRGB(0, 120, 215) -- 默认 UI 主题颜色（蓝色）
+    -- ⭐【V4.0.0 新增】：默认 UI 主题颜色（可在设定界面最下方修改）
+    c_ui = Color3.fromRGB(0, 120, 215)
 }
 
 local Core = {}
@@ -24,11 +32,12 @@ function Core.Tween(obj, props, time, style, dir)
     _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
 end
 
--- 更换 UI 颜色辅助函数 (供设定界面最下方切换颜色时调用)
+-- ⭐【V4.0.0 新增】：设定界面最下方更换 UI 颜色的接口
 function Core.SetUIColor(newColor)
     if typeof(newColor) == "Color3" then
         getgenv()._G_LMM_88.c_ui = newColor
-        -- 如果你的 UI 元素使用了特定标签或组，可以配合 BindableEvent 广播刷新
+        
+        -- 如果有绑定颜色更新事件则触发
         local uiEvent = getgenv().LMM_UI_ColorChanged
         if uiEvent and typeof(uiEvent.Fire) == "function" then
             uiEvent:Fire(newColor)
