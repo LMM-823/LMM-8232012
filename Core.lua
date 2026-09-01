@@ -24,15 +24,20 @@ function Core.Tween(obj, props, time, style, dir)
     _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
 end
 
--- [[ 新增：二次确认弹窗 UI ]]
-function Core.ShowConfirm(scriptName, onConfirm)
-    local sg = _CG:FindFirstChild("LMM_ConfirmUI") or Instance.new("ScreenGui")
-    sg.Name = "LMM_ConfirmUI"
-    sg.ResetOnSpawn = false
-    pcall(function() sg.Parent = _CG end)
-    if not sg.Parent then sg.Parent = _LP:WaitForChild("PlayerGui") end
+-- 通用确认弹窗函数
+function Core.Confirm(title, desc, callback)
+    local sg = _CG:FindFirstChild("LMM_ConfirmUI")
+    if not sg then
+        sg = Instance.new("ScreenGui")
+        sg.Name = "LMM_ConfirmUI"
+        sg.ResetOnSpawn = false
+        pcall(function() sg.Parent = _CG end)
+        if not sg.Parent then sg.Parent = _LP:WaitForChild("PlayerGui") end
+    end
 
-    if sg:FindFirstChild("Mask") then sg.Mask:Destroy() end
+    if sg:FindFirstChild("Mask") then
+        sg.Mask:Destroy()
+    end
 
     local mask = Instance.new("Frame", sg)
     mask.Name = "Mask"
@@ -45,7 +50,7 @@ function Core.ShowConfirm(scriptName, onConfirm)
     box.Size = UDim2.new(0, 280, 0, 150)
     box.Position = UDim2.new(0.5, 0, 0.5, 0)
     box.AnchorPoint = Vector2.new(0.5, 0.5)
-    box.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    box.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
     box.BorderSizePixel = 0
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
 
@@ -53,23 +58,23 @@ function Core.ShowConfirm(scriptName, onConfirm)
     stroke.Color = Color3.fromRGB(60, 60, 80)
     stroke.Thickness = 1.5
 
-    local title = Instance.new("TextLabel", box)
-    title.Size = UDim2.new(1, 0, 0, 35)
-    title.BackgroundTransparency = 1
-    title.Text = "🌚 确认开启脚本"
-    title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    title.TextSize = 15
-    title.Font = Enum.Font.SourceSansBold
+    local titleLbl = Instance.new("TextLabel", box)
+    titleLbl.Size = UDim2.new(1, 0, 0, 35)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = title or "确认执行"
+    titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLbl.TextSize = 15
+    titleLbl.Font = Enum.Font.SourceSansBold
 
-    local desc = Instance.new("TextLabel", box)
-    desc.Size = UDim2.new(1, -20, 0, 45)
-    desc.Position = UDim2.new(0, 10, 0, 35)
-    desc.BackgroundTransparency = 1
-    desc.Text = "是否确定加载并运行：\n[" .. tostring(scriptName or "第三方脚本") .. "] ？"
-    desc.TextColor3 = Color3.fromRGB(180, 180, 190)
-    desc.TextSize = 13
-    desc.TextWrapped = true
-    desc.Font = Enum.Font.SourceSans
+    local descLbl = Instance.new("TextLabel", box)
+    descLbl.Size = UDim2.new(1, -20, 0, 45)
+    descLbl.Position = UDim2.new(0, 10, 0, 35)
+    descLbl.BackgroundTransparency = 1
+    descLbl.Text = desc or "是否确定开启该功能？"
+    descLbl.TextColor3 = Color3.fromRGB(180, 180, 190)
+    descLbl.TextSize = 13
+    descLbl.TextWrapped = true
+    descLbl.Font = Enum.Font.SourceSans
 
     local btnYes = Instance.new("TextButton", box)
     btnYes.Size = UDim2.new(0.38, 0, 0, 30)
@@ -97,7 +102,7 @@ function Core.ShowConfirm(scriptName, onConfirm)
         Core.Tween(mask, {BackgroundTransparency = 1}, 0.15)
         task.delay(0.15, function()
             mask:Destroy()
-            if onConfirm then onConfirm() end
+            if callback then callback() end
         end)
     end)
 
