@@ -1,11 +1,4 @@
--- [[ 🌚刘某某脚本 V4.0.0 | Core.lua - 核心逻辑模块 ]]
--- ===================================================
--- 📅 更新日期：2026年9月1日
--- 📝 更新日志 (V4.0.0)：
--- 1. [版本升级] 核心版本正式升级至 V4.0.0。
--- 2. [状态扩展] 全局状态 `_G_LMM_88` 中新增 `c_ui` 颜色配置属性。
--- 3. [新增接口] 提供 `Core.SetUIColor` 方法，供主界面（Main）在设定最下方调用换色。
--- ===================================================
+-- [[ 🌚刘某某脚本 V3.9.0 | Core.lua - 核心逻辑模块 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -14,13 +7,12 @@ local _TS = game:GetService("TweenService")
 local _LP = _P.LocalPlayer
 local _Cam = workspace.CurrentCamera
 
--- 全局状态容器 (已包含 UI 主题色 c_ui)
+-- 全局状态容器
 getgenv()._G_LMM_88 = { 
     v_0x1 = false, v_0x2 = false, v_0x3 = false, v_val_1 = 50, 
     v_0x4 = false, v_val_2 = 50, v_esp_line = false, v_esp_box = false,
     v_freeze = false, v_infjump = false,
-    c_esp = Color3.new(1,0,0), c_line = Color3.new(1,0,0), c_box = Color3.new(1,0,0),
-    c_ui = Color3.fromRGB(0, 120, 215) -- 默认 UI 主题颜色
+    c_esp = Color3.new(1,0,0), c_line = Color3.new(1,0,0), c_box = Color3.new(1,0,0)
 }
 
 local Core = {}
@@ -29,16 +21,6 @@ local Core = {}
 function Core.Tween(obj, props, time, style, dir)
     if not obj then return end
     _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
-end
-
--- 核心换色接口（供你的 Main 界面最下方调用）
-function Core.SetUIColor(newColor)
-    if typeof(newColor) == "Color3" then
-        getgenv()._G_LMM_88.c_ui = newColor
-        if getgenv().LMM_UI_ColorChanged and typeof(getgenv().LMM_UI_ColorChanged) == "function" then
-            getgenv().LMM_UI_ColorChanged(newColor)
-        end
-    end
 end
 
 -- 无限跳逻辑监听
