@@ -20,7 +20,106 @@ local Core = {}
 -- 动画辅助函数
 function Core.Tween(obj, props, time, style, dir)
     if not obj then return end
-    _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
+    local tween = _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props)
+    tween:Play()
+    return tween
+end
+
+-- 通用二次确认弹窗 UI
+function Core.ShowConfirm(title, desc, onConfirm)
+    local parentGui = _LP:WaitForChild("PlayerGui"):FindFirstChildOfClass("ScreenGui")
+    if not parentGui then return end
+
+    -- 背景遮罩
+    local mask = Instance.new("Frame")
+    mask.Name = "LMM_ConfirmMask"
+    mask.Size = UDim2.new(1, 0, 1, 0)
+    mask.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    mask.BackgroundTransparency = 1
+    mask.ZIndex = 999
+    mask.Parent = parentGui
+
+    -- 弹窗卡片
+    local box = Instance.new("Frame")
+    box.Name = "ConfirmBox"
+    box.Size = UDim2.new(0, 320, 0, 180)
+    box.Position = UDim2.new(0.5, 0, 0.5, 0)
+    box.AnchorPoint = Vector2.new(0.5, 0.5)
+    box.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    box.BorderSizePixel = 0
+    box.Parent = mask
+
+    local corner = Instance.new("UICorner", box)
+    corner.CornerRadius = UDim.new(0, 10)
+    
+    local stroke = Instance.new("UIStroke", box)
+    stroke.Color = Color3.fromRGB(60, 60, 80)
+    stroke.Thickness = 1.5
+
+    -- 标题
+    local titleLbl = Instance.new("TextLabel", box)
+    titleLbl.Size = UDim2.new(1, -20, 0, 30)
+    titleLbl.Position = UDim2.new(0, 10, 0, 10)
+    titleLbl.BackgroundTransparency = 1
+    titleLbl.Text = title or "提示"
+    titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+    titleLbl.TextSize = 18
+    titleLbl.Font = Enum.Font.SourceSansBold
+
+    -- 内容文本
+    local descLbl = Instance.new("TextLabel", box)
+    descLbl.Size = UDim2.new(1, -20, 0, 60)
+    descLbl.Position = UDim2.new(0, 10, 0, 45)
+    descLbl.BackgroundTransparency = 1
+    descLbl.Text = desc or "是否确定执行此脚本？"
+    descLbl.TextColor3 = Color3.fromRGB(180, 180, 190)
+    descLbl.TextSize = 14
+    descLbl.TextWrapped = true
+    descLbl.Font = Enum.Font.SourceSans
+
+    -- 确认按钮
+    local btnYes = Instance.new("TextButton", box)
+    btnYes.Size = UDim2.new(0.4, 0, 0, 35)
+    btnYes.Position = UDim2.new(0.1, 0, 1, -45)
+    btnYes.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
+    btnYes.Text = "确定"
+    btnYes.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btnYes.Font = Enum.Font.SourceSansBold
+    btnYes.TextSize = 15
+    Instance.new("UICorner", btnYes).CornerRadius = UDim.new(0, 6)
+
+    -- 取消按钮
+    local btnNo = Instance.new("TextButton", box)
+    btnNo.Size = UDim2.new(0.4, 0, 0, 35)
+    btnNo.Position = UDim2.new(0.5, 0, 1, -45)
+    btnNo.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+    btnNo.Text = "取消"
+    btnNo.TextColor3 = Color3.fromRGB(200, 200, 200)
+    btnNo.Font = Enum.Font.SourceSans
+    btnNo.TextSize = 15
+    Instance.new("UICorner", btnNo).CornerRadius = UDim.new(0, 6)
+
+    -- 入场淡入动画
+    Core.Tween(mask, {BackgroundTransparency = 0.5}, 0.2)
+    box.ScaleTransform = 0.8
+    Core.Tween(box, {Size = UDim2.new(0, 320, 0, 180)}, 0.2, Enum.EasingStyle.Back)
+
+    -- 关闭弹窗动画
+    local function closeBox()
+        Core.Tween(mask, {BackgroundTransparency = 1}, 0.15)
+        Core.Tween(box, {Size = UDim2.new(0, 0, 0, 0)}, 0.15).Completed:Connect(function()
+            mask:Destroy()
+        end)
+    end
+
+    btnYes.MouseButton1Click:Connect(function()
+        closeBox()
+        if onConfirm then onConfirm() end
+    end)
+
+    btnNo.MouseButton1Click:Connect(function()
+        closeBox()
+    end)
 end
 
 -- 无限跳逻辑监听
@@ -121,7 +220,7 @@ _RS.Heartbeat:Connect(function()
                     beam.FaceCamera = true
                 end
                 if beam then beam.Color = ColorSequence.new(state.c_line) end
-            elseif beam then 
+            elseif beam me.Name == "LMM_LINE_FIX" then 
                 beam:Destroy() 
             end
         end
