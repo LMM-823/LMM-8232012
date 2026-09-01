@@ -25,7 +25,7 @@ function Core.Tween(obj, props, time, style, dir)
     return tween
 end
 
--- 通用二次确认弹窗 UI
+-- 二次确认弹窗 UI
 function Core.ShowConfirm(title, desc, onConfirm)
     local parentGui = _LP:WaitForChild("PlayerGui"):FindFirstChildOfClass("ScreenGui")
     if not parentGui then return end
@@ -101,7 +101,7 @@ function Core.ShowConfirm(title, desc, onConfirm)
 
     -- 入场淡入动画
     Core.Tween(mask, {BackgroundTransparency = 0.5}, 0.2)
-    box.ScaleTransform = 0.8
+    box.Size = UDim2.new(0, 0, 0, 0)
     Core.Tween(box, {Size = UDim2.new(0, 320, 0, 180)}, 0.2, Enum.EasingStyle.Back)
 
     -- 关闭弹窗动画
@@ -220,7 +220,7 @@ _RS.Heartbeat:Connect(function()
                     beam.FaceCamera = true
                 end
                 if beam then beam.Color = ColorSequence.new(state.c_line) end
-            elseif beam me.Name == "LMM_LINE_FIX" then 
+            elseif beam then 
                 beam:Destroy() 
             end
         end
