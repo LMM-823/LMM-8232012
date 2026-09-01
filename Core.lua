@@ -24,37 +24,28 @@ function Core.Tween(obj, props, time, style, dir)
     _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
 end
 
--- 【新增】通用确认弹窗UI函数 (在脚本区点击按钮时调用)
-function Core.ShowConfirm(title, desc, onConfirm)
-    -- 获取或创建 CoreGui 容器
-    local parentGui = _CG:FindFirstChild("LMM_ConfirmGui")
-    if not parentGui then
-        parentGui = Instance.new("ScreenGui")
-        parentGui.Name = "LMM_ConfirmGui"
-        parentGui.ResetOnSpawn = false
-        pcall(function() parentGui.Parent = _CG end)
-        if not parentGui.Parent then parentGui.Parent = _LP:WaitForChild("PlayerGui") end
-    end
+-- [[ 新增：二次确认弹窗 UI ]]
+function Core.ShowConfirm(scriptName, onConfirm)
+    local sg = _CG:FindFirstChild("LMM_ConfirmUI") or Instance.new("ScreenGui")
+    sg.Name = "LMM_ConfirmUI"
+    sg.ResetOnSpawn = false
+    pcall(function() sg.Parent = _CG end)
+    if not sg.Parent then sg.Parent = _LP:WaitForChild("PlayerGui") end
 
-    -- 防止重复创建
-    if parentGui:FindFirstChild("ConfirmMask") then
-        parentGui.ConfirmMask:Destroy()
-    end
+    if sg:FindFirstChild("Mask") then sg.Mask:Destroy() end
 
-    -- 背景黑色半透明遮罩
-    local mask = Instance.new("Frame", parentGui)
-    mask.Name = "ConfirmMask"
+    local mask = Instance.new("Frame", sg)
+    mask.Name = "Mask"
     mask.Size = UDim2.new(1, 0, 1, 0)
     mask.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
     mask.BackgroundTransparency = 1
-    mask.ZIndex = 99999
+    mask.ZIndex = 999999
 
-    -- 弹窗框体
     local box = Instance.new("Frame", mask)
-    box.Size = UDim2.new(0, 300, 0, 160)
+    box.Size = UDim2.new(0, 280, 0, 150)
     box.Position = UDim2.new(0.5, 0, 0.5, 0)
     box.AnchorPoint = Vector2.new(0.5, 0.5)
-    box.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+    box.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
     box.BorderSizePixel = 0
     Instance.new("UICorner", box).CornerRadius = UDim.new(0, 8)
 
@@ -62,60 +53,59 @@ function Core.ShowConfirm(title, desc, onConfirm)
     stroke.Color = Color3.fromRGB(60, 60, 80)
     stroke.Thickness = 1.5
 
-    -- 标题
-    local titleLbl = Instance.new("TextLabel", box)
-    titleLbl.Size = UDim2.new(1, -20, 0, 30)
-    titleLbl.Position = UDim2.new(0, 10, 0, 8)
-    titleLbl.BackgroundTransparency = 1
-    titleLbl.Text = title or "提示"
-    titleLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
-    titleLbl.TextSize = 16
-    titleLbl.Font = Enum.Font.SourceSansBold
+    local title = Instance.new("TextLabel", box)
+    title.Size = UDim2.new(1, 0, 0, 35)
+    title.BackgroundTransparency = 1
+    title.Text = "🌚 确认开启脚本"
+    title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    title.TextSize = 15
+    title.Font = Enum.Font.SourceSansBold
 
-    -- 描述说明
-    local descLbl = Instance.new("TextLabel", box)
-    descLbl.Size = UDim2.new(1, -20, 0, 50)
-    descLbl.Position = UDim2.new(0, 10, 0, 40)
-    descLbl.BackgroundTransparency = 1
-    descLbl.Text = desc or "确定要执行此操作吗？"
-    descLbl.TextColor3 = Color3.fromRGB(180, 180, 190)
-    descLbl.TextSize = 14
-    descLbl.TextWrapped = true
-    descLbl.Font = Enum.Font.SourceSans
+    local desc = Instance.new("TextLabel", box)
+    desc.Size = UDim2.new(1, -20, 0, 45)
+    desc.Position = UDim2.new(0, 10, 0, 35)
+    desc.BackgroundTransparency = 1
+    desc.Text = "是否确定加载并运行：\n[" .. tostring(scriptName or "第三方脚本") .. "] ？"
+    desc.TextColor3 = Color3.fromRGB(180, 180, 190)
+    desc.TextSize = 13
+    desc.TextWrapped = true
+    desc.Font = Enum.Font.SourceSans
 
-    -- 确定按钮
     local btnYes = Instance.new("TextButton", box)
-    btnYes.Size = UDim2.new(0.38, 0, 0, 32)
-    btnYes.Position = UDim2.new(0.1, 0, 1, -42)
+    btnYes.Size = UDim2.new(0.38, 0, 0, 30)
+    btnYes.Position = UDim2.new(0.1, 0, 1, -40)
     btnYes.BackgroundColor3 = Color3.fromRGB(0, 120, 215)
     btnYes.Text = "确定"
     btnYes.TextColor3 = Color3.fromRGB(255, 255, 255)
     btnYes.Font = Enum.Font.SourceSansBold
     btnYes.TextSize = 14
-    Instance.new("UICorner", btnYes).CornerRadius = UDim.new(0, 6)
+    Instance.new("UICorner", btnYes).CornerRadius = UDim.new(0, 5)
 
-    -- 取消按钮
     local btnNo = Instance.new("TextButton", box)
-    btnNo.Size = UDim2.new(0.38, 0, 0, 32)
-    btnNo.Position = UDim2.new(0.52, 0, 1, -42)
+    btnNo.Size = UDim2.new(0.38, 0, 0, 30)
+    btnNo.Position = UDim2.new(0.52, 0, 1, -40)
     btnNo.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
     btnNo.Text = "取消"
     btnNo.TextColor3 = Color3.fromRGB(200, 200, 200)
     btnNo.Font = Enum.Font.SourceSans
     btnNo.TextSize = 14
-    Instance.new("UICorner", btnNo).CornerRadius = UDim.new(0, 6)
+    Instance.new("UICorner", btnNo).CornerRadius = UDim.new(0, 5)
 
-    -- 入场淡入
     Core.Tween(mask, {BackgroundTransparency = 0.5}, 0.2)
 
-    -- 点击逻辑
     btnYes.MouseButton1Click:Connect(function()
-        mask:Destroy()
-        if onConfirm then onConfirm() end
+        Core.Tween(mask, {BackgroundTransparency = 1}, 0.15)
+        task.delay(0.15, function()
+            mask:Destroy()
+            if onConfirm then onConfirm() end
+        end)
     end)
 
     btnNo.MouseButton1Click:Connect(function()
-        mask:Destroy()
+        Core.Tween(mask, {BackgroundTransparency = 1}, 0.15)
+        task.delay(0.15, function()
+            mask:Destroy()
+        end)
     end)
 end
 
