@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.1.6 (beta) | ESP 透视终极强化版 ]]
+-- [[ 刘某某脚本 V4.1.9 (beta) | ESP 透视强力穿透修复版 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -109,7 +109,7 @@ Instance.new("UICorner", _BarFill).CornerRadius = UDim.new(1, 0)
 
 local _LoadText = Instance.new("TextLabel", _LoadGui)
 _LoadText.Size = UDim2.new(1, 0, 0, 30); _LoadText.Position = UDim2.new(0, 0, 0.25, -15); _LoadText.BackgroundTransparency = 1; _LoadText.ZIndex = 11
-_LoadText.Text = "刘某某脚本 V4.1.6 加载中..."; _LoadText.TextColor3 = Color3.fromRGB(245, 245, 247); _LoadText.Font = Enum.Font.GothamBold; _LoadText.TextSize = 14
+_LoadText.Text = "刘某某脚本 V4.1.9 加载中..."; _LoadText.TextColor3 = Color3.fromRGB(245, 245, 247); _LoadText.Font = Enum.Font.GothamBold; _LoadText.TextSize = 14
 
 Tween(_BarFill, {Size = UDim2.new(1, 0, 1, 0)}, 1.4, Enum.EasingStyle.Quart)
 
@@ -148,7 +148,7 @@ end)
 
 local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 50); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
 local _Title = Instance.new("TextLabel", _TB)
-_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.1.6 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.1.9 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
 local _HeaderLine = Instance.new("Frame", _M)
 _HeaderLine.Size = UDim2.new(1, -30, 0, 1); _HeaderLine.Position = UDim2.new(0, 15, 0, 50)
@@ -483,6 +483,7 @@ _SearchBox3:GetPropertyChangedSignal("Text"):Connect(function()
 end)
 
 _CreateS(_Page6, "LMM MM2 (专属挂机农夫版)", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 2)
+_CreateS(_Page6, "LMM VIEW", "https://raw.githubusercontent.com/LMM-823/LMM-VIEW/main/Main.lua?v=999", 3)
 
 local function _CreateLogEntry(version, date, desc, order)
     local f = Instance.new("Frame", _Page3)
@@ -506,16 +507,16 @@ local function _CreateLogEntry(version, date, desc, order)
     
     local d = Instance.new("TextLabel", f)
     d.LayoutOrder = 2; d.Size = UDim2.new(1, 0, 0, 0); d.AutomaticSize = Enum.AutomaticSize.Y
-    d.BackgroundTransparency = 1; d.Text = desc; d.TextColor3 = Color3.fromRGB(200, 200, 220)
+    d.BackgroundTransparency = 1; t.Text = desc; d.TextColor3 = Color3.fromRGB(200, 200, 220)
     d.Font = Enum.Font.GothamMedium; d.TextSize = 12; d.TextXAlignment = Enum.TextXAlignment.Left; d.TextWrapped = true; d.ZIndex = 2
 
     f.MouseEnter:Connect(function() Tween(stroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.25) end)
     f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.25) end)
 end
 
-_CreateLogEntry("V4.1.6", "2026-11-13", "【ESP 终极强化】重构透视渲染逻辑，确保高亮与方框在各类游戏内均能稳定生效。", 1)
-_CreateLogEntry("V4.1.5", "2026-11-13", "【深度优化】彻底移除了左侧玩家头像与昵称，重写并强化了冰冻与透视底层。", 2)
-_CreateLogEntry("V4.1.4", "2026-11-13", "【核心修复】修复 ESP 透视与冰冻无反应，悬浮球更换为大写字母 L 尖角正方形。", 3)
+_CreateLogEntry("V4.1.9", "2026-11-13", "【ESP 终极突破】全方位重构透视引擎，绕过复杂游戏层级直接对全身部件进行高亮与方框渲染。", 1)
+_CreateLogEntry("V4.1.8", "2026-11-13", "【深度重构】完美修复冰冻只变慢而非定住的问题（加入强制坐标锁死与速度归零）。", 2)
+_CreateLogEntry("V4.1.7", "2026-11-13", "【脚本更新】在 LMM script 分类下成功添加并集成了 LMM VIEW 专属脚本。", 3)
 
 local _FpsInput = Instance.new("TextBox", _Page4)
 _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsInput.BackgroundTransparency = 0.55
@@ -722,7 +723,9 @@ end)
 local _BG = Instance.new("BodyGyro"); local _BV = Instance.new("BodyVelocity")
 _BG.P = 9e4; _BG.MaxTorque = Vector3.new(9e9, 9e9, 9e9); _BV.MaxForce = Vector3.new(9e9, 9e9, 9e9)
 
--- ==================== 核心功能循环驱动 (ESP 终极增强修复) ====================
+local frozenPosition = nil
+
+-- ==================== 核心功能循环驱动 (ESP 透视全方位突破修复) ====================
 _RS.Heartbeat:Connect(function()
     local lChar = _LP.Character
     if lChar and lChar:FindFirstChild("HumanoidRootPart") then
@@ -735,11 +738,24 @@ _RS.Heartbeat:Connect(function()
             end
             
             if _G_LMM_88.v_freeze then
+                if not frozenPosition then
+                    frozenPosition = lHrp.CFrame
+                end
+                lHrp.CFrame = frozenPosition
                 lHrp.Anchored = true
                 lHrp.AssemblyLinearVelocity = Vector3.zero
                 lHrp.AssemblyAngularVelocity = Vector3.zero
+                pcall(function()
+                    hum.PlatformStand = true
+                end)
             else
-                lHrp.Anchored = false
+                if frozenPosition then
+                    frozenPosition = nil
+                    lHrp.Anchored = false
+                    pcall(function()
+                        hum.PlatformStand = false
+                    end)
+                end
             end
 
             if _G_LMM_88.v_0x2 then 
@@ -757,14 +773,14 @@ _RS.Heartbeat:Connect(function()
         end
     end
 
-    -- 🌟 终极强化透视驱动：支持多重高亮、方框、射线判定
+    -- 🌟 终极突破 ESP 逻辑：直接绑定到每一个玩家的 Character 根部，确保全游戏模型通用
     for _, p in pairs(_P:GetPlayers()) do
         if p ~= _LP then
             local tChar = p.Character
-            if tChar and tChar:FindFirstChild("HumanoidRootPart") then
-                local tHrp = tChar.HumanoidRootPart
+            if tChar then
+                local tHrp = tChar:FindFirstChild("HumanoidRootPart") or tChar:FindFirstChild("Head")
                 
-                -- 透视高亮 (ESP Highlight)
+                -- 1. 透视高亮 (ESP Highlight)
                 if _G_LMM_88.v_0x1 then
                     local hl = tChar:FindFirstChild("LMM_ESP")
                     if not hl then
@@ -772,7 +788,7 @@ _RS.Heartbeat:Connect(function()
                         hl.Name = "LMM_ESP"
                         hl.Adornee = tChar
                         hl.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
-                        hl.FillTransparency = 0.4
+                        hl.FillTransparency = 0.3
                         hl.OutlineTransparency = 0
                     end
                     hl.FillColor = _G_LMM_88.c_esp
@@ -783,8 +799,8 @@ _RS.Heartbeat:Connect(function()
                     if hl then hl:Destroy() end
                 end
 
-                -- ESP 方框 (BillboardGui Box)
-                if _G_LMM_88.v_esp_box then
+                -- 2. ESP 方框 (BillboardGui Box)
+                if _G_LMM_88.v_esp_box and tHrp then
                     local bb = tChar:FindFirstChild("LMM_BOX")
                     if not bb then
                         bb = Instance.new("BillboardGui", tChar)
@@ -808,8 +824,8 @@ _RS.Heartbeat:Connect(function()
                     if bb then bb:Destroy() end
                 end
 
-                -- ESP 射线 (Beam Line)
-                if _G_LMM_88.v_esp_line then
+                -- 3. ESP 射线 (Beam Line)
+                if _G_LMM_88.v_esp_line and tHrp then
                     local beam = tHrp:FindFirstChild("LMM_LINE_FIX")
                     if not beam and lChar and lChar:FindFirstChild("HumanoidRootPart") then
                         beam = Instance.new("Beam", tHrp)
@@ -824,18 +840,11 @@ _RS.Heartbeat:Connect(function()
                     end
                     if beam then beam.Color = ColorSequence.new(_G_LMM_88.c_line) end
                 else
-                    local beam = tHrp:FindFirstChild("LMM_LINE_FIX")
-                    if beam then beam:Destroy() end
-                end
-            else
-                pcall(function()
-                    if tChar then
-                        local hl = tChar:FindFirstChild("LMM_ESP")
-                        if hl then hl:Destroy() end
-                        local bb = tChar:FindFirstChild("LMM_BOX")
-                        if bb then bb:Destroy() end
+                    if tHrp then
+                        local beam = tHrp:FindFirstChild("LMM_LINE_FIX")
+                        if beam then beam:Destroy() end
                     end
-                end)
+                end
             end
         end
     end
