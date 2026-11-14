@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.1.9 (beta) | ESP 透视强力穿透修复版 ]]
+-- [[ 刘某某脚本 V4.2.1 (beta) | 穿墙修复与细节精简版 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -92,15 +92,29 @@ local function ShowNotification(title, desc)
     end)
 end
 
--- ==================== 开场加载动画 ====================
+-- ==================== 极美开场科技感加载动画 ====================
 local _LoadGui = Instance.new("Frame", _S)
-_LoadGui.Size = UDim2.new(0, 320, 0, 100); _LoadGui.Position = UDim2.new(0.5, -160, 0.45, -50)
-_LoadGui.BackgroundColor3 = Color3.fromRGB(12, 12, 20); _LoadGui.BackgroundTransparency = 0.15; _LoadGui.BorderSizePixel = 0; _LoadGui.ZIndex = 10
-Instance.new("UICorner", _LoadGui).CornerRadius = UDim.new(0, 16)
+_LoadGui.Size = UDim2.new(0, 340, 0, 120); _LoadGui.Position = UDim2.new(0.5, -170, 0.45, -60)
+_LoadGui.BackgroundColor3 = Color3.fromRGB(10, 10, 18); _LoadGui.BackgroundTransparency = 0.1; _LoadGui.BorderSizePixel = 0; _LoadGui.ZIndex = 10
+Instance.new("UICorner", _LoadGui).CornerRadius = UDim.new(0, 20)
+local _LoadStroke = Instance.new("UIStroke", _LoadGui); _LoadStroke.Thickness = 1.5; _LoadStroke.Color = Color3.fromRGB(129, 140, 248); _LoadStroke.Transparency = 0.3
+
+local _Ring = Instance.new("Frame", _LoadGui)
+_Ring.Size = UDim2.new(0, 36, 0, 36); _Ring.Position = UDim2.new(0.5, -18, 0, 18)
+_Ring.BackgroundTransparency = 1; _Ring.ZIndex = 11
+local _RingStroke = Instance.new("UIStroke", _Ring); _RingStroke.Thickness = 3; _RingStroke.Color = Color3.fromRGB(129, 140, 248)
+Instance.new("UICorner", _Ring).CornerRadius = UDim.new(1, 0)
+
+task.spawn(function()
+    while _LoadGui and _LoadGui.Parent do
+        _Ring.Rotation = _Ring.Rotation + 6
+        task.wait(0.02)
+    end
+end)
 
 local _BarBg = Instance.new("Frame", _LoadGui)
-_BarBg.Size = UDim2.new(0.85, 0, 0, 6); _BarBg.Position = UDim2.new(0.075, 0, 0.7, 0)
-_BarBg.BackgroundColor3 = Color3.fromRGB(25, 25, 40); _BarBg.BorderSizePixel = 0; _BarBg.ZIndex = 11
+_BarBg.Size = UDim2.new(0.85, 0, 0, 8); _BarBg.Position = UDim2.new(0.075, 0, 0.78, 0)
+_BarBg.BackgroundColor3 = Color3.fromRGB(22, 22, 35); _BarBg.BorderSizePixel = 0; _BarBg.ZIndex = 11
 Instance.new("UICorner", _BarBg).CornerRadius = UDim.new(1, 0)
 
 local _BarFill = Instance.new("Frame", _BarBg)
@@ -108,8 +122,8 @@ _BarFill.Size = UDim2.new(0, 0, 1, 0); _BarFill.BackgroundColor3 = Color3.fromRG
 Instance.new("UICorner", _BarFill).CornerRadius = UDim.new(1, 0)
 
 local _LoadText = Instance.new("TextLabel", _LoadGui)
-_LoadText.Size = UDim2.new(1, 0, 0, 30); _LoadText.Position = UDim2.new(0, 0, 0.25, -15); _LoadText.BackgroundTransparency = 1; _LoadText.ZIndex = 11
-_LoadText.Text = "刘某某脚本 V4.1.9 加载中..."; _LoadText.TextColor3 = Color3.fromRGB(245, 245, 247); _LoadText.Font = Enum.Font.GothamBold; _LoadText.TextSize = 14
+_LoadText.Size = UDim2.new(1, 0, 0, 25); _LoadText.Position = UDim2.new(0, 0, 0.48, -12); _LoadText.BackgroundTransparency = 1; _LoadText.ZIndex = 11
+_LoadText.Text = "刘某某脚本 V4.2.1 加载中..."; _LoadText.TextColor3 = Color3.fromRGB(245, 245, 247); _LoadText.Font = Enum.Font.GothamBold; _LoadText.TextSize = 13
 
 Tween(_BarFill, {Size = UDim2.new(1, 0, 1, 0)}, 1.4, Enum.EasingStyle.Quart)
 
@@ -138,6 +152,8 @@ task.spawn(function()
     Tween(_LoadText, {TextTransparency = 1}, 0.25)
     Tween(_BarBg, {BackgroundTransparency = 1}, 0.25)
     Tween(_BarFill, {BackgroundTransparency = 1}, 0.25)
+    Tween(_Ring, {BackgroundTransparency = 1}, 0.25)
+    Tween(_LoadStroke, {Transparency = 1}, 0.25)
     task.wait(0.35)
     _LoadGui:Destroy()
     
@@ -148,7 +164,7 @@ end)
 
 local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 50); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
 local _Title = Instance.new("TextLabel", _TB)
-_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.1.9 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.1 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
 local _HeaderLine = Instance.new("Frame", _M)
 _HeaderLine.Size = UDim2.new(1, -30, 0, 1); _HeaderLine.Position = UDim2.new(0, 15, 0, 50)
@@ -294,6 +310,20 @@ local function _CreateT(targetPage, name, key, order)
         _G_LMM_88[key] = not _G_LMM_88[key]
         local state = _G_LMM_88[key]
         
+        -- 🌟 修复穿墙关闭时的残留问题：关闭时立即恢复所有部位的碰撞体积
+        if key == "v_0x2" and not state then
+            pcall(function()
+                local lChar = _LP.Character
+                if lChar then
+                    for _, p in pairs(lChar:GetChildren()) do
+                        if p:IsA("BasePart") then
+                            p.CanCollide = true
+                        end
+                    end
+                end
+            end)
+        end
+
         if key == "v_0x3" and not state then
             pcall(function()
                 local lChar = _LP.Character
@@ -413,12 +443,12 @@ local _In2 = Instance.new("TextBox", _Page1); _In2.LayoutOrder = 2; _In2.Size = 
 local _In2S = Instance.new("UIStroke", _In2); _In2S.Thickness = 1; _In2S.Color = Color3.fromRGB(55, 55, 75); _DecorateInput(_In2)
 _In2.FocusLost:Connect(function() _G_LMM_88.v_val_2 = tonumber(_In2.Text:match("%d+")) or 50; _In2.Text = "  飞行速度: ".._G_LMM_88.v_val_2 end)
 
-_CreateT(_Page1, "冰冻 (让自己固定)", "v_freeze", 3)
-_CreateT(_Page1, "无限跳 (Infinite Jump)", "v_infjump", 4)
-_CreateT(_Page1, "内置穿墙 (NOCLIP)", "v_0x2", 5)
+_CreateT(_Page1, "冰冻", "v_freeze", 3)
+_CreateT(_Page1, "无限跳", "v_infjump", 4)
+_CreateT(_Page1, "内置穿墙", "v_0x2", 5)
 _CreateT(_Page1, "内置速度开关", "v_0x3", 6)
-_CreateT(_Page1, "内置飞行开关 (FLY)", "v_0x4", 7)
-_CreateT(_Page1, "内置透视 (ESP)", "v_0x1", 8); _CreateColorBar(_Page1, "c_esp", 9)
+_CreateT(_Page1, "内置飞行开关", "v_0x4", 7)
+_CreateT(_Page1, "内置透视", "v_0x1", 8); _CreateColorBar(_Page1, "c_esp", 9)
 _CreateT(_Page1, "内置ESP射线", "v_esp_line", 10); _CreateColorBar(_Page1, "c_line", 11)
 _CreateT(_Page1, "内置ESP方框", "v_esp_box", 12); _CreateColorBar(_Page1, "c_box", 13)
 
@@ -439,10 +469,10 @@ _SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
-_CreateS(_Page2, "AIMBOT (自瞄)", "https://rawscripts.net/raw/Universal-Script-Aimbot-Mobile-34677", 2)
-_CreateS(_Page2, "Infinite Yield (万能脚本)", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", 3)
+_CreateS(_Page2, "AIMBOT", "https://rawscripts.net/raw/Universal-Script-Aimbot-Mobile-34677", 2)
+_CreateS(_Page2, "Infinite Yield", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", 3)
 _CreateS(_Page2, "Nameless Admin", "https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source", 4)
-_CreateS(_Page2, "Owl Hub (极简稳定版)", "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt", 5)
+_CreateS(_Page2, "Owl Hub", "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt", 5)
 _CreateS(_Page2, "steal an egg", "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua", 6)
 
 local _SearchBox2 = Instance.new("TextBox", _Page5)
@@ -462,7 +492,7 @@ _SearchBox2:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
-_CreateS(_Page5, "示例脚本 (需卡密)", "https://example.com/needkey-script", 2)
+_CreateS(_Page5, "示例脚本", "https://example.com/needkey-script", 2)
 _CreateS(_Page5, "Blade Ball", "https://raw.githubusercontent.com/joshhhie/rise/refs/heads/main/loader.lua", 3)
 
 local _SearchBox3 = Instance.new("TextBox", _Page6)
@@ -482,7 +512,7 @@ _SearchBox3:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
-_CreateS(_Page6, "LMM MM2 (专属挂机农夫版)", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 2)
+_CreateS(_Page6, "LMM MM2", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 2)
 _CreateS(_Page6, "LMM VIEW", "https://raw.githubusercontent.com/LMM-823/LMM-VIEW/main/Main.lua?v=999", 3)
 
 local function _CreateLogEntry(version, date, desc, order)
@@ -507,20 +537,21 @@ local function _CreateLogEntry(version, date, desc, order)
     
     local d = Instance.new("TextLabel", f)
     d.LayoutOrder = 2; d.Size = UDim2.new(1, 0, 0, 0); d.AutomaticSize = Enum.AutomaticSize.Y
-    d.BackgroundTransparency = 1; t.Text = desc; d.TextColor3 = Color3.fromRGB(200, 200, 220)
+    d.BackgroundTransparency = 1; d.Text = desc; d.TextColor3 = Color3.fromRGB(200, 200, 220)
     d.Font = Enum.Font.GothamMedium; d.TextSize = 12; d.TextXAlignment = Enum.TextXAlignment.Left; d.TextWrapped = true; d.ZIndex = 2
 
     f.MouseEnter:Connect(function() Tween(stroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.25) end)
     f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.25) end)
 end
 
-_CreateLogEntry("V4.1.9", "2026-11-13", "【ESP 终极突破】全方位重构透视引擎，绕过复杂游戏层级直接对全身部件进行高亮与方框渲染。", 1)
-_CreateLogEntry("V4.1.8", "2026-11-13", "【深度重构】完美修复冰冻只变慢而非定住的问题（加入强制坐标锁死与速度归零）。", 2)
-_CreateLogEntry("V4.1.7", "2026-11-13", "【脚本更新】在 LMM script 分类下成功添加并集成了 LMM VIEW 专属脚本。", 3)
+_CreateLogEntry("V4.2.1", "2026-11-13", "【穿墙与UI精简】修复穿墙关闭后效果残留的问题；彻底清理设定中心内所有多余括号；优化 ESP 追踪稳定性。", 1)
+_CreateLogEntry("V4.2.0", "2026-11-13", "【UI 视觉升级】重构开场加载动画，加入科技旋转光环；精简功能菜单文案，保留核心必要标记。", 2)
+_CreateLogEntry("V4.1.9", "2026-11-13", "【ESP 终极突破】全方位重构透视引擎，绕过复杂游戏层级直接对全身部件进行高亮与方框渲染。", 3)
 
+-- 🌟 设定中心：彻底删掉所有括号（FPS解锁、BGM、高亮等提示文字）
 local _FpsInput = Instance.new("TextBox", _Page4)
 _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsInput.BackgroundTransparency = 0.55
-_FpsInput.Text = "  设置FPS解锁 (15-240): 60"; _FpsInput.TextColor3 = Color3.fromRGB(240, 240, 250); _FpsInput.Font = Enum.Font.GothamMedium; _FpsInput.TextSize = 13; _FpsInput.TextXAlignment = Enum.TextXAlignment.Left; _FpsInput.ZIndex = 2
+_FpsInput.Text = "  设置FPS解锁 15到240: 60"; _FpsInput.TextColor3 = Color3.fromRGB(240, 240, 250); _FpsInput.Font = Enum.Font.GothamMedium; _FpsInput.TextSize = 13; _FpsInput.TextXAlignment = Enum.TextXAlignment.Left; _FpsInput.ZIndex = 2
 Instance.new("UICorner", _FpsInput).CornerRadius = UDim.new(0, 10)
 local _FpsStroke = Instance.new("UIStroke", _FpsInput); _FpsStroke.Thickness = 1; _FpsStroke.Color = Color3.fromRGB(55, 55, 75)
 _DecorateInput(_FpsInput)
@@ -528,9 +559,9 @@ _DecorateInput(_FpsInput)
 _FpsInput.FocusLost:Connect(function()
     local val = tonumber(_FpsInput.Text:match("%d+")) or 60
     if val < 15 then val = 15 end if val > 240 then val = 240 end
-    _FpsInput.Text = "  设置FPS解锁 (15-240): " .. val
+    _FpsInput.Text = "  设置FPS解锁 15到240: " .. val
     pcall(function() setfpscap(val) end)
-    ShowNotification("FPS 设置已更新", "当前上限已锁定为: " .. val)
+    ShowNotification("FPS 设置已更新", "当前上限已锁定为 " .. val)
 end)
 
 local _BgmContainer = Instance.new("Frame", _Page4)
@@ -540,7 +571,7 @@ local _BgmStroke = Instance.new("UIStroke", _BgmContainer); _BgmStroke.Thickness
 
 local _BgmTitle = Instance.new("TextLabel", _BgmContainer)
 _BgmTitle.Size = UDim2.new(1, -20, 0, 25); _BgmTitle.Position = UDim2.new(0, 10, 0, 6)
-_BgmTitle.BackgroundTransparency = 1; _BgmTitle.Text = "云端背景音乐播放器 (BGM)"; _BgmTitle.TextColor3 = Color3.fromRGB(240, 240, 250); _BgmTitle.Font = Enum.Font.GothamBold; _BgmTitle.TextSize = 12; _BgmTitle.TextXAlignment = Enum.TextXAlignment.Left; _BgmTitle.ZIndex = 3
+_BgmTitle.BackgroundTransparency = 1; _BgmTitle.Text = "云端背景音乐播放器 BGM"; _BgmTitle.TextColor3 = Color3.fromRGB(240, 240, 250); _BgmTitle.Font = Enum.Font.GothamBold; _BgmTitle.TextSize = 12; _BgmTitle.TextXAlignment = Enum.TextXAlignment.Left; _BgmTitle.ZIndex = 3
 
 local _BgmInput = Instance.new("TextBox", _BgmContainer)
 _BgmInput.Size = UDim2.new(0.65, 0, 0, 36); _BgmInput.Position = UDim2.new(0, 10, 0, 38)
@@ -567,18 +598,18 @@ _BgmToggle.MouseButton1Click:Connect(function()
         end)
         _BgmToggle.Text = "停止播放"
         _BgmToggle.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
-        ShowNotification("BGM 播放器", "背景音乐已开始播放！")
+        ShowNotification("BGM 播放器", "背景音乐已开始播放")
     else
         pcall(function() soundObj:Stop() end)
         _BgmToggle.Text = "播放音乐"
         _BgmToggle.BackgroundColor3 = Color3.fromRGB(99, 102, 241)
-        ShowNotification("BGM 播放器", "背景音乐已停止。")
+        ShowNotification("BGM 播放器", "背景音乐已停止")
     end
 end)
 
 local _FpsBoostRealBtn = Instance.new("TextButton", _Page4)
 _FpsBoostRealBtn.LayoutOrder = 3; _FpsBoostRealBtn.Size = UDim2.new(0.98, 0, 0, 40); _FpsBoostRealBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsBoostRealBtn.BackgroundTransparency = 0.55
-_FpsBoostRealBtn.Text = "   开启 FPS Boost (极致性能优化)"; _FpsBoostRealBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _FpsBoostRealBtn.Font = Enum.Font.GothamMedium; _FpsBoostRealBtn.TextSize = 13; _FpsBoostRealBtn.TextXAlignment = Enum.TextXAlignment.Left; _FpsBoostRealBtn.ZIndex = 2; _FpsBoostRealBtn.AutoButtonColor = false
+_FpsBoostRealBtn.Text = "   开启 FPS Boost 极致性能优化"; _FpsBoostRealBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _FpsBoostRealBtn.Font = Enum.Font.GothamMedium; _FpsBoostRealBtn.TextSize = 13; _FpsBoostRealBtn.TextXAlignment = Enum.TextXAlignment.Left; _FpsBoostRealBtn.ZIndex = 2; _FpsBoostRealBtn.AutoButtonColor = false
 Instance.new("UICorner", _FpsBoostRealBtn).CornerRadius = UDim.new(0, 10)
 local _FpsBoostRealStroke = Instance.new("UIStroke", _FpsBoostRealBtn); _FpsBoostRealStroke.Thickness = 1; _FpsBoostRealStroke.Color = Color3.fromRGB(55, 55, 75)
 
@@ -594,12 +625,12 @@ _FpsBoostRealBtn.MouseButton1Click:Connect(function()
             elseif v:IsA("Decal") or v:IsA("Texture") then v.Transparency = 1 end
         end
     end)
-    ShowNotification("FPS Boost 已生效", "已关闭阴影材质并精简画面以大幅提升帧率！")
+    ShowNotification("FPS Boost 已生效", "已关闭阴影材质并精简画面以大幅提升帧率")
 end)
 
 local _PingBoostBtn = Instance.new("TextButton", _Page4)
 _PingBoostBtn.LayoutOrder = 4; _PingBoostBtn.Size = UDim2.new(0.98, 0, 0, 40); _PingBoostBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _PingBoostBtn.BackgroundTransparency = 0.55
-_PingBoostBtn.Text = "   开启网络低延迟优化 (Ping Boost)"; _PingBoostBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _PingBoostBtn.Font = Enum.Font.GothamMedium; _PingBoostBtn.TextSize = 13; _PingBoostBtn.TextXAlignment = Enum.TextXAlignment.Left; _PingBoostBtn.ZIndex = 2; _PingBoostBtn.AutoButtonColor = false
+_PingBoostBtn.Text = "   开启网络低延迟优化 Ping Boost"; _PingBoostBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _PingBoostBtn.Font = Enum.Font.GothamMedium; _PingBoostBtn.TextSize = 13; _PingBoostBtn.TextXAlignment = Enum.TextXAlignment.Left; _PingBoostBtn.ZIndex = 2; _PingBoostBtn.AutoButtonColor = false
 Instance.new("UICorner", _PingBoostBtn).CornerRadius = UDim.new(0, 10)
 local _PingBoostStroke = Instance.new("UIStroke", _PingBoostBtn); _PingBoostStroke.Thickness = 1; _PingBoostStroke.Color = Color3.fromRGB(55, 55, 75)
 
@@ -616,12 +647,12 @@ _PingBoostBtn.MouseButton1Click:Connect(function()
             settings():GetService("NetworkSettings").ReceiveAge = 0
         end)
     end)
-    ShowNotification("网络低延迟已优化", "服务器数据同步频率已提升！")
+    ShowNotification("网络低延迟已优化", "服务器数据同步频率已提升")
 end)
 
 local _AfkBtn = Instance.new("TextButton", _Page4)
 _AfkBtn.LayoutOrder = 5; _AfkBtn.Size = UDim2.new(0.98, 0, 0, 40); _AfkBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _AfkBtn.BackgroundTransparency = 0.55
-_AfkBtn.Text = "   开启挂机AFK (防踢保护)"; _AfkBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _AfkBtn.Font = Enum.Font.GothamMedium; _AfkBtn.TextSize = 13; _AfkBtn.TextXAlignment = Enum.TextXAlignment.Left; _AfkBtn.ZIndex = 2; _AfkBtn.AutoButtonColor = false
+_AfkBtn.Text = "   开启挂机AFK 防踢保护"; _AfkBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _AfkBtn.Font = Enum.Font.GothamMedium; _AfkBtn.TextSize = 13; _AfkBtn.TextXAlignment = Enum.TextXAlignment.Left; _AfkBtn.ZIndex = 2; _AfkBtn.AutoButtonColor = false
 Instance.new("UICorner", _AfkBtn).CornerRadius = UDim.new(0, 10)
 local _AfkStroke = Instance.new("UIStroke", _AfkBtn); _AfkStroke.Thickness = 1; _AfkStroke.Color = Color3.fromRGB(55, 55, 75)
 
@@ -640,7 +671,7 @@ _AfkBtn.MouseButton1Click:Connect(function()
             end)
         end)
         Tween(_AfkBtn, {BackgroundColor3 = Color3.fromRGB(34, 197, 94)}, 0.3)
-        ShowNotification("挂机防踢保护已开启", "系统将自动模拟操作防止被服务器踢出。")
+        ShowNotification("挂机防踢保护已开启", "系统将自动模拟操作防止被服务器踢出")
     else
         pcall(function()
             if afkConnection then
@@ -649,13 +680,13 @@ _AfkBtn.MouseButton1Click:Connect(function()
             end
         end)
         Tween(_AfkBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.3)
-        ShowNotification("挂机防踢保护已关闭", "已恢复正常检测。")
+        ShowNotification("挂机防踢保护已关闭", "已恢复正常检测")
     end
 end)
 
 local _FullbrightBtn = Instance.new("TextButton", _Page4)
 _FullbrightBtn.LayoutOrder = 6; _FullbrightBtn.Size = UDim2.new(0.98, 0, 0, 40); _FullbrightBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FullbrightBtn.BackgroundTransparency = 0.55
-_FullbrightBtn.Text = "   开启 Fullbright (全局高亮)"; _FullbrightBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _FullbrightBtn.Font = Enum.Font.GothamMedium; _FullbrightBtn.TextSize = 13; _FullbrightBtn.TextXAlignment = Enum.TextXAlignment.Left; _FullbrightBtn.ZIndex = 2; _FullbrightBtn.AutoButtonColor = false
+_FullbrightBtn.Text = "   开启 Fullbright 全局高亮"; _FullbrightBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _FullbrightBtn.Font = Enum.Font.GothamMedium; _FullbrightBtn.TextSize = 13; _FullbrightBtn.TextXAlignment = Enum.TextXAlignment.Left; _FullbrightBtn.ZIndex = 2; _FullbrightBtn.AutoButtonColor = false
 Instance.new("UICorner", _FullbrightBtn).CornerRadius = UDim.new(0, 10)
 local _FullbrightStroke = Instance.new("UIStroke", _FullbrightBtn); _FullbrightStroke.Thickness = 1; _FullbrightStroke.Color = Color3.fromRGB(55, 55, 75)
 
@@ -691,14 +722,14 @@ _FullbrightBtn.MouseButton1Click:Connect(function()
             end
         end)
         Tween(_FullbrightBtn, {BackgroundColor3 = Color3.fromRGB(34, 197, 94)}, 0.3)
-        ShowNotification("全局高亮已开启", "游戏视野已完全明亮化。")
+        ShowNotification("全局高亮已开启", "游戏视野已完全明亮化")
     else
         if fullbrightConn then
             fullbrightConn:Disconnect()
             fullbrightConn = nil
         end
         Tween(_FullbrightBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.3)
-        ShowNotification("全局高亮已关闭", "已恢复默认光照环境。")
+        ShowNotification("全局高亮已关闭", "已恢复默认光照环境")
     end
 end)
 
@@ -708,7 +739,7 @@ _DCB.MouseEnter:Connect(function() Tween(_DCB, {BackgroundColor3 = Color3.fromRG
 _DCB.MouseLeave:Connect(function() Tween(_DCB, {BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.45}, 0.2) end)
 _DCB.MouseButton1Click:Connect(function() 
     setclipboard("https://discord.gg/cjpezEZub") 
-    ShowNotification("Discord 链接已复制", "快去分享给好友加入社区吧！")
+    ShowNotification("Discord 链接已复制", "快去分享给好友加入社区吧")
 end)
 
 _UIS.JumpRequest:Connect(function()
@@ -725,7 +756,7 @@ _BG.P = 9e4; _BG.MaxTorque = Vector3.new(9e9, 9e9, 9e9); _BV.MaxForce = Vector3.
 
 local frozenPosition = nil
 
--- ==================== 核心功能循环驱动 (ESP 透视全方位突破修复) ====================
+-- ==================== 核心功能循环驱动 ====================
 _RS.Heartbeat:Connect(function()
     local lChar = _LP.Character
     if lChar and lChar:FindFirstChild("HumanoidRootPart") then
@@ -773,14 +804,12 @@ _RS.Heartbeat:Connect(function()
         end
     end
 
-    -- 🌟 终极突破 ESP 逻辑：直接绑定到每一个玩家的 Character 根部，确保全游戏模型通用
     for _, p in pairs(_P:GetPlayers()) do
         if p ~= _LP then
             local tChar = p.Character
             if tChar then
                 local tHrp = tChar:FindFirstChild("HumanoidRootPart") or tChar:FindFirstChild("Head")
                 
-                -- 1. 透视高亮 (ESP Highlight)
                 if _G_LMM_88.v_0x1 then
                     local hl = tChar:FindFirstChild("LMM_ESP")
                     if not hl then
@@ -799,7 +828,6 @@ _RS.Heartbeat:Connect(function()
                     if hl then hl:Destroy() end
                 end
 
-                -- 2. ESP 方框 (BillboardGui Box)
                 if _G_LMM_88.v_esp_box and tHrp then
                     local bb = tChar:FindFirstChild("LMM_BOX")
                     if not bb then
@@ -824,7 +852,6 @@ _RS.Heartbeat:Connect(function()
                     if bb then bb:Destroy() end
                 end
 
-                -- 3. ESP 射线 (Beam Line)
                 if _G_LMM_88.v_esp_line and tHrp then
                     local beam = tHrp:FindFirstChild("LMM_LINE_FIX")
                     if not beam and lChar and lChar:FindFirstChild("HumanoidRootPart") then
@@ -910,7 +937,6 @@ _UIS.InputEnded:Connect(function(i)
     end
 end)
 
--- 🌟 悬浮球（尖角正方形，大写字母 L）
 local _Ball = Instance.new("TextButton", _S)
 _Ball.Size = UDim2.new(0, 60, 0, 60)
 _Ball.Position = UDim2.new(0, 30, 0.4, 0)
