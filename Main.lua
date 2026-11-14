@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.7 (beta) | LMM script 专属集成版 ]]
+-- [[ 刘某某脚本 V4.2.10 (beta) | 顶部间距与状态框左移版 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -93,7 +93,7 @@ local function ShowNotification(title, desc)
     end)
 end
 
--- ==================== 全黑全屏沉浸加载动画 (V4.2.7) ====================
+-- ==================== 全黑全屏沉浸加载动画 (V4.2.10) ====================
 local _LoadGui = Instance.new("Frame", _S)
 _LoadGui.Size = UDim2.new(2, 0, 2, 0)
 _LoadGui.Position = UDim2.new(-0.5, 0, -0.5, 0)
@@ -121,7 +121,7 @@ local _LoadText = Instance.new("TextLabel", _CenterCard)
 _LoadText.Size = UDim2.new(1, 0, 0, 30)
 _LoadText.Position = UDim2.new(0, 0, 0, 28)
 _LoadText.BackgroundTransparency = 1
-_LoadText.Text = "刘某某脚本 V4.2.7 加载中..."
+_LoadText.Text = "刘某某脚本 V4.2.10 加载中..."
 _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
 _LoadText.Font = Enum.Font.GothamBold
 _LoadText.TextSize = 15
@@ -199,7 +199,7 @@ end)
 
 local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 50); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
 local _Title = Instance.new("TextLabel", _TB)
-_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.7 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.10 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
 local _HeaderLine = Instance.new("Frame", _M)
 _HeaderLine.Size = UDim2.new(1, -30, 0, 1); _HeaderLine.Position = UDim2.new(0, 15, 0, 50)
@@ -373,9 +373,13 @@ task.spawn(function()
     end
 end)
 
+-- 🌟 状态监测容器（往左移开距离，避免跟按钮贴太近）
 local _StatsContainer = Instance.new("Frame", _TB)
-_StatsContainer.Size = UDim2.new(0, 165, 0, 26); _StatsContainer.Position = UDim2.new(1, -290, 0.5, -13)
-_StatsContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _StatsContainer.BackgroundTransparency = 0.6; _StatsContainer.ZIndex = 2
+_StatsContainer.Size = UDim2.new(0, 175, 0, 26)
+_StatsContainer.Position = UDim2.new(1, -325, 0.5, -13)
+_StatsContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 24)
+_StatsContainer.BackgroundTransparency = 0.6
+_StatsContainer.ZIndex = 2
 Instance.new("UICorner", _StatsContainer).CornerRadius = UDim.new(0, 8)
 
 local _StatsDot = Instance.new("Frame", _StatsContainer)
@@ -560,10 +564,10 @@ _SearchBox3:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
--- 🌟 LMM script 专属页面集成
 _CreateS(_Page6, "LMM normal script", "https://raw.githubusercontent.com/LMM-823/LMM-normal/main/main.lua?v=999", 2)
-_CreateS(_Page6, "LMM MM2", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 3)
-_CreateS(_Page6, "LMM VIEW", "https://raw.githubusercontent.com/LMM-823/LMM-VIEW/main/Main.lua?v=999", 4)
+_CreateS(_Page6, "LMM fps", "https://raw.githubusercontent.com/LMM-823/LMM-fps/main/main.lua?v=999", 3)
+_CreateS(_Page6, "LMM MM2", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 4)
+_CreateS(_Page6, "LMM VIEW", "https://raw.githubusercontent.com/LMM-823/LMM-VIEW/main/Main.lua?v=999", 5)
 
 local function _CreateLogEntry(version, date, desc, order)
     local f = Instance.new("Frame", _Page3)
@@ -587,16 +591,16 @@ local function _CreateLogEntry(version, date, desc, order)
     
     local d = Instance.new("TextLabel", f)
     d.LayoutOrder = 2; d.Size = UDim2.new(1, 0, 0, 0); d.AutomaticSize = Enum.AutomaticSize.Y
-    d.BackgroundTransparency = 1; t.Text = desc; d.TextColor3 = Color3.fromRGB(200, 200, 220)
+    d.BackgroundTransparency = 1; d.Text = desc; d.TextColor3 = Color3.fromRGB(200, 200, 220)
     d.Font = Enum.Font.GothamMedium; d.TextSize = 12; d.TextXAlignment = Enum.TextXAlignment.Left; d.TextWrapped = true; d.ZIndex = 2
 
     f.MouseEnter:Connect(function() Tween(stroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.25) end)
     f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.25) end)
 end
 
-_CreateLogEntry("V4.2.7", "2026-11-14", "【专属脚本集成】在 LMM script 页面中成功添加 LMM normal script 按钮。", 1)
-_CreateLogEntry("V4.2.6", "2026-11-14", "【数据面板升级】在数据页面新增玩家头像、名称、Robux余额以及实时服务器在线人数显示。", 2)
-_CreateLogEntry("V4.2.5", "2026-11-14", "【UI 调整】将第一个主按钮更名为数据，并彻底清空该页面内所有原有功能。", 3)
+_CreateLogEntry("V4.2.10", "2026-11-14", "【UI 间距优化】调整右上角控制按钮间距，并将顶部状态监测框往左侧平移。", 1)
+_CreateLogEntry("V4.2.9", "2026-11-14", "【UI 精简与优化】精简设定中心（移除FPS/Ping/BGM），放大并美化右上角半透明控制按钮。", 2)
+_CreateLogEntry("V4.2.8", "2026-11-14", "【专属脚本集成】在 LMM script 页面中成功添加 LMM fps 优化脚本按钮。", 3)
 
 local _FpsInput = Instance.new("TextBox", _Page4)
 _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsInput.BackgroundTransparency = 0.55
@@ -613,100 +617,14 @@ _FpsInput.FocusLost:Connect(function()
     ShowNotification("FPS 设置已更新", "当前上限已锁定为 " .. val)
 end)
 
-local _BgmContainer = Instance.new("Frame", _Page4)
-_BgmContainer.LayoutOrder = 2; _BgmContainer.Size = UDim2.new(0.98, 0, 0, 85); _BgmContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _BgmContainer.BackgroundTransparency = 0.55; _BgmContainer.ZIndex = 2
-Instance.new("UICorner", _BgmContainer).CornerRadius = UDim.new(0, 10)
-local _BgmStroke = Instance.new("UIStroke", _BgmContainer); _BgmStroke.Thickness = 1; _BgmStroke.Color = Color3.fromRGB(55, 55, 75)
-
-local _BgmTitle = Instance.new("TextLabel", _BgmContainer)
-_BgmTitle.Size = UDim2.new(1, -20, 0, 25); _BgmTitle.Position = UDim2.new(0, 10, 0, 6)
-_BgmTitle.BackgroundTransparency = 1; _BgmTitle.Text = "云端背景音乐播放器 BGM"; _BgmTitle.TextColor3 = Color3.fromRGB(240, 240, 250); _BgmTitle.Font = Enum.Font.GothamBold; _BgmTitle.TextSize = 12; _BgmTitle.TextXAlignment = Enum.TextXAlignment.Left; _BgmTitle.ZIndex = 3
-
-local _BgmInput = Instance.new("TextBox", _BgmContainer)
-_BgmInput.Size = UDim2.new(0.65, 0, 0, 36); _BgmInput.Position = UDim2.new(0, 10, 0, 38)
-_BgmInput.BackgroundColor3 = Color3.fromRGB(12, 12, 18); _BgmInput.BackgroundTransparency = 0.4
-_BgmInput.Text = "rbxassetid://1843158679"; _BgmInput.TextColor3 = Color3.fromRGB(220, 220, 235); _BgmInput.Font = Enum.Font.GothamMedium; _BgmInput.TextSize = 11; _BgmInput.ZIndex = 3
-Instance.new("UICorner", _BgmInput).CornerRadius = UDim.new(0, 8)
-Instance.new("UIStroke", _BgmInput).Thickness = 1
-local _BgmToggle = Instance.new("TextButton", _BgmContainer)
-_BgmToggle.Size = UDim2.new(0.3, 0, 0, 36); _BgmToggle.Position = UDim2.new(0.68, 0, 0, 38)
-_BgmToggle.BackgroundColor3 = Color3.fromRGB(99, 102, 241); _BgmToggle.BackgroundTransparency = 0.2; _BgmToggle.Text = "播放音乐"; _BgmToggle.TextColor3 = Color3.fromRGB(255, 255, 255); _BgmToggle.Font = Enum.Font.GothamBold; _BgmToggle.TextSize = 12; _BgmToggle.ZIndex = 3
-Instance.new("UICorner", _BgmToggle).CornerRadius = UDim.new(0, 8)
-
-local soundObj = Instance.new("Sound", workspace)
-soundObj.Volume = 1
-soundObj.Looped = true
-local isPlayingBgm = false
-
-_BgmToggle.MouseButton1Click:Connect(function()
-    isPlayingBgm = not isPlayingBgm
-    if isPlayingBgm then
-        pcall(function()
-            soundObj.SoundId = _BgmInput.Text
-            soundObj:Play()
-        end)
-        _BgmToggle.Text = "停止播放"
-        _BgmToggle.BackgroundColor3 = Color3.fromRGB(239, 68, 68)
-        ShowNotification("BGM 播放器", "背景音乐已开始播放")
-    else
-        pcall(function() soundObj:Stop() end)
-        _BgmToggle.Text = "播放音乐"
-        _BgmToggle.BackgroundColor3 = Color3.fromRGB(99, 102, 241)
-        ShowNotification("BGM 播放器", "背景音乐已停止")
-    end
-end)
-
-local _FpsBoostRealBtn = Instance.new("TextButton", _Page4)
-_FpsBoostRealBtn.LayoutOrder = 3; _FpsBoostRealBtn.Size = UDim2.new(0.98, 0, 0, 40); _FpsBoostRealBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsBoostRealBtn.BackgroundTransparency = 0.55
-_FpsBoostRealBtn.Text = "   开启 FPS Boost 极致性能优化"; _FpsBoostRealBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _FpsBoostRealBtn.Font = Enum.Font.GothamMedium; _FpsBoostRealBtn.TextSize = 13; _FpsBoostRealBtn.TextXAlignment = Enum.TextXAlignment.Left; _FpsBoostRealBtn.ZIndex = 2; _FpsBoostRealBtn.AutoButtonColor = false
-Instance.new("UICorner", _FpsBoostRealBtn).CornerRadius = UDim.new(0, 10)
-local _FpsBoostRealStroke = Instance.new("UIStroke", _FpsBoostRealBtn); _FpsBoostRealStroke.Thickness = 1; _FpsBoostRealStroke.Color = Color3.fromRGB(55, 55, 75)
-
-_FpsBoostRealBtn.MouseEnter:Connect(function() Tween(_FpsBoostRealBtn, {BackgroundColor3 = Color3.fromRGB(24, 24, 38)}, 0.2); Tween(_FpsBoostRealStroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.2) end)
-_FpsBoostRealBtn.MouseLeave:Connect(function() Tween(_FpsBoostRealBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24)}, 0.2); Tween(_FpsBoostRealStroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
-_FpsBoostRealBtn.MouseButton1Click:Connect(function()
-    pcall(function()
-        local lighting = game:GetService("Lighting")
-        lighting.GlobalShadows = false; lighting.FogEnd = 9e9
-        for _, v in pairs(lighting:GetChildren()) do if v:IsA("PostEffect") then v.Enabled = false end end
-        for _, v in pairs(workspace:GetDescendants()) do
-            if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic; v.Reflectance = 0
-            elseif v:IsA("Decal") or v:IsA("Texture") then v.Transparency = 1 end
-        end
-    end)
-    ShowNotification("FPS Boost 已生效", "已关闭阴影材质并精简画面以大幅提升帧率")
-end)
-
-local _PingBoostBtn = Instance.new("TextButton", _Page4)
-_PingBoostBtn.LayoutOrder = 4; _PingBoostBtn.Size = UDim2.new(0.98, 0, 0, 40); _PingBoostBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _PingBoostBtn.BackgroundTransparency = 0.55
-_PingBoostBtn.Text = "   开启网络低延迟优化 Ping Boost"; _PingBoostBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _PingBoostBtn.Font = Enum.Font.GothamMedium; _PingBoostBtn.TextSize = 13; _PingBoostBtn.TextXAlignment = Enum.TextXAlignment.Left; _PingBoostBtn.ZIndex = 2; _PingBoostBtn.AutoButtonColor = false
-Instance.new("UICorner", _PingBoostBtn).CornerRadius = UDim.new(0, 10)
-local _PingBoostStroke = Instance.new("UIStroke", _PingBoostBtn); _PingBoostStroke.Thickness = 1; _PingBoostStroke.Color = Color3.fromRGB(55, 55, 75)
-
-_PingBoostBtn.MouseEnter:Connect(function() Tween(_PingBoostBtn, {BackgroundColor3 = Color3.fromRGB(24, 24, 38)}, 0.2); Tween(_PingBoostStroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.2) end)
-_PingBoostBtn.MouseLeave:Connect(function() Tween(_PingBoostBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24)}, 0.2); Tween(_PingBoostStroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
-
-_PingBoostBtn.MouseButton1Click:Connect(function()
-    pcall(function()
-        settings():GetService("NetworkSettings").IncomingReplicationLag = 0
-        if setscriptable then
-            setscriptable(settings():GetService("NetworkSettings"), "ReceiveAge", true)
-        end
-        pcall(function()
-            settings():GetService("NetworkSettings").ReceiveAge = 0
-        end)
-    end)
-    ShowNotification("网络低延迟已优化", "服务器数据同步频率已提升")
-end)
-
 local _AfkBtn = Instance.new("TextButton", _Page4)
-_AfkBtn.LayoutOrder = 5; _AfkBtn.Size = UDim2.new(0.98, 0, 0, 40); _AfkBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _AfkBtn.BackgroundTransparency = 0.55
+_AfkBtn.LayoutOrder = 2; _AfkBtn.Size = UDim2.new(0.98, 0, 0, 40); _AfkBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _AfkBtn.BackgroundTransparency = 0.55
 _AfkBtn.Text = "   开启挂机AFK 防踢保护"; _AfkBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _AfkBtn.Font = Enum.Font.GothamMedium; _AfkBtn.TextSize = 13; _AfkBtn.TextXAlignment = Enum.TextXAlignment.Left; _AfkBtn.ZIndex = 2; _AfkBtn.AutoButtonColor = false
 Instance.new("UICorner", _AfkBtn).CornerRadius = UDim.new(0, 10)
 local _AfkStroke = Instance.new("UIStroke", _AfkBtn); _AfkStroke.Thickness = 1; _AfkStroke.Color = Color3.fromRGB(55, 55, 75)
 
 _AfkBtn.MouseEnter:Connect(function() Tween(_AfkBtn, {BackgroundColor3 = Color3.fromRGB(24, 24, 38)}, 0.2); Tween(_AfkStroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.2) end)
-_AfkBtn.MouseLeave:Connect(function() Tween(_AfkBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24)}, 0.2); Tween(_AfkStroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
+_AfkBtn.MouseLeave:Connect(function() Tween(_AfkBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2); Tween(_AfkStroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
 
 local afkConnection = nil
 _AfkBtn.MouseButton1Click:Connect(function()
@@ -734,13 +652,13 @@ _AfkBtn.MouseButton1Click:Connect(function()
 end)
 
 local _FullbrightBtn = Instance.new("TextButton", _Page4)
-_FullbrightBtn.LayoutOrder = 6; _FullbrightBtn.Size = UDim2.new(0.98, 0, 0, 40); _FullbrightBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FullbrightBtn.BackgroundTransparency = 0.55
+_FullbrightBtn.LayoutOrder = 3; _FullbrightBtn.Size = UDim2.new(0.98, 0, 0, 40); _FullbrightBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FullbrightBtn.BackgroundTransparency = 0.55
 _FullbrightBtn.Text = "   开启 Fullbright 全局高亮"; _FullbrightBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _FullbrightBtn.Font = Enum.Font.GothamMedium; _FullbrightBtn.TextSize = 13; _FullbrightBtn.TextXAlignment = Enum.TextXAlignment.Left; _FullbrightBtn.ZIndex = 2; _FullbrightBtn.AutoButtonColor = false
 Instance.new("UICorner", _FullbrightBtn).CornerRadius = UDim.new(0, 10)
 local _FullbrightStroke = Instance.new("UIStroke", _FullbrightBtn); _FullbrightStroke.Thickness = 1; _FullbrightStroke.Color = Color3.fromRGB(55, 55, 75)
 
 _FullbrightBtn.MouseEnter:Connect(function() Tween(_FullbrightBtn, {BackgroundColor3 = Color3.fromRGB(24, 24, 38)}, 0.2); Tween(_FullbrightStroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.2) end)
-_FullbrightBtn.MouseLeave:Connect(function() Tween(_FullbrightBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24)}, 0.2); Tween(_FullbrightStroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
+_FullbrightBtn.MouseLeave:Connect(function() Tween(_FullbrightBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2); Tween(_FullbrightStroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
 
 local fullbrightConn = nil
 local fullbrightActive = false
@@ -782,7 +700,7 @@ _FullbrightBtn.MouseButton1Click:Connect(function()
     end
 end)
 
-local _DCB = Instance.new("TextButton", _Page4); _DCB.LayoutOrder = 7; _DCB.Size = UDim2.new(0.98, 0, 0, 42); _DCB.BackgroundColor3 = Color3.fromRGB(88, 101, 242); _DCB.BackgroundTransparency = 0.45; _DCB.Text = "JOIN DISCORD COMMUNITY"; _DCB.TextColor3 = Color3.fromRGB(255, 255, 255); _DCB.Font = Enum.Font.GothamBold; _DCB.TextSize = 13; _DCB.ZIndex = 2; _DCB.AutoButtonColor = false; Instance.new("UICorner", _DCB).CornerRadius = UDim.new(0, 10)
+local _DCB = Instance.new("TextButton", _Page4); _DCB.LayoutOrder = 4; _DCB.Size = UDim2.new(0.98, 0, 0, 42); _DCB.BackgroundColor3 = Color3.fromRGB(88, 101, 242); _DCB.BackgroundTransparency = 0.45; _DCB.Text = "JOIN DISCORD COMMUNITY"; _DCB.TextColor3 = Color3.fromRGB(255, 255, 255); _DCB.Font = Enum.Font.GothamBold; _DCB.TextSize = 13; _DCB.ZIndex = 2; _DCB.AutoButtonColor = false; Instance.new("UICorner", _DCB).CornerRadius = UDim.new(0, 10)
 local _DCBStroke = Instance.new("UIStroke", _DCB); _DCBStroke.Thickness = 1; _DCBStroke.Color = Color3.fromRGB(114, 137, 218)
 _DCB.MouseEnter:Connect(function() Tween(_DCB, {BackgroundColor3 = Color3.fromRGB(108, 121, 255), BackgroundTransparency = 0.25}, 0.2) end)
 _DCB.MouseLeave:Connect(function() Tween(_DCB, {BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.45}, 0.2) end)
@@ -933,16 +851,39 @@ _RS.Heartbeat:Connect(function()
     end
 end)
 
+-- 🌟 优化后的右上角控制按钮（增大尺寸、半透明、增加间距）
 local function _Ctrl(t, x, c, hoverC, f)
-    local b = Instance.new("TextButton", _TB); b.Size = UDim2.new(0, 28, 0, 28); b.Position = UDim2.new(1, x, 0.5, -14); b.Text = t; b.BackgroundColor3 = c; b.BackgroundTransparency = 0.35; b.TextColor3 = Color3.fromRGB(240,240,250); b.Font = Enum.Font.GothamBold; b.TextSize = 13; b.ZIndex = 3; b.AutoButtonColor = false; Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
-    local bStroke = Instance.new("UIStroke", b); bStroke.Thickness = 1; bStroke.Color = Color3.fromRGB(255, 255, 255); bStroke.Transparency = 0.7
+    local b = Instance.new("TextButton", _TB)
+    b.Size = UDim2.new(0, 34, 0, 34)
+    b.Position = UDim2.new(1, x, 0.5, -17)
+    b.Text = t
+    b.BackgroundColor3 = c
+    b.BackgroundTransparency = 0.4  -- 半透明质感
+    b.TextColor3 = Color3.fromRGB(240, 240, 250)
+    b.Font = Enum.Font.GothamBold
+    b.TextSize = 14
+    b.ZIndex = 3
+    b.AutoButtonColor = false
+    Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
     
-    b.MouseEnter:Connect(function() Tween(b, {BackgroundColor3 = hoverC, BackgroundTransparency = 0.15}, 0.2); Tween(bStroke, {Transparency = 0.3}, 0.2) end)
-    b.MouseLeave:Connect(function() Tween(b, {BackgroundColor3 = c, BackgroundTransparency = 0.35}, 0.2); Tween(bStroke, {Transparency = 0.7}, 0.2) end)
+    local bStroke = Instance.new("UIStroke", b)
+    bStroke.Thickness = 1
+    bStroke.Color = Color3.fromRGB(255, 255, 255)
+    bStroke.Transparency = 0.6
+    
+    b.MouseEnter:Connect(function() 
+        Tween(b, {BackgroundColor3 = hoverC, BackgroundTransparency = 0.2}, 0.2) 
+        Tween(bStroke, {Transparency = 0.2}, 0.2) 
+    end)
+    b.MouseLeave:Connect(function() 
+        Tween(b, {BackgroundColor3 = c, BackgroundTransparency = 0.4}, 0.2) 
+        Tween(bStroke, {Transparency = 0.6}, 0.2) 
+    end)
     b.MouseButton1Click:Connect(f)
 end
 
-_Ctrl("×", -42, Color3.fromRGB(239, 68, 68), Color3.fromRGB(255, 90, 90), function() 
+-- 关闭按钮 (最右侧)
+_Ctrl("×", -45, Color3.fromRGB(239, 68, 68), Color3.fromRGB(255, 90, 90), function() 
     pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
     Tween(_M, {Size = UDim2.new(0, 520, 0, 340), BackgroundTransparency = 1}, 0.3)
     for _, v in pairs(_M:GetDescendants()) do if v:IsA("UIStroke") or v:IsA("ImageLabel") or v:IsA("TextLabel") or v:IsA("TextButton") then Tween(v, {Transparency = 1}, 0.3) end end
@@ -951,7 +892,8 @@ end)
 
 local isMinimized = false
 
-_Ctrl("—", -76, Color3.fromRGB(50, 50, 70), Color3.fromRGB(80, 80, 105), function() 
+-- 最小化按钮 (中间)
+_Ctrl("—", -90, Color3.fromRGB(50, 50, 70), Color3.fromRGB(80, 80, 105), function() 
     isMinimized = not isMinimized
     _Sidebar.Visible = not isMinimized
     _ContentContainer.Visible = not isMinimized
@@ -1027,7 +969,8 @@ _UIS.InputEnded:Connect(function(i)
     end
 end)
 
-_Ctrl("+", -110, Color3.fromRGB(99, 102, 241), Color3.fromRGB(129, 140, 248), function()
+-- 最小化变球按钮 (左侧)
+_Ctrl("+", -135, Color3.fromRGB(99, 102, 241), Color3.fromRGB(129, 140, 248), function()
     _Ball.Position = _M.Position
     _M.Visible = false
     _Ball.Visible = true
