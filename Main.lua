@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.4 (beta) | ESP 透视修复版 ]]
+-- [[ 刘某某脚本 V4.2.7 (beta) | LMM script 专属集成版 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -93,7 +93,7 @@ local function ShowNotification(title, desc)
     end)
 end
 
--- ==================== 全黑全屏沉浸加载动画 (V4.2.4) ====================
+-- ==================== 全黑全屏沉浸加载动画 (V4.2.7) ====================
 local _LoadGui = Instance.new("Frame", _S)
 _LoadGui.Size = UDim2.new(2, 0, 2, 0)
 _LoadGui.Position = UDim2.new(-0.5, 0, -0.5, 0)
@@ -121,7 +121,7 @@ local _LoadText = Instance.new("TextLabel", _CenterCard)
 _LoadText.Size = UDim2.new(1, 0, 0, 30)
 _LoadText.Position = UDim2.new(0, 0, 0, 28)
 _LoadText.BackgroundTransparency = 1
-_LoadText.Text = "刘某某脚本 V4.2.4 加载中..."
+_LoadText.Text = "刘某某脚本 V4.2.7 加载中..."
 _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
 _LoadText.Font = Enum.Font.GothamBold
 _LoadText.TextSize = 15
@@ -199,7 +199,7 @@ end)
 
 local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 50); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
 local _Title = Instance.new("TextLabel", _TB)
-_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.4 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.7 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
 local _HeaderLine = Instance.new("Frame", _M)
 _HeaderLine.Size = UDim2.new(1, -30, 0, 1); _HeaderLine.Position = UDim2.new(0, 15, 0, 50)
@@ -279,12 +279,99 @@ local function _CreateTabBtn(name, order, targetPage)
     end)
 end
 
-_CreateTabBtn("主功能", 1, _Page1)
+_CreateTabBtn("数据", 1, _Page1)
 _CreateTabBtn("脚本合集(no key)", 2, _Page2)
 _CreateTabBtn("脚本合集(need key)", 3, _Page5)
 _CreateTabBtn("LMM script", 4, _Page6)
 _CreateTabBtn("更新日志", 5, _Page3)
 _CreateTabBtn("设定中心", 6, _Page4)
+
+-- ==================== “数据”页面：玩家信息展示面板 ====================
+local _DataCard = Instance.new("Frame", _Page1)
+_DataCard.LayoutOrder = 1
+_DataCard.Size = UDim2.new(0.98, 0, 0, 130)
+_DataCard.BackgroundColor3 = Color3.fromRGB(15, 15, 24)
+_DataCard.BackgroundTransparency = 0.55
+_DataCard.ZIndex = 2
+Instance.new("UICorner", _DataCard).CornerRadius = UDim.new(0, 12)
+local _DataStroke = Instance.new("UIStroke", _DataCard)
+_DataStroke.Thickness = 1
+_DataStroke.Color = Color3.fromRGB(55, 55, 75)
+
+-- 玩家头像
+local _AvatarImg = Instance.new("ImageLabel", _DataCard)
+_AvatarImg.Size = UDim2.new(0, 85, 0, 85)
+_AvatarImg.Position = UDim2.new(0, 15, 0.5, -42.5)
+_AvatarImg.BackgroundColor3 = Color3.fromRGB(22, 22, 36)
+_AvatarImg.BackgroundTransparency = 0.5
+_AvatarImg.ZIndex = 3
+Instance.new("UICorner", _AvatarImg).CornerRadius = UDim.new(1, 0)
+pcall(function()
+    local thumbType = Enum.ThumbnailType.HeadShot
+    local thumbSize = Enum.ThumbnailSize.Size420x420
+    local content, isReady = _P:GetUserThumbnailAsync(_LP.UserId, thumbType, thumbSize)
+    _AvatarImg.Image = content
+end)
+
+-- 用户名字展示
+local _NameLabel = Instance.new("TextLabel", _DataCard)
+_NameLabel.Size = UDim2.new(1, -120, 0, 26)
+_NameLabel.Position = UDim2.new(0, 115, 0, 18)
+_NameLabel.BackgroundTransparency = 1
+_NameLabel.Text = "玩家: " .. _LP.DisplayName .. " (@" .. _LP.Name .. ")"
+_NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+_NameLabel.Font = Enum.Font.GothamBold
+_NameLabel.TextSize = 13
+_NameLabel.TextXAlignment = Enum.TextXAlignment.Left
+_NameLabel.ZIndex = 3
+
+-- Robux 余额展示
+local _RobuxLabel = Instance.new("TextLabel", _DataCard)
+_RobuxLabel.Size = UDim2.new(1, -120, 0, 24)
+_RobuxLabel.Position = UDim2.new(0, 115, 0, 48)
+_RobuxLabel.BackgroundTransparency = 1
+_RobuxLabel.Text = "Robux 余额: 获取中..."
+_RobuxLabel.TextColor3 = Color3.fromRGB(129, 140, 248)
+_RobuxLabel.Font = Enum.Font.GothamBold
+_RobuxLabel.TextSize = 12
+_RobuxLabel.TextXAlignment = Enum.TextXAlignment.Left
+_RobuxLabel.ZIndex = 3
+
+-- 异步获取 Robux 余额
+task.spawn(function()
+    local success, result = pcall(function()
+        local rbxs = game:GetService("MarketplaceService"):GetRobuxBalance()
+        return rbxs
+    end)
+    if success and result then
+        _RobuxLabel.Text = "Robux 余额: R$ " .. tostring(result)
+    else
+        _RobuxLabel.Text = "Robux 余额: R$ (受API限制/未登录)"
+    end
+end)
+
+-- 服务器人数展示
+local _ServerLabel = Instance.new("TextLabel", _DataCard)
+_ServerLabel.Size = UDim2.new(1, -120, 0, 24)
+_ServerLabel.Position = UDim2.new(0, 115, 0, 78)
+_ServerLabel.BackgroundTransparency = 1
+_ServerLabel.Text = "服务器人数: 正在统计..."
+_ServerLabel.TextColor3 = Color3.fromRGB(170, 170, 195)
+_ServerLabel.Font = Enum.Font.GothamMedium
+_ServerLabel.TextSize = 12
+_ServerLabel.TextXAlignment = Enum.TextXAlignment.Left
+_ServerLabel.ZIndex = 3
+
+-- 实时更新服务器人数
+task.spawn(function()
+    while task.wait(1) do
+        pcall(function()
+            local currentPlayers = #_P:GetPlayers()
+            local maxPlayers = _P.MaxPlayers
+            _ServerLabel.Text = string.format("服务器人数: %d / %d 人", currentPlayers, maxPlayers)
+        end)
+    end
+end)
 
 local _StatsContainer = Instance.new("Frame", _TB)
 _StatsContainer.Size = UDim2.new(0, 165, 0, 26); _StatsContainer.Position = UDim2.new(1, -290, 0.5, -13)
@@ -318,62 +405,6 @@ task.spawn(function()
         end)
     end)
 end)
-
-local function _CreateColorBar(targetPage, key, order)
-    local f = Instance.new("Frame", targetPage); f.LayoutOrder = order; f.Size = UDim2.new(0.98, 0, 0, 36); f.BackgroundTransparency = 1; f.ZIndex = 2
-    local layout = Instance.new("UIListLayout", f); layout.FillDirection = "Horizontal"; layout.HorizontalAlignment = "Center"; layout.Padding = UDim.new(0, 8)
-    local colors = {{Color3.fromRGB(99, 102, 241), "蓝"}, {Color3.fromRGB(239, 68, 68), "红"}, {Color3.fromRGB(255, 255, 255), "白"}, {Color3.fromRGB(40, 40, 50), "黑"}, {Color3.fromRGB(34, 197, 94), "绿"}}
-    for _, info in pairs(colors) do
-        local b = Instance.new("TextButton", f); b.Size = UDim2.new(0, 44, 0, 26); b.BackgroundColor3 = info[1]; b.BackgroundTransparency = 0.2; b.Text = ""; b.ZIndex = 2; b.AutoButtonColor = false; Instance.new("UICorner", b).CornerRadius = UDim.new(0, 8)
-        local s = Instance.new("UIStroke", b); s.Thickness = 2; s.Color = Color3.fromRGB(255,255,255); s.Enabled = false
-        b.MouseEnter:Connect(function() Tween(b, {Size = UDim2.new(0, 48, 0, 30)}, 0.15) end)
-        b.MouseLeave:Connect(function() Tween(b, {Size = UDim2.new(0, 44, 0, 26)}, 0.15) end)
-        b.MouseButton1Click:Connect(function() _G_LMM_88[key] = info[1]; for _, c in pairs(f:GetChildren()) do if c:IsA("TextButton") then c.UIStroke.Enabled = false end end; s.Enabled = true end)
-    end
-end
-
-local function _CreateT(targetPage, name, key, order)
-    local b = Instance.new("TextButton", targetPage); b.LayoutOrder = order; b.Size = UDim2.new(0.98, 0, 0, 42); b.BackgroundColor3 = Color3.fromRGB(15, 15, 24); b.BackgroundTransparency = 0.55; b.Text = "   " .. name; b.Font = Enum.Font.GothamMedium; b.TextSize = 13; b.TextColor3 = Color3.fromRGB(230, 230, 245); b.TextXAlignment = Enum.TextXAlignment.Left; b.ZIndex = 2; b.AutoButtonColor = false; Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
-    local s = Instance.new("UIStroke", b); s.Thickness = 1; s.Color = Color3.fromRGB(55, 55, 75)
-    
-    local track = Instance.new("Frame", b); track.Size = UDim2.new(0, 42, 0, 22); track.Position = UDim2.new(1, -52, 0.5, -11); track.BackgroundColor3 = Color3.fromRGB(24, 24, 36); track.ZIndex = 2; Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
-    local knob = Instance.new("Frame", track); knob.Size = UDim2.new(0, 16, 0, 16); knob.Position = UDim2.new(0, 3, 0.5, -8); knob.BackgroundColor3 = Color3.fromRGB(180, 180, 200); knob.ZIndex = 3; Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
-
-    b.MouseEnter:Connect(function() Tween(b, {BackgroundColor3 = Color3.fromRGB(24, 24, 38), BackgroundTransparency = 0.35}, 0.2); Tween(s, {Color = Color3.fromRGB(99, 102, 241)}, 0.2) end)
-    b.MouseLeave:Connect(function() Tween(b, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2); Tween(s, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
-    b.MouseButton1Click:Connect(function() 
-        _G_LMM_88[key] = not _G_LMM_88[key]
-        local state = _G_LMM_88[key]
-        
-        if key == "v_0x2" and not state then
-            pcall(function()
-                local lChar = _LP.Character
-                if lChar then
-                    for _, p in pairs(lChar:GetChildren()) do
-                        if p:IsA("BasePart") then
-                            p.CanCollide = true
-                        end
-                    end
-                end
-            end)
-        end
-
-        if key == "v_0x3" and not state then
-            pcall(function()
-                local lChar = _LP.Character
-                if lChar and lChar:FindFirstChildOfClass("Humanoid") then
-                    lChar:FindFirstChildOfClass("Humanoid").WalkSpeed = 16
-                end
-            end)
-        end
-
-        Tween(track, {BackgroundColor3 = state and Color3.fromRGB(99, 102, 241) or Color3.fromRGB(24, 24, 36)}, 0.3)
-        Tween(knob, {
-            Position = state and UDim2.new(1, -19, 0.5, -8) or UDim2.new(0, 3, 0.5, -8),
-            BackgroundColor3 = state and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(180, 180, 200)
-        }, 0.3, Enum.EasingStyle.Back)
-    end)
-end
 
 local function _CreateS(targetPage, name, url, order)
     local b = Instance.new("TextButton", targetPage); b.LayoutOrder = order; b.Size = UDim2.new(0.98, 0, 0, 42); b.BackgroundColor3 = Color3.fromRGB(15, 15, 24); b.BackgroundTransparency = 0.55; b.Text = "   " .. name; b.Font = Enum.Font.GothamMedium; b.TextSize = 13; b.TextColor3 = Color3.fromRGB(240, 240, 250); b.TextXAlignment = Enum.TextXAlignment.Left; b.ZIndex = 2; b.AutoButtonColor = false; Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
@@ -469,23 +500,6 @@ local function _DecorateInput(input)
     input.FocusLost:Connect(function() Tween(input.UIStroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
 end
 
-local _In1 = Instance.new("TextBox", _Page1); _In1.LayoutOrder = 1; _In1.Size = UDim2.new(0.98, 0, 0, 40); _In1.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _In1.BackgroundTransparency = 0.55; _In1.Text = "  行走速度: 50"; _In1.TextColor3 = Color3.fromRGB(240, 240, 250); _In1.Font = Enum.Font.GothamMedium; _In1.TextSize = 13; _In1.TextXAlignment = Enum.TextXAlignment.Left; _In1.ZIndex = 2; Instance.new("UICorner", _In1).CornerRadius = UDim.new(0, 10)
-local _In1S = Instance.new("UIStroke", _In1); _In1S.Thickness = 1; _In1S.Color = Color3.fromRGB(55, 55, 75); _DecorateInput(_In1)
-_In1.FocusLost:Connect(function() _G_LMM_88.v_val_1 = tonumber(_In1.Text:match("%d+")) or 50; _In1.Text = "  行走速度: ".._G_LMM_88.v_val_1 end)
-
-local _In2 = Instance.new("TextBox", _Page1); _In2.LayoutOrder = 2; _In2.Size = UDim2.new(0.98, 0, 0, 40); _In2.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _In2.BackgroundTransparency = 0.55; _In2.Text = "  飞行速度: 50"; _In2.TextColor3 = Color3.fromRGB(240, 240, 250); _In2.Font = Enum.Font.GothamMedium; _In2.TextSize = 13; _In2.TextXAlignment = Enum.TextXAlignment.Left; _In2.ZIndex = 2; Instance.new("UICorner", _In2).CornerRadius = UDim.new(0, 10)
-local _In2S = Instance.new("UIStroke", _In2); _In2S.Thickness = 1; _In2S.Color = Color3.fromRGB(55, 55, 75); _DecorateInput(_In2)
-_In2.FocusLost:Connect(function() _G_LMM_88.v_val_2 = tonumber(_In2.Text:match("%d+")) or 50; _In2.Text = "  飞行速度: ".._G_LMM_88.v_val_2 end)
-
-_CreateT(_Page1, "冰冻", "v_freeze", 3)
-_CreateT(_Page1, "无限跳", "v_infjump", 4)
-_CreateT(_Page1, "内置穿墙", "v_0x2", 5)
-_CreateT(_Page1, "内置速度开关", "v_0x3", 6)
-_CreateT(_Page1, "内置飞行开关", "v_0x4", 7)
-_CreateT(_Page1, "内置透视", "v_0x1", 8); _CreateColorBar(_Page1, "c_esp", 9)
-_CreateT(_Page1, "内置ESP射线", "v_esp_line", 10); _CreateColorBar(_Page1, "c_line", 11)
-_CreateT(_Page1, "内置ESP方框", "v_esp_box", 12); _CreateColorBar(_Page1, "c_box", 13)
-
 local _SearchBox = Instance.new("TextBox", _Page2)
 _SearchBox.LayoutOrder = 1; _SearchBox.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _SearchBox.BackgroundTransparency = 0.55
 _SearchBox.PlaceholderText = "搜索免卡密脚本..."; _SearchBox.Text = ""; _SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -546,8 +560,10 @@ _SearchBox3:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
-_CreateS(_Page6, "LMM MM2", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 2)
-_CreateS(_Page6, "LMM VIEW", "https://raw.githubusercontent.com/LMM-823/LMM-VIEW/main/Main.lua?v=999", 3)
+-- 🌟 LMM script 专属页面集成
+_CreateS(_Page6, "LMM normal script", "https://raw.githubusercontent.com/LMM-823/LMM-normal/main/main.lua?v=999", 2)
+_CreateS(_Page6, "LMM MM2", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 3)
+_CreateS(_Page6, "LMM VIEW", "https://raw.githubusercontent.com/LMM-823/LMM-VIEW/main/Main.lua?v=999", 4)
 
 local function _CreateLogEntry(version, date, desc, order)
     local f = Instance.new("Frame", _Page3)
@@ -571,16 +587,16 @@ local function _CreateLogEntry(version, date, desc, order)
     
     local d = Instance.new("TextLabel", f)
     d.LayoutOrder = 2; d.Size = UDim2.new(1, 0, 0, 0); d.AutomaticSize = Enum.AutomaticSize.Y
-    d.BackgroundTransparency = 1; d.Text = desc; d.TextColor3 = Color3.fromRGB(200, 200, 220)
+    d.BackgroundTransparency = 1; t.Text = desc; d.TextColor3 = Color3.fromRGB(200, 200, 220)
     d.Font = Enum.Font.GothamMedium; d.TextSize = 12; d.TextXAlignment = Enum.TextXAlignment.Left; d.TextWrapped = true; d.ZIndex = 2
 
     f.MouseEnter:Connect(function() Tween(stroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.25) end)
     f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.25) end)
 end
 
-_CreateLogEntry("V4.2.4", "2026-11-14", "【ESP 深度修复】重构透视引擎的动态挂载逻辑，修复角色重生后 ESP 失效的问题。", 1)
-_CreateLogEntry("V4.2.3", "2026-11-13", "【加载全屏覆盖】升级全屏全黑沉浸式加载动画，移除旋转光圈，带来极致干净的视觉体验。", 2)
-_CreateLogEntry("V4.2.2", "2026-11-13", "【加载动画极致升级】采用全黑沉浸式背景与流光科技进度条动画。", 3)
+_CreateLogEntry("V4.2.7", "2026-11-14", "【专属脚本集成】在 LMM script 页面中成功添加 LMM normal script 按钮。", 1)
+_CreateLogEntry("V4.2.6", "2026-11-14", "【数据面板升级】在数据页面新增玩家头像、名称、Robux余额以及实时服务器在线人数显示。", 2)
+_CreateLogEntry("V4.2.5", "2026-11-14", "【UI 调整】将第一个主按钮更名为数据，并彻底清空该页面内所有原有功能。", 3)
 
 local _FpsInput = Instance.new("TextBox", _Page4)
 _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsInput.BackgroundTransparency = 0.55
@@ -789,7 +805,7 @@ _BG.P = 9e4; _BG.MaxTorque = Vector3.new(9e9, 9e9, 9e9); _BV.MaxForce = Vector3.
 
 local frozenPosition = nil
 
--- ==================== 核心功能循环驱动 (ESP 深度重构修复) ====================
+-- ==================== 核心功能循环驱动 ====================
 _RS.Heartbeat:Connect(function()
     local lChar = _LP.Character
     if lChar and lChar:FindFirstChild("HumanoidRootPart") then
@@ -843,7 +859,6 @@ _RS.Heartbeat:Connect(function()
             if tChar and tChar:FindFirstChild("Humanoid") and tChar.Humanoid.Health > 0 then
                 local tHrp = tChar:FindFirstChild("HumanoidRootPart") or tChar:FindFirstChild("Head")
                 
-                -- 修复透视高亮：如果被删掉或不存在则自动重新创建
                 if _G_LMM_88.v_0x1 then
                     local hl = tChar:FindFirstChild("LMM_ESP")
                     if not hl then
@@ -862,7 +877,6 @@ _RS.Heartbeat:Connect(function()
                     if hl then hl:Destroy() end
                 end
 
-                -- 修复方框透视：动态检测并重建
                 if _G_LMM_88.v_esp_box and tHrp then
                     local bb = tChar:FindFirstChild("LMM_BOX")
                     if not bb then
@@ -887,7 +901,6 @@ _RS.Heartbeat:Connect(function()
                     if bb then bb:Destroy() end
                 end
 
-                -- 修复射线透视：动态绑定
                 if _G_LMM_88.v_esp_line and tHrp then
                     local beam = tHrp:FindFirstChild("LMM_LINE_FIX")
                     if not beam and lChar and lChar:FindFirstChild("HumanoidRootPart") then
@@ -909,7 +922,6 @@ _RS.Heartbeat:Connect(function()
                     end
                 end
             else
-                -- 玩家死亡或离开时清理残留
                 if tChar then
                     local hl = tChar:FindFirstChild("LMM_ESP")
                     if hl then hl:Destroy() end
