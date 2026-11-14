@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.1 (beta) | 穿墙修复与细节精简版 ]]
+-- [[ 刘某某脚本 V4.2.4 (beta) | ESP 深度修复版 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -24,6 +24,7 @@ if _CG:FindFirstChild("LMM_Final_V400") then _CG.LMM_Final_V400:Destroy() end
 local _S = Instance.new("ScreenGui", _CG); _S.Name = "LMM_Final_V400"
 _S.ResetOnSpawn = false
 _S.DisplayOrder = 9999
+_S.IgnoreGuiInset = true
 
 -- ==================== 右下角通知管理（往上依次堆叠） ====================
 local activeNotifications = {}
@@ -92,40 +93,72 @@ local function ShowNotification(title, desc)
     end)
 end
 
--- ==================== 极美开场科技感加载动画 ====================
+-- ==================== 全黑全屏沉浸加载动画 (V4.2.4) ====================
 local _LoadGui = Instance.new("Frame", _S)
-_LoadGui.Size = UDim2.new(0, 340, 0, 120); _LoadGui.Position = UDim2.new(0.5, -170, 0.45, -60)
-_LoadGui.BackgroundColor3 = Color3.fromRGB(10, 10, 18); _LoadGui.BackgroundTransparency = 0.1; _LoadGui.BorderSizePixel = 0; _LoadGui.ZIndex = 10
-Instance.new("UICorner", _LoadGui).CornerRadius = UDim.new(0, 20)
-local _LoadStroke = Instance.new("UIStroke", _LoadGui); _LoadStroke.Thickness = 1.5; _LoadStroke.Color = Color3.fromRGB(129, 140, 248); _LoadStroke.Transparency = 0.3
+_LoadGui.Size = UDim2.new(2, 0, 2, 0)
+_LoadGui.Position = UDim2.new(-0.5, 0, -0.5, 0)
+_LoadGui.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+_LoadGui.BackgroundTransparency = 0
+_LoadGui.BorderSizePixel = 0
+_LoadGui.ZIndex = 999999
 
-local _Ring = Instance.new("Frame", _LoadGui)
-_Ring.Size = UDim2.new(0, 36, 0, 36); _Ring.Position = UDim2.new(0.5, -18, 0, 18)
-_Ring.BackgroundTransparency = 1; _Ring.ZIndex = 11
-local _RingStroke = Instance.new("UIStroke", _Ring); _RingStroke.Thickness = 3; _RingStroke.Color = Color3.fromRGB(129, 140, 248)
-Instance.new("UICorner", _Ring).CornerRadius = UDim.new(1, 0)
+local _CenterCard = Instance.new("Frame", _LoadGui)
+_CenterCard.Size = UDim2.new(0, 400, 0, 170)
+_CenterCard.Position = UDim2.new(0.5, -200, 0.5, -85)
+_CenterCard.BackgroundColor3 = Color3.fromRGB(14, 14, 22)
+_CenterCard.BackgroundTransparency = 0.1
+_CenterCard.BorderSizePixel = 0
+_CenterCard.ZIndex = 1000000
+Instance.new("UICorner", _CenterCard).CornerRadius = UDim.new(0, 20)
+local _CenterStroke = Instance.new("UIStroke", _CenterCard)
+_CenterStroke.Thickness = 1.5
+_CenterStroke.Color = Color3.fromRGB(129, 140, 248)
+_CenterStroke.Transparency = 0.3
 
-task.spawn(function()
-    while _LoadGui and _LoadGui.Parent do
-        _Ring.Rotation = _Ring.Rotation + 6
-        task.wait(0.02)
-    end
-end)
+local _LoadText = Instance.new("TextLabel", _CenterCard)
+_LoadText.Size = UDim2.new(1, 0, 0, 30)
+_LoadText.Position = UDim2.new(0, 0, 0, 28)
+_LoadText.BackgroundTransparency = 1
+_LoadText.Text = "刘某某脚本 V4.2.4 加载中..."
+_LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
+_LoadText.Font = Enum.Font.GothamBold
+_LoadText.TextSize = 15
+_LoadText.TextXAlignment = Enum.TextXAlignment.Center
+_LoadText.ZIndex = 1000001
 
-local _BarBg = Instance.new("Frame", _LoadGui)
-_BarBg.Size = UDim2.new(0.85, 0, 0, 8); _BarBg.Position = UDim2.new(0.075, 0, 0.78, 0)
-_BarBg.BackgroundColor3 = Color3.fromRGB(22, 22, 35); _BarBg.BorderSizePixel = 0; _BarBg.ZIndex = 11
+local _BarBg = Instance.new("Frame", _CenterCard)
+_BarBg.Size = UDim2.new(0.85, 0, 0, 10)
+_BarBg.Position = UDim2.new(0.075, 0, 0, 78)
+_BarBg.BackgroundColor3 = Color3.fromRGB(22, 22, 36)
+_BarBg.BorderSizePixel = 0
+_BarBg.ZIndex = 1000001
 Instance.new("UICorner", _BarBg).CornerRadius = UDim.new(1, 0)
 
 local _BarFill = Instance.new("Frame", _BarBg)
-_BarFill.Size = UDim2.new(0, 0, 1, 0); _BarFill.BackgroundColor3 = Color3.fromRGB(129, 140, 248); _BarFill.BorderSizePixel = 0; _BarFill.ZIndex = 12
+_BarFill.Size = UDim2.new(0, 0, 1, 0)
+_BarFill.BackgroundColor3 = Color3.fromRGB(129, 140, 248)
+_BarFill.BorderSizePixel = 0
+_BarFill.ZIndex = 1000002
 Instance.new("UICorner", _BarFill).CornerRadius = UDim.new(1, 0)
 
-local _LoadText = Instance.new("TextLabel", _LoadGui)
-_LoadText.Size = UDim2.new(1, 0, 0, 25); _LoadText.Position = UDim2.new(0, 0, 0.48, -12); _LoadText.BackgroundTransparency = 1; _LoadText.ZIndex = 11
-_LoadText.Text = "刘某某脚本 V4.2.1 加载中..."; _LoadText.TextColor3 = Color3.fromRGB(245, 245, 247); _LoadText.Font = Enum.Font.GothamBold; _LoadText.TextSize = 13
+local _PercentText = Instance.new("TextLabel", _CenterCard)
+_PercentText.Size = UDim2.new(1, 0, 0, 24)
+_PercentText.Position = UDim2.new(0, 0, 0, 105)
+_PercentText.BackgroundTransparency = 1
+_PercentText.Text = "0%"
+_PercentText.TextColor3 = Color3.fromRGB(170, 170, 205)
+_PercentText.Font = Enum.Font.GothamBold
+_PercentText.TextSize = 12
+_PercentText.TextXAlignment = Enum.TextXAlignment.Center
+_PercentText.ZIndex = 1000001
 
-Tween(_BarFill, {Size = UDim2.new(1, 0, 1, 0)}, 1.4, Enum.EasingStyle.Quart)
+task.spawn(function()
+    for i = 1, 100 do
+        _BarFill.Size = UDim2.new(i / 100, 0, 1, 0)
+        _PercentText.Text = i .. "%"
+        task.wait(0.016)
+    end
+end)
 
 -- ==================== 主界面容器 ====================
 local _M = Instance.new("Frame", _S)
@@ -147,13 +180,9 @@ _BgImage.ScaleType = Enum.ScaleType.Crop; _BgImage.ZIndex = 0
 Instance.new("UICorner", _BgImage).CornerRadius = UDim.new(0, 18)
 
 task.spawn(function()
-    task.wait(1.5)
-    Tween(_LoadGui, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.45, 0), BackgroundTransparency = 1}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-    Tween(_LoadText, {TextTransparency = 1}, 0.25)
-    Tween(_BarBg, {BackgroundTransparency = 1}, 0.25)
-    Tween(_BarFill, {BackgroundTransparency = 1}, 0.25)
-    Tween(_Ring, {BackgroundTransparency = 1}, 0.25)
-    Tween(_LoadStroke, {Transparency = 1}, 0.25)
+    task.wait(1.8)
+    Tween(_CenterCard, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+    Tween(_LoadGui, {BackgroundTransparency = 1}, 0.35)
     task.wait(0.35)
     _LoadGui:Destroy()
     
@@ -164,7 +193,7 @@ end)
 
 local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 50); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
 local _Title = Instance.new("TextLabel", _TB)
-_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.1 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.4 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
 local _HeaderLine = Instance.new("Frame", _M)
 _HeaderLine.Size = UDim2.new(1, -30, 0, 1); _HeaderLine.Position = UDim2.new(0, 15, 0, 50)
@@ -310,7 +339,6 @@ local function _CreateT(targetPage, name, key, order)
         _G_LMM_88[key] = not _G_LMM_88[key]
         local state = _G_LMM_88[key]
         
-        -- 🌟 修复穿墙关闭时的残留问题：关闭时立即恢复所有部位的碰撞体积
         if key == "v_0x2" and not state then
             pcall(function()
                 local lChar = _LP.Character
@@ -544,11 +572,10 @@ local function _CreateLogEntry(version, date, desc, order)
     f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.25) end)
 end
 
-_CreateLogEntry("V4.2.1", "2026-11-13", "【穿墙与UI精简】修复穿墙关闭后效果残留的问题；彻底清理设定中心内所有多余括号；优化 ESP 追踪稳定性。", 1)
-_CreateLogEntry("V4.2.0", "2026-11-13", "【UI 视觉升级】重构开场加载动画，加入科技旋转光环；精简功能菜单文案，保留核心必要标记。", 2)
-_CreateLogEntry("V4.1.9", "2026-11-13", "【ESP 终极突破】全方位重构透视引擎，绕过复杂游戏层级直接对全身部件进行高亮与方框渲染。", 3)
+_CreateLogEntry("V4.2.4", "2026-11-13", "【ESP 修复】全面重构透视挂载循环，解决部分场景透视无反应的问题。", 1)
+_CreateLogEntry("V4.2.3", "2026-11-13", "【加载全屏覆盖】升级全屏全黑沉浸式加载动画，移除旋转光圈，带来极致干净的视觉体验。", 2)
+_CreateLogEntry("V4.2.2", "2026-11-13", "【加载动画极致升级】采用全黑沉浸式背景与流光科技进度条动画。", 3)
 
--- 🌟 设定中心：彻底删掉所有括号（FPS解锁、BGM、高亮等提示文字）
 local _FpsInput = Instance.new("TextBox", _Page4)
 _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsInput.BackgroundTransparency = 0.55
 _FpsInput.Text = "  设置FPS解锁 15到240: 60"; _FpsInput.TextColor3 = Color3.fromRGB(240, 240, 250); _FpsInput.Font = Enum.Font.GothamMedium; _FpsInput.TextSize = 13; _FpsInput.TextXAlignment = Enum.TextXAlignment.Left; _FpsInput.ZIndex = 2
@@ -756,7 +783,7 @@ _BG.P = 9e4; _BG.MaxTorque = Vector3.new(9e9, 9e9, 9e9); _BV.MaxForce = Vector3.
 
 local frozenPosition = nil
 
--- ==================== 核心功能循环驱动 ====================
+-- ==================== 核心功能循环驱动 (ESP 深度修复) ====================
 _RS.Heartbeat:Connect(function()
     local lChar = _LP.Character
     if lChar and lChar:FindFirstChild("HumanoidRootPart") then
@@ -807,9 +834,10 @@ _RS.Heartbeat:Connect(function()
     for _, p in pairs(_P:GetPlayers()) do
         if p ~= _LP then
             local tChar = p.Character
-            if tChar then
+            if tChar and tChar:FindFirstChild("Humanoid") and tChar.Humanoid.Health > 0 then
                 local tHrp = tChar:FindFirstChild("HumanoidRootPart") or tChar:FindFirstChild("Head")
                 
+                -- 透视高亮修复
                 if _G_LMM_88.v_0x1 then
                     local hl = tChar:FindFirstChild("LMM_ESP")
                     if not hl then
@@ -828,6 +856,7 @@ _RS.Heartbeat:Connect(function()
                     if hl then hl:Destroy() end
                 end
 
+                -- 方框修复
                 if _G_LMM_88.v_esp_box and tHrp then
                     local bb = tChar:FindFirstChild("LMM_BOX")
                     if not bb then
@@ -852,6 +881,7 @@ _RS.Heartbeat:Connect(function()
                     if bb then bb:Destroy() end
                 end
 
+                -- 射线修复
                 if _G_LMM_88.v_esp_line and tHrp then
                     local beam = tHrp:FindFirstChild("LMM_LINE_FIX")
                     if not beam and lChar and lChar:FindFirstChild("HumanoidRootPart") then
@@ -870,6 +900,16 @@ _RS.Heartbeat:Connect(function()
                     if tHrp then
                         local beam = tHrp:FindFirstChild("LMM_LINE_FIX")
                         if beam then beam:Destroy() end
+                    end
+                end
+            else
+                -- 玩家死亡或不存在时清理残留实例
+                if tChar then
+                    local hl = tChar:FindFirstChild("LMM_ESP") if hl then hl:Destroy() end
+                    local bb = tChar:FindFirstChild("LMM_BOX") if bb then bb:Destroy() end
+                    local tHrp = tChar:FindFirstChild("HumanoidRootPart") or tChar:FindFirstChild("Head")
+                    if tHrp then
+                        local beam = tHrp:FindFirstChild("LMM_LINE_FIX") if beam then beam:Destroy() end
                     end
                 end
             end
