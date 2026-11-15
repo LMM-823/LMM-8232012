@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.10 (beta) | 顶部间距与状态框左移版 ]]
+-- [[ 刘某某脚本 V4.2.12 (beta) | 批量脚本扩充版 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -93,7 +93,7 @@ local function ShowNotification(title, desc)
     end)
 end
 
--- ==================== 全黑全屏沉浸加载动画 (V4.2.10) ====================
+-- ==================== 全黑全屏沉浸加载动画 (V4.2.12) ====================
 local _LoadGui = Instance.new("Frame", _S)
 _LoadGui.Size = UDim2.new(2, 0, 2, 0)
 _LoadGui.Position = UDim2.new(-0.5, 0, -0.5, 0)
@@ -121,7 +121,7 @@ local _LoadText = Instance.new("TextLabel", _CenterCard)
 _LoadText.Size = UDim2.new(1, 0, 0, 30)
 _LoadText.Position = UDim2.new(0, 0, 0, 28)
 _LoadText.BackgroundTransparency = 1
-_LoadText.Text = "刘某某脚本 V4.2.10 加载中..."
+_LoadText.Text = "刘某某脚本 V4.2.12 加载中..."
 _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
 _LoadText.Font = Enum.Font.GothamBold
 _LoadText.TextSize = 15
@@ -199,7 +199,7 @@ end)
 
 local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 50); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
 local _Title = Instance.new("TextLabel", _TB)
-_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.10 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.12 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
 local _HeaderLine = Instance.new("Frame", _M)
 _HeaderLine.Size = UDim2.new(1, -30, 0, 1); _HeaderLine.Position = UDim2.new(0, 15, 0, 50)
@@ -280,8 +280,8 @@ local function _CreateTabBtn(name, order, targetPage)
 end
 
 _CreateTabBtn("数据", 1, _Page1)
-_CreateTabBtn("脚本合集(no key)", 2, _Page2)
-_CreateTabBtn("脚本合集(need key)", 3, _Page5)
+_CreateTabBtn("脚本合集(keyless)", 2, _Page2)
+_CreateTabBtn("脚本合集(key)", 3, _Page5)
 _CreateTabBtn("LMM script", 4, _Page6)
 _CreateTabBtn("更新日志", 5, _Page3)
 _CreateTabBtn("设定中心", 6, _Page4)
@@ -373,7 +373,6 @@ task.spawn(function()
     end
 end)
 
--- 🌟 状态监测容器（往左移开距离，避免跟按钮贴太近）
 local _StatsContainer = Instance.new("Frame", _TB)
 _StatsContainer.Size = UDim2.new(0, 175, 0, 26)
 _StatsContainer.Position = UDim2.new(1, -325, 0.5, -13)
@@ -506,7 +505,7 @@ end
 
 local _SearchBox = Instance.new("TextBox", _Page2)
 _SearchBox.LayoutOrder = 1; _SearchBox.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _SearchBox.BackgroundTransparency = 0.55
-_SearchBox.PlaceholderText = "搜索免卡密脚本..."; _SearchBox.Text = ""; _SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+_SearchBox.PlaceholderText = "搜索 keyless 脚本..."; _SearchBox.Text = ""; _SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 _SearchBox.PlaceholderColor3 = Color3.fromRGB(150, 150, 175); _SearchBox.Font = Enum.Font.GothamMedium; _SearchBox.TextSize = 13; _SearchBox.ZIndex = 2
 Instance.new("UICorner", _SearchBox).CornerRadius = UDim.new(0, 10)
 local _SearchStroke = Instance.new("UIStroke", _SearchBox); _SearchStroke.Thickness = 1; _SearchStroke.Color = Color3.fromRGB(55, 55, 75)
@@ -521,15 +520,25 @@ _SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
+-- 🌟 脚本合集(keyless) 列表
 _CreateS(_Page2, "AIMBOT", "https://rawscripts.net/raw/Universal-Script-Aimbot-Mobile-34677", 2)
 _CreateS(_Page2, "Infinite Yield", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", 3)
 _CreateS(_Page2, "Nameless Admin", "https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source", 4)
 _CreateS(_Page2, "Owl Hub", "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt", 5)
 _CreateS(_Page2, "steal an egg", "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua", 6)
+_CreateS(_Page2, "VR7", "https://scriptblox.com/raw/Universal-Script-VR7-45290", 7)
+_CreateS(_Page2, "Universal hub", "https://scriptblox.com/raw/Universal-Script-Universal-Hub-Lite-226350", 8)
+_CreateS(_Page2, "KDV3", "https://scriptblox.com/raw/UP-Just-a-baseplate.-WORKING-KDV3-MODDED-227082", 9)
+_CreateS(_Page2, "Molyn hub", "https://scriptblox.com/raw/Universal-Script-MOLYN-DEVELOPMENT-201480", 10)
+_CreateS(_Page2, "CanHub v2", "https://scriptblox.com/raw/Universal-Script-CanHub-V2-200-GAMES-KEYLESS-241714", 11)
+_CreateS(_Page2, "Sp3arparvus", "https://scriptblox.com/raw/Universal-Script-Sp3arParvus-239746", 12)
+_CreateS(_Page2, "Emote libary", "https://vexroscripts.com.tr/vexroemotes.luau", 13)
+_CreateS(_Page2, "Celestial", "https://raw.githubusercontent.com/marianaxx2c-glitch/ceewww/refs/heads/main/xxx", 14)
+_CreateS(_Page2, "Slap battles/fly", "https://scriptblox.com/raw/UPDATE-Slap-Battles-OP-ARBIX-HUB-SLAP-AURA-AND-MUCH-MORE-227489", 15)
 
 local _SearchBox2 = Instance.new("TextBox", _Page5)
 _SearchBox2.LayoutOrder = 1; _SearchBox2.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox2.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _SearchBox2.BackgroundTransparency = 0.55
-_SearchBox2.PlaceholderText = "搜索需卡密脚本..."; _SearchBox2.Text = ""; _SearchBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
+_SearchBox2.PlaceholderText = "搜索 key 脚本..."; _SearchBox2.Text = ""; _SearchBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
 _SearchBox2.PlaceholderColor3 = Color3.fromRGB(150, 150, 175); _SearchBox2.Font = Enum.Font.GothamMedium; _SearchBox2.TextSize = 13; _SearchBox2.ZIndex = 2
 Instance.new("UICorner", _SearchBox2).CornerRadius = UDim.new(0, 10)
 local _SearchStroke2 = Instance.new("UIStroke", _SearchBox2); _SearchStroke2.Thickness = 1; _SearchStroke2.Color = Color3.fromRGB(55, 55, 75)
@@ -544,8 +553,11 @@ _SearchBox2:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
+-- 🌟 脚本合集(key) 列表
 _CreateS(_Page5, "示例脚本", "https://example.com/needkey-script", 2)
 _CreateS(_Page5, "Blade Ball", "https://raw.githubusercontent.com/joshhhie/rise/refs/heads/main/loader.lua", 3)
+_CreateS(_Page5, "Moondiety", "https://scriptblox.com/raw/Universal-Script-MOONDIETY-UNIVERSAL-KEYLESS-233999", 4)
+_CreateS(_Page5, "King hub", "https://scriptblox.com/raw/Universal-Script-King-Hub-91820", 5)
 
 local _SearchBox3 = Instance.new("TextBox", _Page6)
 _SearchBox3.LayoutOrder = 1; _SearchBox3.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox3.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _SearchBox3.BackgroundTransparency = 0.55
@@ -598,9 +610,9 @@ local function _CreateLogEntry(version, date, desc, order)
     f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.25) end)
 end
 
-_CreateLogEntry("V4.2.10", "2026-11-14", "【UI 间距优化】调整右上角控制按钮间距，并将顶部状态监测框往左侧平移。", 1)
-_CreateLogEntry("V4.2.9", "2026-11-14", "【UI 精简与优化】精简设定中心（移除FPS/Ping/BGM），放大并美化右上角半透明控制按钮。", 2)
-_CreateLogEntry("V4.2.8", "2026-11-14", "【专属脚本集成】在 LMM script 页面中成功添加 LMM fps 优化脚本按钮。", 3)
+_CreateLogEntry("V4.2.12", "2026-11-14", "【脚本扩充】批量集成 VR7、Universal hub、Moondiety、King hub、KDV3 等 11 个热门脚本。", 1)
+_CreateLogEntry("V4.2.11", "2026-11-14", "【侧边栏重命名】将脚本合集分类重命名为 脚本合集(keyless) 与 脚本合集(key)。", 2)
+_CreateLogEntry("V4.2.10", "2026-11-14", "【UI 间距优化】调整右上角控制按钮间距，并将顶部状态监测框往左侧平移。", 3)
 
 local _FpsInput = Instance.new("TextBox", _Page4)
 _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsInput.BackgroundTransparency = 0.55
