@@ -1,10 +1,12 @@
--- [[ 刘某某脚本 V4.2.12 (beta) | 批量脚本扩充版 ]]
+-- [[ 刘某某脚本 V4.2.15 (beta) | 集成 Redz Keyless 脚本 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
 local _CG = game:GetService("CoreGui")
 local _UIS = game:GetService("UserInputService")
 local _TS = game:GetService("TweenService")
+local _MP = game:GetService("MarketplaceService")
+local _Lighting = game:GetService("Lighting")
 local _LP = _P.LocalPlayer
 local _Cam = workspace.CurrentCamera
 
@@ -26,7 +28,7 @@ _S.ResetOnSpawn = false
 _S.DisplayOrder = 9999
 _S.IgnoreGuiInset = true
 
--- ==================== 右下角通知管理（往上依次堆叠） ====================
+-- ==================== 右下角通知管理（气泡堆叠） ====================
 local activeNotifications = {}
 
 local function UpdateNotificationPositions()
@@ -47,10 +49,15 @@ local function ShowNotification(title, desc)
     card.Size = UDim2.new(0, 260, 0, 65)
     card.Position = UDim2.new(1, 280, 1, -85)
     card.BackgroundColor3 = Color3.fromRGB(14, 14, 22)
-    card.BackgroundTransparency = 0.25
+    card.BackgroundTransparency = 0.15
     card.BorderSizePixel = 0
     card.ZIndex = 10000000
     Instance.new("UICorner", card).CornerRadius = UDim.new(0, 12)
+    
+    local cardStroke = Instance.new("UIStroke", card)
+    cardStroke.Thickness = 1
+    cardStroke.Color = Color3.fromRGB(55, 55, 75)
+    cardStroke.Transparency = 0.5
 
     local titleLbl = Instance.new("TextLabel", card)
     titleLbl.Size = UDim2.new(1, -20, 0, 24)
@@ -79,7 +86,7 @@ local function ShowNotification(title, desc)
     UpdateNotificationPositions()
 
     task.spawn(function()
-        task.wait(2.5)
+        task.wait(2.8)
         for idx, item in ipairs(activeNotifications) do
             if item == notifData then
                 table.remove(activeNotifications, idx)
@@ -93,16 +100,18 @@ local function ShowNotification(title, desc)
     end)
 end
 
--- ==================== 全黑全屏沉浸加载动画 (V4.2.12) ====================
+-- ==================== 模糊背景加载动画 ====================
+local blurEffect = Instance.new("BlurEffect", _Lighting)
+blurEffect.Size = 18
+
 local _LoadGui = Instance.new("Frame", _S)
 _LoadGui.Size = UDim2.new(2, 0, 2, 0)
 _LoadGui.Position = UDim2.new(-0.5, 0, -0.5, 0)
-_LoadGui.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-_LoadGui.BackgroundTransparency = 0
+_LoadGui.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+_LoadGui.BackgroundTransparency = 0.35
 _LoadGui.BorderSizePixel = 0
 _LoadGui.ZIndex = 999999
 
--- 中心精致卡片
 local _CenterCard = Instance.new("Frame", _LoadGui)
 _CenterCard.Size = UDim2.new(0, 400, 0, 170)
 _CenterCard.Position = UDim2.new(0.5, -200, 0.5, -85)
@@ -116,19 +125,17 @@ _CenterStroke.Thickness = 1.5
 _CenterStroke.Color = Color3.fromRGB(129, 140, 248)
 _CenterStroke.Transparency = 0.3
 
--- 标题文字
 local _LoadText = Instance.new("TextLabel", _CenterCard)
 _LoadText.Size = UDim2.new(1, 0, 0, 30)
 _LoadText.Position = UDim2.new(0, 0, 0, 28)
 _LoadText.BackgroundTransparency = 1
-_LoadText.Text = "刘某某脚本 V4.2.12 加载中..."
+_LoadText.Text = "刘某某脚本 V4.2.15 加载中..."
 _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
 _LoadText.Font = Enum.Font.GothamBold
 _LoadText.TextSize = 15
 _LoadText.TextXAlignment = Enum.TextXAlignment.Center
 _LoadText.ZIndex = 1000001
 
--- 进度条背景
 local _BarBg = Instance.new("Frame", _CenterCard)
 _BarBg.Size = UDim2.new(0.85, 0, 0, 10)
 _BarBg.Position = UDim2.new(0.075, 0, 0, 78)
@@ -137,7 +144,6 @@ _BarBg.BorderSizePixel = 0
 _BarBg.ZIndex = 1000001
 Instance.new("UICorner", _BarBg).CornerRadius = UDim.new(1, 0)
 
--- 进度条填充
 local _BarFill = Instance.new("Frame", _BarBg)
 _BarFill.Size = UDim2.new(0, 0, 1, 0)
 _BarFill.BackgroundColor3 = Color3.fromRGB(129, 140, 248)
@@ -145,7 +151,6 @@ _BarFill.BorderSizePixel = 0
 _BarFill.ZIndex = 1000002
 Instance.new("UICorner", _BarFill).CornerRadius = UDim.new(1, 0)
 
--- 百分比显示文字
 local _PercentText = Instance.new("TextLabel", _CenterCard)
 _PercentText.Size = UDim2.new(1, 0, 0, 24)
 _PercentText.Position = UDim2.new(0, 0, 0, 105)
@@ -157,7 +162,6 @@ _PercentText.TextSize = 12
 _PercentText.TextXAlignment = Enum.TextXAlignment.Center
 _PercentText.ZIndex = 1000001
 
--- 动态进度条平滑增长
 task.spawn(function()
     for i = 1, 100 do
         _BarFill.Size = UDim2.new(i / 100, 0, 1, 0)
@@ -189,17 +193,22 @@ task.spawn(function()
     task.wait(1.8)
     Tween(_CenterCard, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1}, 0.35, Enum.EasingStyle.Back, Enum.EasingDirection.In)
     Tween(_LoadGui, {BackgroundTransparency = 1}, 0.35)
+    Tween(blurEffect, {Size = 0}, 0.35)
     task.wait(0.35)
     _LoadGui:Destroy()
+    pcall(function() blurEffect:Destroy() end)
     
     _M.Visible = true
     _M.Size = UDim2.new(0, 520, 0, 340)
     Tween(_M, {Size = UDim2.new(0, 580, 0, 380)}, 0.4, Enum.EasingStyle.Back)
+    
+    -- 🌟 如图所示：加载完毕后右下角弹出精致提示卡片
+    ShowNotification("刘某某脚本", "刘某某脚本开启完毕")
 end)
 
 local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 50); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
 local _Title = Instance.new("TextLabel", _TB)
-_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.12 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.15 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
 local _HeaderLine = Instance.new("Frame", _M)
 _HeaderLine.Size = UDim2.new(1, -30, 0, 1); _HeaderLine.Position = UDim2.new(0, 15, 0, 50)
@@ -286,7 +295,7 @@ _CreateTabBtn("LMM script", 4, _Page6)
 _CreateTabBtn("更新日志", 5, _Page3)
 _CreateTabBtn("设定中心", 6, _Page4)
 
--- ==================== “数据”页面：玩家信息展示面板 ====================
+-- ==================== “数据”页面：玩家信息与当前游戏展示面板 ====================
 local _DataCard = Instance.new("Frame", _Page1)
 _DataCard.LayoutOrder = 1
 _DataCard.Size = UDim2.new(0.98, 0, 0, 130)
@@ -337,7 +346,6 @@ _RobuxLabel.TextSize = 12
 _RobuxLabel.TextXAlignment = Enum.TextXAlignment.Left
 _RobuxLabel.ZIndex = 3
 
--- 异步获取 Robux 余额
 task.spawn(function()
     local success, result = pcall(function()
         local rbxs = game:GetService("MarketplaceService"):GetRobuxBalance()
@@ -362,7 +370,6 @@ _ServerLabel.TextSize = 12
 _ServerLabel.TextXAlignment = Enum.TextXAlignment.Left
 _ServerLabel.ZIndex = 3
 
--- 实时更新服务器人数
 task.spawn(function()
     while task.wait(1) do
         pcall(function()
@@ -371,6 +378,67 @@ task.spawn(function()
             _ServerLabel.Text = string.format("服务器人数: %d / %d 人", currentPlayers, maxPlayers)
         end)
     end
+end)
+
+-- 当前游玩游戏信息展示卡片
+local _GameCard = Instance.new("Frame", _Page1)
+_GameCard.LayoutOrder = 2
+_GameCard.Size = UDim2.new(0.98, 0, 0, 85)
+_GameCard.BackgroundColor3 = Color3.fromRGB(15, 15, 24)
+_GameCard.BackgroundTransparency = 0.55
+_GameCard.ZIndex = 2
+Instance.new("UICorner", _GameCard).CornerRadius = UDim.new(0, 12)
+local _GameCardStroke = Instance.new("UIStroke", _GameCard)
+_GameCardStroke.Thickness = 1
+_GameCardStroke.Color = Color3.fromRGB(55, 55, 75)
+
+-- 游戏图标
+local _GameIconImg = Instance.new("ImageLabel", _GameCard)
+_GameIconImg.Size = UDim2.new(0, 55, 0, 55)
+_GameIconImg.Position = UDim2.new(0, 15, 0.5, -27.5)
+_GameIconImg.BackgroundColor3 = Color3.fromRGB(22, 22, 36)
+_GameIconImg.BackgroundTransparency = 0.5
+_GameIconImg.ZIndex = 3
+Instance.new("UICorner", _GameIconImg).CornerRadius = UDim.new(0, 10)
+
+-- 游戏名称与ID标签
+local _GameTitleLabel = Instance.new("TextLabel", _GameCard)
+_GameTitleLabel.Size = UDim2.new(1, -90, 0, 24)
+_GameTitleLabel.Position = UDim2.new(0, 82, 0, 20)
+_GameTitleLabel.BackgroundTransparency = 1
+_GameTitleLabel.Text = "当前游戏: 获取中..."
+_GameTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+_GameTitleLabel.Font = Enum.Font.GothamBold
+_GameTitleLabel.TextSize = 13
+_GameTitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+_GameTitleLabel.ZIndex = 3
+
+local _GameIdLabel = Instance.new("TextLabel", _GameCard)
+_GameIdLabel.Size = UDim2.new(1, -90, 0, 20)
+_GameIdLabel.Position = UDim2.new(0, 82, 0, 46)
+_GameIdLabel.BackgroundTransparency = 1
+_GameIdLabel.Text = "PlaceId: " .. game.PlaceId
+_GameIdLabel.TextColor3 = Color3.fromRGB(170, 170, 195)
+_GameIdLabel.Font = Enum.Font.GothamMedium
+_GameIdLabel.TextSize = 11
+_GameIdLabel.TextXAlignment = Enum.TextXAlignment.Left
+_GameIdLabel.ZIndex = 3
+
+task.spawn(function()
+    pcall(function()
+        local info = _MP:GetProductInfo(game.PlaceId)
+        if info and info.Name then
+            _GameTitleLabel.Text = "当前游戏: " .. info.Name
+        end
+    end)
+    pcall(function()
+        local iconId = _MP:GetProductInfo(game.PlaceId)
+        if iconId and iconId.IconImageAssetId and iconId.IconImageAssetId ~= 0 then
+            _GameIconImg.Image = "rbxassetid://" .. tostring(iconId.IconImageAssetId)
+        else
+            _GameIconImg.Image = "rbxassetid://6023426915"
+        end
+    end)
 end)
 
 local _StatsContainer = Instance.new("Frame", _TB)
@@ -520,21 +588,22 @@ _SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
--- 🌟 脚本合集(keyless) 列表
-_CreateS(_Page2, "AIMBOT", "https://rawscripts.net/raw/Universal-Script-Aimbot-Mobile-34677", 2)
-_CreateS(_Page2, "Infinite Yield", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", 3)
-_CreateS(_Page2, "Nameless Admin", "https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source", 4)
-_CreateS(_Page2, "Owl Hub", "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt", 5)
-_CreateS(_Page2, "steal an egg", "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua", 6)
-_CreateS(_Page2, "VR7", "https://scriptblox.com/raw/Universal-Script-VR7-45290", 7)
-_CreateS(_Page2, "Universal hub", "https://scriptblox.com/raw/Universal-Script-Universal-Hub-Lite-226350", 8)
-_CreateS(_Page2, "KDV3", "https://scriptblox.com/raw/UP-Just-a-baseplate.-WORKING-KDV3-MODDED-227082", 9)
-_CreateS(_Page2, "Molyn hub", "https://scriptblox.com/raw/Universal-Script-MOLYN-DEVELOPMENT-201480", 10)
-_CreateS(_Page2, "CanHub v2", "https://scriptblox.com/raw/Universal-Script-CanHub-V2-200-GAMES-KEYLESS-241714", 11)
-_CreateS(_Page2, "Sp3arparvus", "https://scriptblox.com/raw/Universal-Script-Sp3arParvus-239746", 12)
-_CreateS(_Page2, "Emote libary", "https://vexroscripts.com.tr/vexroemotes.luau", 13)
-_CreateS(_Page2, "Celestial", "https://raw.githubusercontent.com/marianaxx2c-glitch/ceewww/refs/heads/main/xxx", 14)
-_CreateS(_Page2, "Slap battles/fly", "https://scriptblox.com/raw/UPDATE-Slap-Battles-OP-ARBIX-HUB-SLAP-AURA-AND-MUCH-MORE-227489", 15)
+-- 🌟 已成功集成 Redz 脚本
+_CreateS(_Page2, "Redz (Blox Fruits)", "https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Redz/v3.luau", 2)
+_CreateS(_Page2, "AIMBOT", "https://rawscripts.net/raw/Universal-Script-Aimbot-Mobile-34677", 3)
+_CreateS(_Page2, "Infinite Yield", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", 4)
+_CreateS(_Page2, "Nameless Admin", "https://raw.githubusercontent.com/FilteringEnabled/NamelessAdmin/main/Source", 5)
+_CreateS(_Page2, "Owl Hub", "https://raw.githubusercontent.com/CriShoux/OwlHub/master/OwlHub.txt", 6)
+_CreateS(_Page2, "steal an egg", "https://raw.githubusercontent.com/tienkhanh1/spicy/main/Chilli.lua", 7)
+_CreateS(_Page2, "VR7", "https://scriptblox.com/raw/Universal-Script-VR7-45290", 8)
+_CreateS(_Page2, "Universal hub", "https://scriptblox.com/raw/Universal-Script-Universal-Hub-Lite-226350", 9)
+_CreateS(_Page2, "KDV3", "https://scriptblox.com/raw/UP-Just-a-baseplate.-WORKING-KDV3-MODDED-227082", 10)
+_CreateS(_Page2, "Molyn hub", "https://scriptblox.com/raw/Universal-Script-MOLYN-DEVELOPMENT-201480", 11)
+_CreateS(_Page2, "CanHub v2", "https://scriptblox.com/raw/Universal-Script-CanHub-V2-200-GAMES-KEYLESS-241714", 12)
+_CreateS(_Page2, "Sp3arparvus", "https://scriptblox.com/raw/Universal-Script-Sp3arParvus-239746", 13)
+_CreateS(_Page2, "Emote libary", "https://vexroscripts.com.tr/vexroemotes.luau", 14)
+_CreateS(_Page2, "Celestial", "https://raw.githubusercontent.com/marianaxx2c-glitch/ceewww/refs/heads/main/xxx", 15)
+_CreateS(_Page2, "Slap battles/fly", "https://scriptblox.com/raw/UPDATE-Slap-Battles-OP-ARBIX-HUB-SLAP-AURA-AND-MUCH-MORE-227489", 16)
 
 local _SearchBox2 = Instance.new("TextBox", _Page5)
 _SearchBox2.LayoutOrder = 1; _SearchBox2.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox2.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _SearchBox2.BackgroundTransparency = 0.55
@@ -553,7 +622,6 @@ _SearchBox2:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
--- 🌟 脚本合集(key) 列表
 _CreateS(_Page5, "示例脚本", "https://example.com/needkey-script", 2)
 _CreateS(_Page5, "Blade Ball", "https://raw.githubusercontent.com/joshhhie/rise/refs/heads/main/loader.lua", 3)
 _CreateS(_Page5, "Moondiety", "https://scriptblox.com/raw/Universal-Script-MOONDIETY-UNIVERSAL-KEYLESS-233999", 4)
@@ -610,9 +678,9 @@ local function _CreateLogEntry(version, date, desc, order)
     f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.25) end)
 end
 
-_CreateLogEntry("V4.2.12", "2026-11-14", "【脚本扩充】批量集成 VR7、Universal hub、Moondiety、King hub、KDV3 等 11 个热门脚本。", 1)
-_CreateLogEntry("V4.2.11", "2026-11-14", "【侧边栏重命名】将脚本合集分类重命名为 脚本合集(keyless) 与 脚本合集(key)。", 2)
-_CreateLogEntry("V4.2.10", "2026-11-14", "【UI 间距优化】调整右上角控制按钮间距，并将顶部状态监测框往左侧平移。", 3)
+_CreateLogEntry("V4.2.15", "2026-11-16", "【脚本更新】在 脚本合集(keyless) 中新增并集成 Redz (Blox Fruits) 脚本。", 1)
+_CreateLogEntry("V4.2.14", "2026-11-14", "【视觉升级】加载动画变更为动态模糊背景毛玻璃效果，并新增加载完成后的右下角精美气泡提示。", 2)
+_CreateLogEntry("V4.2.13", "2026-11-14", "【数据面板升级】在数据页面新增当前游玩游戏名称与游戏缩略图展示。", 3)
 
 local _FpsInput = Instance.new("TextBox", _Page4)
 _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsInput.BackgroundTransparency = 0.55
@@ -863,14 +931,14 @@ _RS.Heartbeat:Connect(function()
     end
 end)
 
--- 🌟 优化后的右上角控制按钮（增大尺寸、半透明、增加间距）
+-- 右上角控制按钮
 local function _Ctrl(t, x, c, hoverC, f)
     local b = Instance.new("TextButton", _TB)
     b.Size = UDim2.new(0, 34, 0, 34)
     b.Position = UDim2.new(1, x, 0.5, -17)
     b.Text = t
     b.BackgroundColor3 = c
-    b.BackgroundTransparency = 0.4  -- 半透明质感
+    b.BackgroundTransparency = 0.4
     b.TextColor3 = Color3.fromRGB(240, 240, 250)
     b.Font = Enum.Font.GothamBold
     b.TextSize = 14
@@ -894,7 +962,7 @@ local function _Ctrl(t, x, c, hoverC, f)
     b.MouseButton1Click:Connect(f)
 end
 
--- 关闭按钮 (最右侧)
+-- 关闭按钮
 _Ctrl("×", -45, Color3.fromRGB(239, 68, 68), Color3.fromRGB(255, 90, 90), function() 
     pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
     Tween(_M, {Size = UDim2.new(0, 520, 0, 340), BackgroundTransparency = 1}, 0.3)
@@ -904,7 +972,7 @@ end)
 
 local isMinimized = false
 
--- 最小化按钮 (中间)
+-- 最小化按钮
 _Ctrl("—", -90, Color3.fromRGB(50, 50, 70), Color3.fromRGB(80, 80, 105), function() 
     isMinimized = not isMinimized
     _Sidebar.Visible = not isMinimized
@@ -981,7 +1049,7 @@ _UIS.InputEnded:Connect(function(i)
     end
 end)
 
--- 最小化变球按钮 (左侧)
+-- 最小化变球按钮
 _Ctrl("+", -135, Color3.fromRGB(99, 102, 241), Color3.fromRGB(129, 140, 248), function()
     _Ball.Position = _M.Position
     _M.Visible = false
