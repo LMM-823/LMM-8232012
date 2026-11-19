@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.15 (beta) | 集成 Redz Keyless 脚本 ]]
+-- [[ 刘某某脚本 V4.2.21 (beta) | AFK/Fullbright/Fulldark 新增开关按钮 + Fulldark 仅天空变黑 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -7,6 +7,7 @@ local _UIS = game:GetService("UserInputService")
 local _TS = game:GetService("TweenService")
 local _MP = game:GetService("MarketplaceService")
 local _Lighting = game:GetService("Lighting")
+local _SS = game:GetService("SoundService")
 local _LP = _P.LocalPlayer
 local _Cam = workspace.CurrentCamera
 
@@ -20,6 +21,33 @@ local _G_LMM_88 = {
 local function Tween(obj, props, time, style, dir)
     if not obj then return end
     _TS:Create(obj, TweenInfo.new(time or 0.25, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
+end
+
+-- ==================== 音效播放系统 ====================
+local SoundIds = {
+    open = "rbxassetid://6026984224",
+    click = "rbxassetid://6895079853",
+    close = "rbxassetid://421058925"
+}
+
+local function PlaySound(soundType)
+    pcall(function()
+        local id = SoundIds[soundType] or SoundIds.click
+        local s = Instance.new("Sound")
+        s.SoundId = id
+        s.Volume = (soundType == "open") and 0.75 or 0.55
+        s.PlayOnRemove = false
+        s.Parent = _SS
+        s:Play()
+        s.Ended:Connect(function()
+            s:Destroy()
+        end)
+        task.delay(3, function()
+            if s and s.Parent then
+                s:Destroy()
+            end
+        end)
+    end)
 end
 
 if _CG:FindFirstChild("LMM_Final_V400") then _CG.LMM_Final_V400:Destroy() end
@@ -129,7 +157,7 @@ local _LoadText = Instance.new("TextLabel", _CenterCard)
 _LoadText.Size = UDim2.new(1, 0, 0, 30)
 _LoadText.Position = UDim2.new(0, 0, 0, 28)
 _LoadText.BackgroundTransparency = 1
-_LoadText.Text = "刘某某脚本 V4.2.15 加载中..."
+_LoadText.Text = "刘某某脚本 V4.2.21 加载中..."
 _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
 _LoadText.Font = Enum.Font.GothamBold
 _LoadText.TextSize = 15
@@ -202,13 +230,13 @@ task.spawn(function()
     _M.Size = UDim2.new(0, 520, 0, 340)
     Tween(_M, {Size = UDim2.new(0, 580, 0, 380)}, 0.4, Enum.EasingStyle.Back)
     
-    -- 🌟 如图所示：加载完毕后右下角弹出精致提示卡片
+    PlaySound("open")
     ShowNotification("刘某某脚本", "刘某某脚本开启完毕")
 end)
 
 local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 50); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
 local _Title = Instance.new("TextLabel", _TB)
-_Title.Size = UDim2.new(1, -150, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.15 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+_Title.Size = UDim2.new(1, -155, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.21 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
 local _HeaderLine = Instance.new("Frame", _M)
 _HeaderLine.Size = UDim2.new(1, -30, 0, 1); _HeaderLine.Position = UDim2.new(0, 15, 0, 50)
@@ -275,6 +303,7 @@ local function _CreateTabBtn(name, order, targetPage)
         Tween(b, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.75, TextColor3 = Color3.fromRGB(180, 180, 200)}, 0.2)
     end)
     b.MouseButton1Click:Connect(function()
+        PlaySound("click")
         for btn, data in pairs(_Tabs) do
             data.page.Visible = (btn == b)
             if btn == b then
@@ -307,7 +336,6 @@ local _DataStroke = Instance.new("UIStroke", _DataCard)
 _DataStroke.Thickness = 1
 _DataStroke.Color = Color3.fromRGB(55, 55, 75)
 
--- 玩家头像
 local _AvatarImg = Instance.new("ImageLabel", _DataCard)
 _AvatarImg.Size = UDim2.new(0, 85, 0, 85)
 _AvatarImg.Position = UDim2.new(0, 15, 0.5, -42.5)
@@ -322,7 +350,6 @@ pcall(function()
     _AvatarImg.Image = content
 end)
 
--- 用户名字展示
 local _NameLabel = Instance.new("TextLabel", _DataCard)
 _NameLabel.Size = UDim2.new(1, -120, 0, 26)
 _NameLabel.Position = UDim2.new(0, 115, 0, 18)
@@ -334,7 +361,6 @@ _NameLabel.TextSize = 13
 _NameLabel.TextXAlignment = Enum.TextXAlignment.Left
 _NameLabel.ZIndex = 3
 
--- Robux 余额展示
 local _RobuxLabel = Instance.new("TextLabel", _DataCard)
 _RobuxLabel.Size = UDim2.new(1, -120, 0, 24)
 _RobuxLabel.Position = UDim2.new(0, 115, 0, 48)
@@ -358,7 +384,6 @@ task.spawn(function()
     end
 end)
 
--- 服务器人数展示
 local _ServerLabel = Instance.new("TextLabel", _DataCard)
 _ServerLabel.Size = UDim2.new(1, -120, 0, 24)
 _ServerLabel.Position = UDim2.new(0, 115, 0, 78)
@@ -380,7 +405,6 @@ task.spawn(function()
     end
 end)
 
--- 当前游玩游戏信息展示卡片
 local _GameCard = Instance.new("Frame", _Page1)
 _GameCard.LayoutOrder = 2
 _GameCard.Size = UDim2.new(0.98, 0, 0, 85)
@@ -392,7 +416,6 @@ local _GameCardStroke = Instance.new("UIStroke", _GameCard)
 _GameCardStroke.Thickness = 1
 _GameCardStroke.Color = Color3.fromRGB(55, 55, 75)
 
--- 游戏图标
 local _GameIconImg = Instance.new("ImageLabel", _GameCard)
 _GameIconImg.Size = UDim2.new(0, 55, 0, 55)
 _GameIconImg.Position = UDim2.new(0, 15, 0.5, -27.5)
@@ -401,7 +424,6 @@ _GameIconImg.BackgroundTransparency = 0.5
 _GameIconImg.ZIndex = 3
 Instance.new("UICorner", _GameIconImg).CornerRadius = UDim.new(0, 10)
 
--- 游戏名称与ID标签
 local _GameTitleLabel = Instance.new("TextLabel", _GameCard)
 _GameTitleLabel.Size = UDim2.new(1, -90, 0, 24)
 _GameTitleLabel.Position = UDim2.new(0, 82, 0, 20)
@@ -442,7 +464,7 @@ task.spawn(function()
 end)
 
 local _StatsContainer = Instance.new("Frame", _TB)
-_StatsContainer.Size = UDim2.new(0, 175, 0, 26)
+_StatsContainer.Size = UDim2.new(0, 165, 0, 26)
 _StatsContainer.Position = UDim2.new(1, -325, 0.5, -13)
 _StatsContainer.BackgroundColor3 = Color3.fromRGB(15, 15, 24)
 _StatsContainer.BackgroundTransparency = 0.6
@@ -477,7 +499,181 @@ task.spawn(function()
     end)
 end)
 
+local function _ExecuteScriptUrl(name, url)
+    ShowNotification("正在开启中...", name)
+    task.spawn(function()
+        local success, err = pcall(function()
+            loadstring(game:HttpGet(url))()
+        end)
+        if success then
+            PlaySound("open")
+            ShowNotification("开启成功", name .. " 已成功运行！")
+        else
+            ShowNotification("开启失败", "网络异常或链接失效")
+        end
+    end)
+end
+
+local function _OpenConfirmDialog(name, url)
+    local topScreen = Instance.new("ScreenGui", _CG)
+    topScreen.Name = "LMM_Ultimate_Top_Overlay"
+    topScreen.ResetOnSpawn = false
+    topScreen.DisplayOrder = 2147483647
+    topScreen.IgnoreGuiInset = true
+
+    local bgBlocker = Instance.new("TextButton", topScreen)
+    bgBlocker.Size = UDim2.new(1, 0, 1, 0)
+    bgBlocker.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    bgBlocker.BackgroundTransparency = 0.6
+    bgBlocker.Text = ""
+    bgBlocker.AutoButtonColor = false
+    bgBlocker.ZIndex = 999999
+
+    local alertOverlay = Instance.new("Frame", topScreen)
+    alertOverlay.Size = UDim2.new(1, 0, 1, 0)
+    alertOverlay.BackgroundTransparency = 1
+    alertOverlay.ZIndex = 1000000
+    
+    local alertBox = Instance.new("Frame", alertOverlay)
+    alertBox.Size = UDim2.new(0, 0, 0, 0)
+    alertBox.Position = UDim2.new(0.5, 0, 0.5, 0)
+    alertBox.BackgroundColor3 = Color3.fromRGB(14, 14, 22)
+    alertBox.BackgroundTransparency = 0.15
+    alertBox.ZIndex = 1000001
+    alertBox.ClipsDescendants = true
+    Instance.new("UICorner", alertBox).CornerRadius = UDim.new(0, 16)
+
+    Tween(alertBox, {Size = UDim2.new(0, 350, 0, 160), Position = UDim2.new(0.5, -175, 0.5, -80)}, 0.35, Enum.EasingStyle.Back)
+
+    local alertText = Instance.new("TextLabel", alertBox)
+    alertText.Size = UDim2.new(1, -30, 0, 70); alertText.Position = UDim2.new(0, 15, 0, 20); alertText.BackgroundTransparency = 1; alertText.ZIndex = 1000002
+    alertText.Text = "确定要开启此脚本吗？\n<font size='11' color='rgb(170,170,195)'>" .. name .. "</font>"; alertText.RichText = true
+    alertText.TextColor3 = Color3.fromRGB(255, 255, 255); alertText.Font = Enum.Font.GothamBold; alertText.TextSize = 14; alertText.TextWrapped = true
+
+    local yesBtn = Instance.new("TextButton", alertBox)
+    yesBtn.Size = UDim2.new(0, 145, 0, 36); yesBtn.Position = UDim2.new(0.06, 0, 0.65, 0); yesBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241); yesBtn.BackgroundTransparency = 0.15; yesBtn.Text = "确认开启"; yesBtn.TextColor3 = Color3.fromRGB(255, 255, 255); yesBtn.Font = Enum.Font.GothamBold; yesBtn.TextSize = 13; yesBtn.ZIndex = 1000002
+    yesBtn.AutoButtonColor = false
+    Instance.new("UICorner", yesBtn).CornerRadius = UDim.new(0, 10)
+
+    local noBtn = Instance.new("TextButton", alertBox)
+    noBtn.Size = UDim2.new(0, 145, 0, 36); noBtn.Position = UDim2.new(0.52, 0, 0.65, 0); noBtn.BackgroundColor3 = Color3.fromRGB(24, 24, 38); noBtn.BackgroundTransparency = 0.2; noBtn.Text = "取消"; noBtn.TextColor3 = Color3.fromRGB(180, 180, 205); noBtn.Font = Enum.Font.GothamBold; noBtn.TextSize = 13; noBtn.ZIndex = 1000002
+    noBtn.AutoButtonColor = false
+    Instance.new("UICorner", noBtn).CornerRadius = UDim.new(0, 10)
+
+    yesBtn.MouseEnter:Connect(function() Tween(yesBtn, {BackgroundColor3 = Color3.fromRGB(120, 123, 255)}, 0.2) end)
+    yesBtn.MouseLeave:Connect(function() Tween(yesBtn, {BackgroundColor3 = Color3.fromRGB(99, 102, 241)}, 0.2) end)
+    noBtn.MouseEnter:Connect(function() Tween(noBtn, {BackgroundColor3 = Color3.fromRGB(36, 36, 54)}, 0.2) end)
+    noBtn.MouseLeave:Connect(function() Tween(noBtn, {BackgroundColor3 = Color3.fromRGB(24, 24, 38)}, 0.2) end)
+
+    local function closeDialog(callback)
+        Tween(alertBox, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In)
+        task.wait(0.25)
+        topScreen:Destroy()
+        if callback then callback() end
+    end
+
+    yesBtn.MouseButton1Click:Connect(function()
+        PlaySound("click")
+        closeDialog(function()
+            _ExecuteScriptUrl(name, url)
+        end)
+    end)
+
+    noBtn.MouseButton1Click:Connect(function()
+        PlaySound("click")
+        closeDialog()
+    end)
+end
+
+-- 用于 keyless 与 key 分页：左侧 Copy，右侧 Execute（颜色统一，点击 Execute 弹出确认框）
 local function _CreateS(targetPage, name, url, order)
+    local row = Instance.new("Frame", targetPage)
+    row.Name = "ScriptRow"
+    row.LayoutOrder = order
+    row.Size = UDim2.new(0.98, 0, 0, 42)
+    row.BackgroundColor3 = Color3.fromRGB(15, 15, 24)
+    row.BackgroundTransparency = 0.55
+    row.ZIndex = 2
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 10)
+    local s = Instance.new("UIStroke", row); s.Thickness = 1; s.Color = Color3.fromRGB(55, 55, 75)
+
+    local mainBtn = Instance.new("TextButton", row)
+    mainBtn.Name = "MainBtn"
+    mainBtn.Size = UDim2.new(1, -148, 1, 0)
+    mainBtn.Position = UDim2.new(0, 0, 0, 0)
+    mainBtn.BackgroundTransparency = 1
+    mainBtn.Text = "   " .. name
+    mainBtn.Font = Enum.Font.GothamMedium
+    mainBtn.TextSize = 13
+    mainBtn.TextColor3 = Color3.fromRGB(240, 240, 250)
+    mainBtn.TextXAlignment = Enum.TextXAlignment.Left
+    mainBtn.ZIndex = 3
+    mainBtn.AutoButtonColor = false
+
+    local copyBtn = Instance.new("TextButton", row)
+    copyBtn.Name = "CopyBtn"
+    copyBtn.Size = UDim2.new(0, 62, 0, 28)
+    copyBtn.Position = UDim2.new(1, -142, 0.5, -14)
+    copyBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 48)
+    copyBtn.BackgroundTransparency = 0.25
+    copyBtn.Text = "Copy"
+    copyBtn.Font = Enum.Font.GothamBold
+    copyBtn.TextSize = 11
+    copyBtn.TextColor3 = Color3.fromRGB(220, 220, 245)
+    copyBtn.ZIndex = 3
+    copyBtn.AutoButtonColor = false
+    Instance.new("UICorner", copyBtn).CornerRadius = UDim.new(0, 7)
+
+    local execBtn = Instance.new("TextButton", row)
+    execBtn.Name = "ExecuteBtn"
+    execBtn.Size = UDim2.new(0, 68, 0, 28)
+    execBtn.Position = UDim2.new(1, -74, 0.5, -14)
+    execBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 48)
+    execBtn.BackgroundTransparency = 0.25
+    execBtn.Text = "Execute"
+    execBtn.Font = Enum.Font.GothamBold
+    execBtn.TextSize = 11
+    execBtn.TextColor3 = Color3.fromRGB(220, 220, 245)
+    execBtn.ZIndex = 3
+    execBtn.AutoButtonColor = false
+    Instance.new("UICorner", execBtn).CornerRadius = UDim.new(0, 7)
+
+    row.MouseEnter:Connect(function()
+        Tween(row, {BackgroundColor3 = Color3.fromRGB(24, 24, 38), BackgroundTransparency = 0.35}, 0.2)
+        Tween(s, {Color = Color3.fromRGB(129, 140, 248)}, 0.2)
+    end)
+    row.MouseLeave:Connect(function()
+        Tween(row, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2)
+        Tween(s, {Color = Color3.fromRGB(55, 55, 75)}, 0.2)
+    end)
+
+    copyBtn.MouseEnter:Connect(function() Tween(copyBtn, {BackgroundColor3 = Color3.fromRGB(50, 50, 76), BackgroundTransparency = 0.1}, 0.15) end)
+    copyBtn.MouseLeave:Connect(function() Tween(copyBtn, {BackgroundColor3 = Color3.fromRGB(30, 30, 48), BackgroundTransparency = 0.25}, 0.15) end)
+
+    execBtn.MouseEnter:Connect(function() Tween(execBtn, {BackgroundColor3 = Color3.fromRGB(50, 50, 76), BackgroundTransparency = 0.1}, 0.15) end)
+    execBtn.MouseLeave:Connect(function() Tween(execBtn, {BackgroundColor3 = Color3.fromRGB(30, 30, 48), BackgroundTransparency = 0.25}, 0.15) end)
+
+    mainBtn.MouseButton1Click:Connect(function()
+        PlaySound("click")
+        _OpenConfirmDialog(name, url)
+    end)
+
+    copyBtn.MouseButton1Click:Connect(function()
+        PlaySound("click")
+        pcall(function()
+            setclipboard('loadstring(game:HttpGet("' .. url .. '"))()')
+        end)
+        ShowNotification("已复制脚本", name .. " 代码已复制到剪贴板")
+    end)
+
+    execBtn.MouseButton1Click:Connect(function()
+        PlaySound("click")
+        _OpenConfirmDialog(name, url)
+    end)
+end
+
+-- 仅用于 LMM script 分页：保持原样，不加 Execute 和 Copy 按钮
+local function _CreateLMMButton(targetPage, name, url, order)
     local b = Instance.new("TextButton", targetPage); b.LayoutOrder = order; b.Size = UDim2.new(0.98, 0, 0, 42); b.BackgroundColor3 = Color3.fromRGB(15, 15, 24); b.BackgroundTransparency = 0.55; b.Text = "   " .. name; b.Font = Enum.Font.GothamMedium; b.TextSize = 13; b.TextColor3 = Color3.fromRGB(240, 240, 250); b.TextXAlignment = Enum.TextXAlignment.Left; b.ZIndex = 2; b.AutoButtonColor = false; Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
     local s = Instance.new("UIStroke", b); s.Thickness = 1; s.Color = Color3.fromRGB(55, 55, 75)
 
@@ -485,82 +681,8 @@ local function _CreateS(targetPage, name, url, order)
     b.MouseLeave:Connect(function() Tween(b, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2); Tween(s, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
     
     b.MouseButton1Click:Connect(function()
-        local topScreen = Instance.new("ScreenGui", _CG)
-        topScreen.Name = "LMM_Ultimate_Top_Overlay"
-        topScreen.ResetOnSpawn = false
-        topScreen.DisplayOrder = 2147483647
-        topScreen.IgnoreGuiInset = true
-
-        local bgBlocker = Instance.new("TextButton", topScreen)
-        bgBlocker.Size = UDim2.new(1, 0, 1, 0)
-        bgBlocker.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-        bgBlocker.BackgroundTransparency = 0.6
-        bgBlocker.Text = ""
-        bgBlocker.AutoButtonColor = false
-        bgBlocker.ZIndex = 999999
-
-        local alertOverlay = Instance.new("Frame", topScreen)
-        alertOverlay.Size = UDim2.new(1, 0, 1, 0)
-        alertOverlay.BackgroundTransparency = 1
-        alertOverlay.ZIndex = 1000000
-        
-        local alertBox = Instance.new("Frame", alertOverlay)
-        alertBox.Size = UDim2.new(0, 0, 0, 0)
-        alertBox.Position = UDim2.new(0.5, 0, 0.5, 0)
-        alertBox.BackgroundColor3 = Color3.fromRGB(14, 14, 22)
-        alertBox.BackgroundTransparency = 0.15
-        alertBox.ZIndex = 1000001
-        alertBox.ClipsDescendants = true
-        Instance.new("UICorner", alertBox).CornerRadius = UDim.new(0, 16)
-
-        Tween(alertBox, {Size = UDim2.new(0, 350, 0, 160), Position = UDim2.new(0.5, -175, 0.5, -80)}, 0.35, Enum.EasingStyle.Back)
-
-        local alertText = Instance.new("TextLabel", alertBox)
-        alertText.Size = UDim2.new(1, -30, 0, 70); alertText.Position = UDim2.new(0, 15, 0, 20); alertText.BackgroundTransparency = 1; alertText.ZIndex = 1000002
-        alertText.Text = "确定要开启此脚本吗？\n<font size='11' color='rgb(170,170,195)'>" .. name .. "</font>"; alertText.RichText = true
-        alertText.TextColor3 = Color3.fromRGB(255, 255, 255); alertText.Font = Enum.Font.GothamBold; alertText.TextSize = 14; alertText.TextWrapped = true
-
-        local yesBtn = Instance.new("TextButton", alertBox)
-        yesBtn.Size = UDim2.new(0, 145, 0, 36); yesBtn.Position = UDim2.new(0.06, 0, 0.65, 0); yesBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241); yesBtn.BackgroundTransparency = 0.15; yesBtn.Text = "确认开启"; yesBtn.TextColor3 = Color3.fromRGB(255, 255, 255); yesBtn.Font = Enum.Font.GothamBold; yesBtn.TextSize = 13; yesBtn.ZIndex = 1000002
-        yesBtn.AutoButtonColor = false
-        Instance.new("UICorner", yesBtn).CornerRadius = UDim.new(0, 10)
-
-        local noBtn = Instance.new("TextButton", alertBox)
-        noBtn.Size = UDim2.new(0, 145, 0, 36); noBtn.Position = UDim2.new(0.52, 0, 0.65, 0); noBtn.BackgroundColor3 = Color3.fromRGB(24, 24, 38); noBtn.BackgroundTransparency = 0.2; noBtn.Text = "取消"; noBtn.TextColor3 = Color3.fromRGB(180, 180, 205); noBtn.Font = Enum.Font.GothamBold; noBtn.TextSize = 13; noBtn.ZIndex = 1000002
-        noBtn.AutoButtonColor = false
-        Instance.new("UICorner", noBtn).CornerRadius = UDim.new(0, 10)
-
-        yesBtn.MouseEnter:Connect(function() Tween(yesBtn, {BackgroundColor3 = Color3.fromRGB(120, 123, 255)}, 0.2) end)
-        yesBtn.MouseLeave:Connect(function() Tween(yesBtn, {BackgroundColor3 = Color3.fromRGB(99, 102, 241)}, 0.2) end)
-        noBtn.MouseEnter:Connect(function() Tween(noBtn, {BackgroundColor3 = Color3.fromRGB(36, 36, 54)}, 0.2) end)
-        noBtn.MouseLeave:Connect(function() Tween(noBtn, {BackgroundColor3 = Color3.fromRGB(24, 24, 38)}, 0.2) end)
-
-        local function closeDialog(callback)
-            Tween(alertBox, {Size = UDim2.new(0, 0, 0, 0), Position = UDim2.new(0.5, 0, 0.5, 0), BackgroundTransparency = 1}, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.In)
-            task.wait(0.25)
-            topScreen:Destroy()
-            if callback then callback() end
-        end
-
-        yesBtn.MouseButton1Click:Connect(function()
-            closeDialog(function()
-                ShowNotification("正在开启中...", name)
-                task.spawn(function()
-                    local success, err = pcall(function()
-                        loadstring(game:HttpGet(url))()
-                    end)
-                    if success then
-                        ShowNotification("开启成功", name .. " 已成功运行！")
-                    else
-                        ShowNotification("开启失败", "网络异常或链接失效")
-                    end
-                end)
-            end)
-        end)
-
-        noBtn.MouseButton1Click:Connect(function()
-            closeDialog()
-        end)
+        PlaySound("click")
+        _OpenConfirmDialog(name, url)
     end)
 end
 
@@ -582,13 +704,14 @@ _DecorateInput(_SearchBox)
 _SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
     local query = _SearchBox.Text:lower()
     for _, child in pairs(_Page2:GetChildren()) do
-        if child:IsA("TextButton") and child ~= _SearchBox then
-            child.Visible = (query == "" or child.Text:lower():find(query) ~= nil)
+        if child:IsA("Frame") and child.Name == "ScriptRow" then
+            local mainBtn = child:FindFirstChild("MainBtn")
+            local labelText = mainBtn and mainBtn.Text:lower() or ""
+            child.Visible = (query == "" or labelText:find(query) ~= nil)
         end
     end
 end)
 
--- 🌟 已成功集成 Redz 脚本
 _CreateS(_Page2, "Redz (Blox Fruits)", "https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Redz/v3.luau", 2)
 _CreateS(_Page2, "AIMBOT", "https://rawscripts.net/raw/Universal-Script-Aimbot-Mobile-34677", 3)
 _CreateS(_Page2, "Infinite Yield", "https://raw.githubusercontent.com/EdgeIY/infiniteyield/master/source", 4)
@@ -616,16 +739,17 @@ _DecorateInput(_SearchBox2)
 _SearchBox2:GetPropertyChangedSignal("Text"):Connect(function()
     local query = _SearchBox2.Text:lower()
     for _, child in pairs(_Page5:GetChildren()) do
-        if child:IsA("TextButton") and child ~= _SearchBox2 then
-            child.Visible = (query == "" or child.Text:lower():find(query) ~= nil)
+        if child:IsA("Frame") and child.Name == "ScriptRow" then
+            local mainBtn = child:FindFirstChild("MainBtn")
+            local labelText = mainBtn and mainBtn.Text:lower() or ""
+            child.Visible = (query == "" or labelText:find(query) ~= nil)
         end
     end
 end)
 
-_CreateS(_Page5, "示例脚本", "https://example.com/needkey-script", 2)
-_CreateS(_Page5, "Blade Ball", "https://raw.githubusercontent.com/joshhhie/rise/refs/heads/main/loader.lua", 3)
-_CreateS(_Page5, "Moondiety", "https://scriptblox.com/raw/Universal-Script-MOONDIETY-UNIVERSAL-KEYLESS-233999", 4)
-_CreateS(_Page5, "King hub", "https://scriptblox.com/raw/Universal-Script-King-Hub-91820", 5)
+_CreateS(_Page5, "Blade Ball", "https://raw.githubusercontent.com/joshhhie/rise/refs/heads/main/loader.lua", 2)
+_CreateS(_Page5, "Moondiety", "https://scriptblox.com/raw/Universal-Script-MOONDIETY-UNIVERSAL-KEYLESS-233999", 3)
+_CreateS(_Page5, "King hub", "https://scriptblox.com/raw/Universal-Script-King-Hub-91820", 4)
 
 local _SearchBox3 = Instance.new("TextBox", _Page6)
 _SearchBox3.LayoutOrder = 1; _SearchBox3.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox3.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _SearchBox3.BackgroundTransparency = 0.55
@@ -644,10 +768,10 @@ _SearchBox3:GetPropertyChangedSignal("Text"):Connect(function()
     end
 end)
 
-_CreateS(_Page6, "LMM normal script", "https://raw.githubusercontent.com/LMM-823/LMM-normal/main/main.lua?v=999", 2)
-_CreateS(_Page6, "LMM fps", "https://raw.githubusercontent.com/LMM-823/LMM-fps/main/main.lua?v=999", 3)
-_CreateS(_Page6, "LMM MM2", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 4)
-_CreateS(_Page6, "LMM VIEW", "https://raw.githubusercontent.com/LMM-823/LMM-VIEW/main/Main.lua?v=999", 5)
+_CreateLMMButton(_Page6, "LMM normal script", "https://raw.githubusercontent.com/LMM-823/LMM-normal/main/main.lua?v=999", 2)
+_CreateLMMButton(_Page6, "LMM fps", "https://raw.githubusercontent.com/LMM-823/LMM-fps/main/main.lua?v=999", 3)
+_CreateLMMButton(_Page6, "LMM MM2", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 4)
+_CreateLMMButton(_Page6, "LMM VIEW", "https://raw.githubusercontent.com/LMM-823/LMM-VIEW/main/Main.lua?v=999", 5)
 
 local function _CreateLogEntry(version, date, desc, order)
     local f = Instance.new("Frame", _Page3)
@@ -678,9 +802,9 @@ local function _CreateLogEntry(version, date, desc, order)
     f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.25) end)
 end
 
-_CreateLogEntry("V4.2.15", "2026-11-16", "【脚本更新】在 脚本合集(keyless) 中新增并集成 Redz (Blox Fruits) 脚本。", 1)
-_CreateLogEntry("V4.2.14", "2026-11-14", "【视觉升级】加载动画变更为动态模糊背景毛玻璃效果，并新增加载完成后的右下角精美气泡提示。", 2)
-_CreateLogEntry("V4.2.13", "2026-11-14", "【数据面板升级】在数据页面新增当前游玩游戏名称与游戏缩略图展示。", 3)
+_CreateLogEntry("V4.2.21", "2026-11-19", "【设定中心优化】AFK、Fullbright、Fulldark 新增开关按钮，Fulldark 调整为仅天空变黑。", 1)
+_CreateLogEntry("V4.2.20", "2026-11-19", "【设定中心更新】更换最新 Discord 邀请链接，并在 Fullbright 下方新增 Fulldark 全局暗黑功能。", 2)
+_CreateLogEntry("V4.2.19", "2026-11-19", "【合集微调】Copy 与 Execute 互换位置，Execute 触发确认弹窗并与 Copy 颜色统一，移除示例脚本。", 3)
 
 local _FpsInput = Instance.new("TextBox", _Page4)
 _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsInput.BackgroundTransparency = 0.55
@@ -690,6 +814,7 @@ local _FpsStroke = Instance.new("UIStroke", _FpsInput); _FpsStroke.Thickness = 1
 _DecorateInput(_FpsInput)
 
 _FpsInput.FocusLost:Connect(function()
+    PlaySound("click")
     local val = tonumber(_FpsInput.Text:match("%d+")) or 60
     if val < 15 then val = 15 end if val > 240 then val = 240 end
     _FpsInput.Text = "  设置FPS解锁 15到240: " .. val
@@ -697,18 +822,108 @@ _FpsInput.FocusLost:Connect(function()
     ShowNotification("FPS 设置已更新", "当前上限已锁定为 " .. val)
 end)
 
-local _AfkBtn = Instance.new("TextButton", _Page4)
-_AfkBtn.LayoutOrder = 2; _AfkBtn.Size = UDim2.new(0.98, 0, 0, 40); _AfkBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _AfkBtn.BackgroundTransparency = 0.55
-_AfkBtn.Text = "   开启挂机AFK 防踢保护"; _AfkBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _AfkBtn.Font = Enum.Font.GothamMedium; _AfkBtn.TextSize = 13; _AfkBtn.TextXAlignment = Enum.TextXAlignment.Left; _AfkBtn.ZIndex = 2; _AfkBtn.AutoButtonColor = false
-Instance.new("UICorner", _AfkBtn).CornerRadius = UDim.new(0, 10)
-local _AfkStroke = Instance.new("UIStroke", _AfkBtn); _AfkStroke.Thickness = 1; _AfkStroke.Color = Color3.fromRGB(55, 55, 75)
+-- 通用带右侧开关按钮的设定行组件
+local function _CreateSettingToggleRow(order, titleText, onToggle)
+    local row = Instance.new("Frame", _Page4)
+    row.LayoutOrder = order
+    row.Size = UDim2.new(0.98, 0, 0, 40)
+    row.BackgroundColor3 = Color3.fromRGB(15, 15, 24)
+    row.BackgroundTransparency = 0.55
+    row.ZIndex = 2
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 10)
+    local stroke = Instance.new("UIStroke", row)
+    stroke.Thickness = 1
+    stroke.Color = Color3.fromRGB(55, 55, 75)
 
-_AfkBtn.MouseEnter:Connect(function() Tween(_AfkBtn, {BackgroundColor3 = Color3.fromRGB(24, 24, 38)}, 0.2); Tween(_AfkStroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.2) end)
-_AfkBtn.MouseLeave:Connect(function() Tween(_AfkBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2); Tween(_AfkStroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
+    local label = Instance.new("TextLabel", row)
+    label.Size = UDim2.new(1, -76, 1, 0)
+    label.Position = UDim2.new(0, 12, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = titleText
+    label.TextColor3 = Color3.fromRGB(240, 240, 250)
+    label.Font = Enum.Font.GothamMedium
+    label.TextSize = 13
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.ZIndex = 3
+
+    local switchBtn = Instance.new("TextButton", row)
+    switchBtn.Size = UDim2.new(0, 50, 0, 24)
+    switchBtn.Position = UDim2.new(1, -60, 0.5, -12)
+    switchBtn.BackgroundColor3 = Color3.fromRGB(36, 36, 54)
+    switchBtn.BackgroundTransparency = 0.15
+    switchBtn.Text = ""
+    switchBtn.AutoButtonColor = false
+    switchBtn.ZIndex = 3
+    Instance.new("UICorner", switchBtn).CornerRadius = UDim.new(1, 0)
+    local swStroke = Instance.new("UIStroke", switchBtn)
+    swStroke.Thickness = 1
+    swStroke.Color = Color3.fromRGB(80, 80, 110)
+
+    local knob = Instance.new("Frame", switchBtn)
+    knob.Size = UDim2.new(0, 18, 0, 18)
+    knob.Position = UDim2.new(0, 3, 0.5, -9)
+    knob.BackgroundColor3 = Color3.fromRGB(220, 220, 240)
+    knob.BorderSizePixel = 0
+    knob.ZIndex = 4
+    Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+    local hitBtn = Instance.new("TextButton", row)
+    hitBtn.Size = UDim2.new(1, -68, 1, 0)
+    hitBtn.Position = UDim2.new(0, 0, 0, 0)
+    hitBtn.BackgroundTransparency = 1
+    hitBtn.Text = ""
+    hitBtn.AutoButtonColor = false
+    hitBtn.ZIndex = 3
+
+    local state = false
+    local function setVisual(active)
+        state = active
+        if active then
+            Tween(switchBtn, {BackgroundColor3 = Color3.fromRGB(34, 197, 94), BackgroundTransparency = 0.1}, 0.2)
+            Tween(knob, {Position = UDim2.new(1, -21, 0.5, -9), BackgroundColor3 = Color3.fromRGB(255, 255, 255)}, 0.2)
+            Tween(stroke, {Color = Color3.fromRGB(34, 197, 94)}, 0.2)
+        else
+            Tween(switchBtn, {BackgroundColor3 = Color3.fromRGB(36, 36, 54), BackgroundTransparency = 0.15}, 0.2)
+            Tween(knob, {Position = UDim2.new(0, 3, 0.5, -9), BackgroundColor3 = Color3.fromRGB(220, 220, 240)}, 0.2)
+            Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2)
+        end
+    end
+
+    row.MouseEnter:Connect(function()
+        if not state then
+            Tween(row, {BackgroundColor3 = Color3.fromRGB(24, 24, 38), BackgroundTransparency = 0.35}, 0.2)
+            Tween(stroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.2)
+        end
+    end)
+    row.MouseLeave:Connect(function()
+        if not state then
+            Tween(row, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2)
+            Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2)
+        end
+    end)
+
+    local function trigger()
+        PlaySound("click")
+        local nextState = not state
+        setVisual(nextState)
+        if onToggle then
+            onToggle(nextState)
+        end
+    end
+
+    switchBtn.MouseButton1Click:Connect(trigger)
+    hitBtn.MouseButton1Click:Connect(trigger)
+
+    return {
+        Row = row,
+        SetState = setVisual,
+        GetState = function() return state end
+    }
+end
 
 local afkConnection = nil
-_AfkBtn.MouseButton1Click:Connect(function()
-    if not afkConnection then
+local afkCtrl = _CreateSettingToggleRow(2, "挂机AFK 防踢保护", function(enabled)
+    if enabled then
         pcall(function()
             local vu = game:GetService("VirtualUser")
             afkConnection = _LP.Idled:Connect(function()
@@ -717,7 +932,6 @@ _AfkBtn.MouseButton1Click:Connect(function()
                 vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
             end)
         end)
-        Tween(_AfkBtn, {BackgroundColor3 = Color3.fromRGB(34, 197, 94)}, 0.3)
         ShowNotification("挂机防踢保护已开启", "系统将自动模拟操作防止被服务器踢出")
     else
         pcall(function()
@@ -726,66 +940,146 @@ _AfkBtn.MouseButton1Click:Connect(function()
                 afkConnection = nil
             end
         end)
-        Tween(_AfkBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.3)
         ShowNotification("挂机防踢保护已关闭", "已恢复正常检测")
     end
 end)
 
-local _FullbrightBtn = Instance.new("TextButton", _Page4)
-_FullbrightBtn.LayoutOrder = 3; _FullbrightBtn.Size = UDim2.new(0.98, 0, 0, 40); _FullbrightBtn.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FullbrightBtn.BackgroundTransparency = 0.55
-_FullbrightBtn.Text = "   开启 Fullbright 全局高亮"; _FullbrightBtn.TextColor3 = Color3.fromRGB(240, 240, 250); _FullbrightBtn.Font = Enum.Font.GothamMedium; _FullbrightBtn.TextSize = 13; _FullbrightBtn.TextXAlignment = Enum.TextXAlignment.Left; _FullbrightBtn.ZIndex = 2; _FullbrightBtn.AutoButtonColor = false
-Instance.new("UICorner", _FullbrightBtn).CornerRadius = UDim.new(0, 10)
-local _FullbrightStroke = Instance.new("UIStroke", _FullbrightBtn); _FullbrightStroke.Thickness = 1; _FullbrightStroke.Color = Color3.fromRGB(55, 55, 75)
-
-_FullbrightBtn.MouseEnter:Connect(function() Tween(_FullbrightBtn, {BackgroundColor3 = Color3.fromRGB(24, 24, 38)}, 0.2); Tween(_FullbrightStroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.2) end)
-_FullbrightBtn.MouseLeave:Connect(function() Tween(_FullbrightBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2); Tween(_FullbrightStroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
-
 local fullbrightConn = nil
 local fullbrightActive = false
+local fulldarkConn = nil
+local fulldarkActive = false
+local hiddenSkies = {}
+local darkSkyObj = nil
 
-_FullbrightBtn.MouseButton1Click:Connect(function()
-    fullbrightActive = not fullbrightActive
-    if fullbrightActive then
+local fullbrightCtrl
+local fulldarkCtrl
+
+local function StopFullbright()
+    fullbrightActive = false
+    if fullbrightConn then
+        fullbrightConn:Disconnect()
+        fullbrightConn = nil
+    end
+    if fullbrightCtrl then
+        fullbrightCtrl.SetState(false)
+    end
+end
+
+local function RestoreSkies()
+    if darkSkyObj and darkSkyObj.Parent then
+        darkSkyObj:Destroy()
+    end
+    darkSkyObj = nil
+    for _, sk in ipairs(hiddenSkies) do
         pcall(function()
-            local lighting = game:GetService("Lighting")
-            lighting.Ambient = Color3.fromRGB(255, 255, 255)
-            lighting.Brightness = 2
-            lighting.ClockTime = 14
-            lighting.FogEnd = 786432
-            lighting.GlobalShadows = false
-            lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+            if sk and sk.Parent == _Lighting then
+                sk.Parent = _Lighting
+            end
+        end)
+    end
+    hiddenSkies = {}
+end
+
+local function ApplyBlackSkyOnly()
+    pcall(function()
+        _Lighting.ClockTime = 0
+        hiddenSkies = {}
+        for _, child in ipairs(_Lighting:GetChildren()) do
+            if child:IsA("Sky") and child.Name ~= "LMM_BlackSky" then
+                table.insert(hiddenSkies, child)
+                child.Parent = nil
+            end
+        end
+        if not darkSkyObj or not darkSkyObj.Parent then
+            darkSkyObj = Instance.new("Sky")
+            darkSkyObj.Name = "LMM_BlackSky"
+            darkSkyObj.SkyboxBk = "rbxassetid://1012887"
+            darkSkyObj.SkyboxDn = "rbxassetid://1012887"
+            darkSkyObj.SkyboxFt = "rbxassetid://1012887"
+            darkSkyObj.SkyboxLf = "rbxassetid://1012887"
+            darkSkyObj.SkyboxRt = "rbxassetid://1012887"
+            darkSkyObj.SkyboxUp = "rbxassetid://1012887"
+            darkSkyObj.SunTextureId = ""
+            darkSkyObj.MoonTextureId = ""
+            darkSkyObj.CelestialBodiesShown = false
+            darkSkyObj.StarCount = 0
+            darkSkyObj.Parent = _Lighting
+        end
+    end)
+end
+
+local function StopFulldark()
+    fulldarkActive = false
+    if fulldarkConn then
+        fulldarkConn:Disconnect()
+        fulldarkConn = nil
+    end
+    RestoreSkies()
+    if fulldarkCtrl then
+        fulldarkCtrl.SetState(false)
+    end
+end
+
+fullbrightCtrl = _CreateSettingToggleRow(3, "Fullbright 全局高亮", function(enabled)
+    if enabled then
+        if fulldarkActive then StopFulldark() end
+        fullbrightActive = true
+        pcall(function()
+            _Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+            _Lighting.Brightness = 2
+            _Lighting.ClockTime = 14
+            _Lighting.FogEnd = 786432
+            _Lighting.GlobalShadows = false
+            _Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
         end)
         fullbrightConn = _RS.RenderStepped:Connect(function()
             if fullbrightActive then
                 pcall(function()
-                    local lighting = game:GetService("Lighting")
-                    lighting.Ambient = Color3.fromRGB(255, 255, 255)
-                    lighting.Brightness = 2
-                    lighting.ClockTime = 14
-                    lighting.FogEnd = 786432
-                    lighting.GlobalShadows = false
-                    lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+                    _Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+                    _Lighting.Brightness = 2
+                    _Lighting.ClockTime = 14
+                    _Lighting.FogEnd = 786432
+                    _Lighting.GlobalShadows = false
+                    _Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
                 end)
             end
         end)
-        Tween(_FullbrightBtn, {BackgroundColor3 = Color3.fromRGB(34, 197, 94)}, 0.3)
         ShowNotification("全局高亮已开启", "游戏视野已完全明亮化")
     else
-        if fullbrightConn then
-            fullbrightConn:Disconnect()
-            fullbrightConn = nil
-        end
-        Tween(_FullbrightBtn, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.3)
+        StopFullbright()
         ShowNotification("全局高亮已关闭", "已恢复默认光照环境")
     end
 end)
 
-local _DCB = Instance.new("TextButton", _Page4); _DCB.LayoutOrder = 4; _DCB.Size = UDim2.new(0.98, 0, 0, 42); _DCB.BackgroundColor3 = Color3.fromRGB(88, 101, 242); _DCB.BackgroundTransparency = 0.45; _DCB.Text = "JOIN DISCORD COMMUNITY"; _DCB.TextColor3 = Color3.fromRGB(255, 255, 255); _DCB.Font = Enum.Font.GothamBold; _DCB.TextSize = 13; _DCB.ZIndex = 2; _DCB.AutoButtonColor = false; Instance.new("UICorner", _DCB).CornerRadius = UDim.new(0, 10)
+fulldarkCtrl = _CreateSettingToggleRow(4, "Fulldark 天空变黑", function(enabled)
+    if enabled then
+        if fullbrightActive then StopFullbright() end
+        fulldarkActive = true
+        ApplyBlackSkyOnly()
+        fulldarkConn = _RS.RenderStepped:Connect(function()
+            if fulldarkActive then
+                pcall(function()
+                    _Lighting.ClockTime = 0
+                    if darkSkyObj and darkSkyObj.Parent ~= _Lighting then
+                        darkSkyObj.Parent = _Lighting
+                    end
+                end)
+            end
+        end)
+        ShowNotification("天空变黑已开启", "仅将天空设为纯黑，不影响场景亮度")
+    else
+        StopFulldark()
+        ShowNotification("天空变黑已关闭", "已恢复原有天空")
+    end
+end)
+
+local _DCB = Instance.new("TextButton", _Page4); _DCB.LayoutOrder = 5; _DCB.Size = UDim2.new(0.98, 0, 0, 42); _DCB.BackgroundColor3 = Color3.fromRGB(88, 101, 242); _DCB.BackgroundTransparency = 0.45; _DCB.Text = "JOIN DISCORD COMMUNITY"; _DCB.TextColor3 = Color3.fromRGB(255, 255, 255); _DCB.Font = Enum.Font.GothamBold; _DCB.TextSize = 13; _DCB.ZIndex = 2; _DCB.AutoButtonColor = false; Instance.new("UICorner", _DCB).CornerRadius = UDim.new(0, 10)
 local _DCBStroke = Instance.new("UIStroke", _DCB); _DCBStroke.Thickness = 1; _DCBStroke.Color = Color3.fromRGB(114, 137, 218)
 _DCB.MouseEnter:Connect(function() Tween(_DCB, {BackgroundColor3 = Color3.fromRGB(108, 121, 255), BackgroundTransparency = 0.25}, 0.2) end)
 _DCB.MouseLeave:Connect(function() Tween(_DCB, {BackgroundColor3 = Color3.fromRGB(88, 101, 242), BackgroundTransparency = 0.45}, 0.2) end)
 _DCB.MouseButton1Click:Connect(function() 
-    setclipboard("https://discord.gg/cjpezEZub") 
+    PlaySound("click")
+    setclipboard("https://discord.gg/ATbXDtNWE") 
     ShowNotification("Discord 链接已复制", "快去分享给好友加入社区吧")
 end)
 
@@ -931,17 +1225,18 @@ _RS.Heartbeat:Connect(function()
     end
 end)
 
--- 右上角控制按钮
-local function _Ctrl(t, x, c, hoverC, f)
+-- 右上角控制按钮（按钮框大小固定 34x34，可单独放大内部符号字号）
+local function _Ctrl(t, x, c, hoverC, f, textPx, soundType)
+    local sz = 34
     local b = Instance.new("TextButton", _TB)
-    b.Size = UDim2.new(0, 34, 0, 34)
-    b.Position = UDim2.new(1, x, 0.5, -17)
+    b.Size = UDim2.new(0, sz, 0, sz)
+    b.Position = UDim2.new(1, x, 0.5, -math.floor(sz / 2))
     b.Text = t
     b.BackgroundColor3 = c
-    b.BackgroundTransparency = 0.4
+    b.BackgroundTransparency = 0.35
     b.TextColor3 = Color3.fromRGB(240, 240, 250)
     b.Font = Enum.Font.GothamBold
-    b.TextSize = 14
+    b.TextSize = textPx or 14
     b.ZIndex = 3
     b.AutoButtonColor = false
     Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
@@ -949,30 +1244,33 @@ local function _Ctrl(t, x, c, hoverC, f)
     local bStroke = Instance.new("UIStroke", b)
     bStroke.Thickness = 1
     bStroke.Color = Color3.fromRGB(255, 255, 255)
-    bStroke.Transparency = 0.6
+    bStroke.Transparency = 0.55
     
     b.MouseEnter:Connect(function() 
-        Tween(b, {BackgroundColor3 = hoverC, BackgroundTransparency = 0.2}, 0.2) 
+        Tween(b, {BackgroundColor3 = hoverC, BackgroundTransparency = 0.15}, 0.2) 
         Tween(bStroke, {Transparency = 0.2}, 0.2) 
     end)
     b.MouseLeave:Connect(function() 
-        Tween(b, {BackgroundColor3 = c, BackgroundTransparency = 0.4}, 0.2) 
-        Tween(bStroke, {Transparency = 0.6}, 0.2) 
+        Tween(b, {BackgroundColor3 = c, BackgroundTransparency = 0.35}, 0.2) 
+        Tween(bStroke, {Transparency = 0.55}, 0.2) 
     end)
-    b.MouseButton1Click:Connect(f)
+    b.MouseButton1Click:Connect(function()
+        PlaySound(soundType or "click")
+        f()
+    end)
 end
 
--- 关闭按钮
+-- 关闭按钮 ×
 _Ctrl("×", -45, Color3.fromRGB(239, 68, 68), Color3.fromRGB(255, 90, 90), function() 
     pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
     Tween(_M, {Size = UDim2.new(0, 520, 0, 340), BackgroundTransparency = 1}, 0.3)
     for _, v in pairs(_M:GetDescendants()) do if v:IsA("UIStroke") or v:IsA("ImageLabel") or v:IsA("TextLabel") or v:IsA("TextButton") then Tween(v, {Transparency = 1}, 0.3) end end
     task.wait(0.3); _S:Destroy() 
-end)
+end, 24, "close")
 
 local isMinimized = false
 
--- 最小化按钮
+-- 最小化按钮 —
 _Ctrl("—", -90, Color3.fromRGB(50, 50, 70), Color3.fromRGB(80, 80, 105), function() 
     isMinimized = not isMinimized
     _Sidebar.Visible = not isMinimized
@@ -982,7 +1280,7 @@ _Ctrl("—", -90, Color3.fromRGB(50, 50, 70), Color3.fromRGB(80, 80, 105), funct
     _BgImage.Visible = not isMinimized
     if _M:FindFirstChild("UIStroke") then _M.UIStroke.Transparency = isMinimized and 1 or 0 end
     Tween(_M, {Size = isMinimized and UDim2.new(0, 580, 0, 50) or UDim2.new(0, 580, 0, 380)}, 0.4, Enum.EasingStyle.Quart)
-end)
+end, 14, "click")
 
 local _Resizer = Instance.new("TextButton", _M)
 _Resizer.Size = UDim2.new(0, 26, 0, 26)
@@ -1049,17 +1347,18 @@ _UIS.InputEnded:Connect(function(i)
     end
 end)
 
--- 最小化变球按钮
+-- 最小化变球按钮 +
 _Ctrl("+", -135, Color3.fromRGB(99, 102, 241), Color3.fromRGB(129, 140, 248), function()
     _Ball.Position = _M.Position
     _M.Visible = false
     _Ball.Visible = true
     _Ball.Size = UDim2.new(0, 0, 0, 0)
     Tween(_Ball, {Size = UDim2.new(0, 60, 0, 60)}, 0.4, Enum.EasingStyle.Back)
-end)
+end, 24, "click")
 
 _Ball.MouseButton1Click:Connect(function()
     if bMoved then return end
+    PlaySound("open")
     isMinimized = false
     _M.Position = _Ball.Position
     _M.Visible = true
