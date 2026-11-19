@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.21 (beta) | AFK/Fullbright/Fulldark 新增开关按钮 + Fulldark 仅天空变黑 ]]
+-- [[ 刘某某脚本 V4.2.22 (beta) | LMM script 仅增加 Execute 按钮 + 退出脚本确认弹窗 ]]
 
 local _P = game:GetService("Players")
 local _RS = game:GetService("RunService")
@@ -157,7 +157,7 @@ local _LoadText = Instance.new("TextLabel", _CenterCard)
 _LoadText.Size = UDim2.new(1, 0, 0, 30)
 _LoadText.Position = UDim2.new(0, 0, 0, 28)
 _LoadText.BackgroundTransparency = 1
-_LoadText.Text = "刘某某脚本 V4.2.21 加载中..."
+_LoadText.Text = "刘某某脚本 V4.2.22 加载中..."
 _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
 _LoadText.Font = Enum.Font.GothamBold
 _LoadText.TextSize = 15
@@ -236,7 +236,7 @@ end)
 
 local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 50); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
 local _Title = Instance.new("TextLabel", _TB)
-_Title.Size = UDim2.new(1, -155, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.21 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+_Title.Size = UDim2.new(1, -155, 1, 0); _Title.Position = UDim2.new(0, 20, 0, 0); _Title.Text = "刘某某脚本 <font color='rgb(129, 140, 248)'>V4.2.22 (beta)</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 15; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
 local _HeaderLine = Instance.new("Frame", _M)
 _HeaderLine.Size = UDim2.new(1, -30, 0, 1); _HeaderLine.Position = UDim2.new(0, 15, 0, 50)
@@ -514,7 +514,7 @@ local function _ExecuteScriptUrl(name, url)
     end)
 end
 
-local function _OpenConfirmDialog(name, url)
+local function _OpenConfirmDialog(titleMsg, subMsg, confirmText, onConfirm)
     local topScreen = Instance.new("ScreenGui", _CG)
     topScreen.Name = "LMM_Ultimate_Top_Overlay"
     topScreen.ResetOnSpawn = false
@@ -547,11 +547,11 @@ local function _OpenConfirmDialog(name, url)
 
     local alertText = Instance.new("TextLabel", alertBox)
     alertText.Size = UDim2.new(1, -30, 0, 70); alertText.Position = UDim2.new(0, 15, 0, 20); alertText.BackgroundTransparency = 1; alertText.ZIndex = 1000002
-    alertText.Text = "确定要开启此脚本吗？\n<font size='11' color='rgb(170,170,195)'>" .. name .. "</font>"; alertText.RichText = true
+    alertText.Text = titleMsg .. "\n<font size='11' color='rgb(170,170,195)'>" .. subMsg .. "</font>"; alertText.RichText = true
     alertText.TextColor3 = Color3.fromRGB(255, 255, 255); alertText.Font = Enum.Font.GothamBold; alertText.TextSize = 14; alertText.TextWrapped = true
 
     local yesBtn = Instance.new("TextButton", alertBox)
-    yesBtn.Size = UDim2.new(0, 145, 0, 36); yesBtn.Position = UDim2.new(0.06, 0, 0.65, 0); yesBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241); yesBtn.BackgroundTransparency = 0.15; yesBtn.Text = "确认开启"; yesBtn.TextColor3 = Color3.fromRGB(255, 255, 255); yesBtn.Font = Enum.Font.GothamBold; yesBtn.TextSize = 13; yesBtn.ZIndex = 1000002
+    yesBtn.Size = UDim2.new(0, 145, 0, 36); yesBtn.Position = UDim2.new(0.06, 0, 0.65, 0); yesBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241); yesBtn.BackgroundTransparency = 0.15; yesBtn.Text = confirmText or "确认开启"; yesBtn.TextColor3 = Color3.fromRGB(255, 255, 255); yesBtn.Font = Enum.Font.GothamBold; yesBtn.TextSize = 13; yesBtn.ZIndex = 1000002
     yesBtn.AutoButtonColor = false
     Instance.new("UICorner", yesBtn).CornerRadius = UDim.new(0, 10)
 
@@ -575,13 +575,19 @@ local function _OpenConfirmDialog(name, url)
     yesBtn.MouseButton1Click:Connect(function()
         PlaySound("click")
         closeDialog(function()
-            _ExecuteScriptUrl(name, url)
+            if onConfirm then onConfirm() end
         end)
     end)
 
     noBtn.MouseButton1Click:Connect(function()
         PlaySound("click")
         closeDialog()
+    end)
+end
+
+local function _PromptScriptConfirm(name, url)
+    _OpenConfirmDialog("确定要开启此脚本吗？", name, "确认开启", function()
+        _ExecuteScriptUrl(name, url)
     end)
 end
 
@@ -655,7 +661,7 @@ local function _CreateS(targetPage, name, url, order)
 
     mainBtn.MouseButton1Click:Connect(function()
         PlaySound("click")
-        _OpenConfirmDialog(name, url)
+        _PromptScriptConfirm(name, url)
     end)
 
     copyBtn.MouseButton1Click:Connect(function()
@@ -668,21 +674,69 @@ local function _CreateS(targetPage, name, url, order)
 
     execBtn.MouseButton1Click:Connect(function()
         PlaySound("click")
-        _OpenConfirmDialog(name, url)
+        _PromptScriptConfirm(name, url)
     end)
 end
 
--- 仅用于 LMM script 分页：保持原样，不加 Execute 和 Copy 按钮
+-- 用于 LMM script 分页：只增加 Execute 按钮（不加 Copy 按钮），点击弹出确认框
 local function _CreateLMMButton(targetPage, name, url, order)
-    local b = Instance.new("TextButton", targetPage); b.LayoutOrder = order; b.Size = UDim2.new(0.98, 0, 0, 42); b.BackgroundColor3 = Color3.fromRGB(15, 15, 24); b.BackgroundTransparency = 0.55; b.Text = "   " .. name; b.Font = Enum.Font.GothamMedium; b.TextSize = 13; b.TextColor3 = Color3.fromRGB(240, 240, 250); b.TextXAlignment = Enum.TextXAlignment.Left; b.ZIndex = 2; b.AutoButtonColor = false; Instance.new("UICorner", b).CornerRadius = UDim.new(0, 10)
-    local s = Instance.new("UIStroke", b); s.Thickness = 1; s.Color = Color3.fromRGB(55, 55, 75)
+    local row = Instance.new("Frame", targetPage)
+    row.Name = "ScriptRow"
+    row.LayoutOrder = order
+    row.Size = UDim2.new(0.98, 0, 0, 42)
+    row.BackgroundColor3 = Color3.fromRGB(15, 15, 24)
+    row.BackgroundTransparency = 0.55
+    row.ZIndex = 2
+    Instance.new("UICorner", row).CornerRadius = UDim.new(0, 10)
+    local s = Instance.new("UIStroke", row); s.Thickness = 1; s.Color = Color3.fromRGB(55, 55, 75)
 
-    b.MouseEnter:Connect(function() Tween(b, {BackgroundColor3 = Color3.fromRGB(24, 24, 38), BackgroundTransparency = 0.35}, 0.2); Tween(s, {Color = Color3.fromRGB(129, 140, 248)}, 0.2) end)
-    b.MouseLeave:Connect(function() Tween(b, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2); Tween(s, {Color = Color3.fromRGB(55, 55, 75)}, 0.2) end)
-    
-    b.MouseButton1Click:Connect(function()
+    local mainBtn = Instance.new("TextButton", row)
+    mainBtn.Name = "MainBtn"
+    mainBtn.Size = UDim2.new(1, -82, 1, 0)
+    mainBtn.Position = UDim2.new(0, 0, 0, 0)
+    mainBtn.BackgroundTransparency = 1
+    mainBtn.Text = "   " .. name
+    mainBtn.Font = Enum.Font.GothamMedium
+    mainBtn.TextSize = 13
+    mainBtn.TextColor3 = Color3.fromRGB(240, 240, 250)
+    mainBtn.TextXAlignment = Enum.TextXAlignment.Left
+    mainBtn.ZIndex = 3
+    mainBtn.AutoButtonColor = false
+
+    local execBtn = Instance.new("TextButton", row)
+    execBtn.Name = "ExecuteBtn"
+    execBtn.Size = UDim2.new(0, 68, 0, 28)
+    execBtn.Position = UDim2.new(1, -76, 0.5, -14)
+    execBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 48)
+    execBtn.BackgroundTransparency = 0.25
+    execBtn.Text = "Execute"
+    execBtn.Font = Enum.Font.GothamBold
+    execBtn.TextSize = 11
+    execBtn.TextColor3 = Color3.fromRGB(220, 220, 245)
+    execBtn.ZIndex = 3
+    execBtn.AutoButtonColor = false
+    Instance.new("UICorner", execBtn).CornerRadius = UDim.new(0, 7)
+
+    row.MouseEnter:Connect(function()
+        Tween(row, {BackgroundColor3 = Color3.fromRGB(24, 24, 38), BackgroundTransparency = 0.35}, 0.2)
+        Tween(s, {Color = Color3.fromRGB(129, 140, 248)}, 0.2)
+    end)
+    row.MouseLeave:Connect(function()
+        Tween(row, {BackgroundColor3 = Color3.fromRGB(15, 15, 24), BackgroundTransparency = 0.55}, 0.2)
+        Tween(s, {Color = Color3.fromRGB(55, 55, 75)}, 0.2)
+    end)
+
+    execBtn.MouseEnter:Connect(function() Tween(execBtn, {BackgroundColor3 = Color3.fromRGB(50, 50, 76), BackgroundTransparency = 0.1}, 0.15) end)
+    execBtn.MouseLeave:Connect(function() Tween(execBtn, {BackgroundColor3 = Color3.fromRGB(30, 30, 48), BackgroundTransparency = 0.25}, 0.15) end)
+
+    mainBtn.MouseButton1Click:Connect(function()
         PlaySound("click")
-        _OpenConfirmDialog(name, url)
+        _PromptScriptConfirm(name, url)
+    end)
+
+    execBtn.MouseButton1Click:Connect(function()
+        PlaySound("click")
+        _PromptScriptConfirm(name, url)
     end)
 end
 
@@ -762,8 +816,10 @@ _DecorateInput(_SearchBox3)
 _SearchBox3:GetPropertyChangedSignal("Text"):Connect(function()
     local query = _SearchBox3.Text:lower()
     for _, child in pairs(_Page6:GetChildren()) do
-        if child:IsA("TextButton") and child ~= _SearchBox3 then
-            child.Visible = (query == "" or child.Text:lower():find(query) ~= nil)
+        if child:IsA("Frame") and child.Name == "ScriptRow" then
+            local mainBtn = child:FindFirstChild("MainBtn")
+            local labelText = mainBtn and mainBtn.Text:lower() or ""
+            child.Visible = (query == "" or labelText:find(query) ~= nil)
         end
     end
 end)
@@ -802,9 +858,9 @@ local function _CreateLogEntry(version, date, desc, order)
     f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(55, 55, 75)}, 0.25) end)
 end
 
-_CreateLogEntry("V4.2.21", "2026-11-19", "【设定中心优化】AFK、Fullbright、Fulldark 新增开关按钮，Fulldark 调整为仅天空变黑。", 1)
-_CreateLogEntry("V4.2.20", "2026-11-19", "【设定中心更新】更换最新 Discord 邀请链接，并在 Fullbright 下方新增 Fulldark 全局暗黑功能。", 2)
-_CreateLogEntry("V4.2.19", "2026-11-19", "【合集微调】Copy 与 Execute 互换位置，Execute 触发确认弹窗并与 Copy 颜色统一，移除示例脚本。", 3)
+_CreateLogEntry("V4.2.22", "2026-11-19", "【交互升级】LMM script 仅增加 Execute 按钮，退出脚本新增确认弹窗。", 1)
+_CreateLogEntry("V4.2.21", "2026-11-19", "【设定中心优化】AFK、Fullbright、Fulldark 新增开关按钮，Fulldark 调整为仅天空变黑。", 2)
+_CreateLogEntry("V4.2.20", "2026-11-19", "【设定中心更新】更换最新 Discord 邀请链接，并在 Fullbright 下方新增 Fulldark 全局暗黑功能。", 3)
 
 local _FpsInput = Instance.new("TextBox", _Page4)
 _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 15, 24); _FpsInput.BackgroundTransparency = 0.55
@@ -1260,13 +1316,16 @@ local function _Ctrl(t, x, c, hoverC, f, textPx, soundType)
     end)
 end
 
--- 关闭按钮 ×
+-- 关闭按钮 ×（弹出确认退出窗口）
 _Ctrl("×", -45, Color3.fromRGB(239, 68, 68), Color3.fromRGB(255, 90, 90), function() 
-    pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
-    Tween(_M, {Size = UDim2.new(0, 520, 0, 340), BackgroundTransparency = 1}, 0.3)
-    for _, v in pairs(_M:GetDescendants()) do if v:IsA("UIStroke") or v:IsA("ImageLabel") or v:IsA("TextLabel") or v:IsA("TextButton") then Tween(v, {Transparency = 1}, 0.3) end end
-    task.wait(0.3); _S:Destroy() 
-end, 24, "close")
+    _OpenConfirmDialog("确定要退出此脚本吗？", "刘某某脚本 V4.2.22", "确认退出", function()
+        PlaySound("close")
+        pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
+        Tween(_M, {Size = UDim2.new(0, 520, 0, 340), BackgroundTransparency = 1}, 0.3)
+        for _, v in pairs(_M:GetDescendants()) do if v:IsA("UIStroke") or v:IsA("ImageLabel") or v:IsA("TextLabel") or v:IsA("TextButton") then Tween(v, {Transparency = 1}, 0.3) end end
+        task.wait(0.3); _S:Destroy()
+    end)
+end, 24, "click")
 
 local isMinimized = false
 
