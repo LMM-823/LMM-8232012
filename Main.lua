@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.32 (beta) | 创建账号带 beta 标识 + Delta 重进自启修复 ]]
+-- [[ 刘某某脚本 V4.2.33 (beta) | 移除创建/删除账号按钮 + 强化背景猫咪图片可见度 ]]
 
 local function _LMM_BOOT()
     if not game:IsLoaded() then
@@ -13,7 +13,6 @@ local function _LMM_BOOT()
     local _MP = game:GetService("MarketplaceService")
     local _Lighting = game:GetService("Lighting")
     local _SS = game:GetService("SoundService")
-    local _HS = game:GetService("HttpService")
 
     local _LP = _P.LocalPlayer
     while not _LP do
@@ -21,14 +20,6 @@ local function _LMM_BOOT()
         _LP = _P.LocalPlayer
     end
     local _Cam = workspace.CurrentCamera
-
-    local ACCOUNT_DATA_FILE = "LMM_Account_AutoStart.json"
-    local SELF_SOURCE_CACHE = "LMM_SelfSource.lua"
-    local AUTOEXEC_PATHS = {
-        "autoexec/LMM_AutoStart.lua",
-        "Autoexec/LMM_AutoStart.lua",
-        "Delta/autoexec/LMM_AutoStart.lua"
-    }
 
     local _G_LMM_88 = { 
         v_0x1 = false, v_0x2 = false, v_0x3 = false, v_val_1 = 50, 
@@ -78,173 +69,6 @@ local function _LMM_BOOT()
             end)
         end)
     end
-
-    -- ==================== Delta 自动启动持久化 ====================
-    local function DetectLiveSource()
-        local found = nil
-        pcall(function()
-            if script and script:IsA("LocalScript") and script.Source and #script.Source > 1000 then
-                found = script.Source
-            end
-        end)
-        if not found then
-            pcall(function()
-                if debug and debug.info then
-                    local infoSrc = debug.info(1, "s")
-                    if type(infoSrc) == "string" and infoSrc:sub(1, 1) == "@" then
-                        local path = infoSrc:sub(2)
-                        if isfile and isfile(path) then
-                            local content = readfile(path)
-                            if content and #content > 1000 then
-                                found = content
-                            end
-                        end
-                    end
-                end
-            end)
-        end
-        return found
-    end
-
-    local function GetFullScriptCode()
-        local liveSrc = DetectLiveSource()
-        if liveSrc then
-            pcall(function()
-                if writefile then
-                    writefile(SELF_SOURCE_CACHE, liveSrc)
-                end
-            end)
-            return liveSrc, true
-        end
-
-        local cachedSrc = nil
-        pcall(function()
-            if isfile and isfile(SELF_SOURCE_CACHE) then
-                local content = readfile(SELF_SOURCE_CACHE)
-                if content and #content > 1000 then
-                    cachedSrc = content
-                end
-            end
-        end)
-        if cachedSrc then
-            return cachedSrc, true
-        end
-
-        return nil, false
-    end
-
-    local function BuildDeltaAutoStartPayload()
-        local fullCode, hasFull = GetFullScriptCode()
-        if hasFull and fullCode then
-            return [[
-if not game:IsLoaded() then game.Loaded:Wait() end
-repeat task.wait(0.2) until game:GetService("Players").LocalPlayer
-]] .. fullCode, true
-        end
-
-        local fallbackLoader = [[
-if not game:IsLoaded() then game.Loaded:Wait() end
-repeat task.wait(0.2) until game:GetService("Players").LocalPlayer
-local _Http = game:GetService("HttpService")
-local okCfg, rawCfg = pcall(function()
-    if isfile and isfile("LMM_Account_AutoStart.json") then
-        return readfile("LMM_Account_AutoStart.json")
-    end
-end)
-if okCfg and rawCfg then
-    local okJson, cfg = pcall(function() return _Http:JSONDecode(rawCfg) end)
-    if okJson and cfg and cfg.enabled == true then
-        local okCache, cached = pcall(function()
-            if isfile and isfile("LMM_SelfSource.lua") then
-                return readfile("LMM_SelfSource.lua")
-            end
-        end)
-        if okCache and cached and #cached > 1000 then
-            local fn = loadstring(cached)
-            if fn then pcall(fn) end
-        end
-    end
-end
-]]
-        return fallbackLoader, false
-    end
-
-    local function IsAccountCreated()
-        local created = false
-        pcall(function()
-            if isfile and isfile(ACCOUNT_DATA_FILE) then
-                local raw = readfile(ACCOUNT_DATA_FILE)
-                local data = _HS:JSONDecode(raw)
-                if data and data.enabled == true then
-                    created = true
-                end
-            end
-        end)
-        return created
-    end
-
-    local function SaveAccountAutoStart()
-        local payload, hasFull = BuildDeltaAutoStartPayload()
-        local wroteFile = false
-
-        pcall(function()
-            if writefile then
-                local info = _HS:JSONEncode({
-                    enabled = true,
-                    scriptName = "刘某某脚本",
-                    userId = _LP.UserId,
-                    username = _LP.Name,
-                    hasFullSource = hasFull,
-                    createdAt = os.time()
-                })
-                writefile(ACCOUNT_DATA_FILE, info)
-
-                if makefolder and isfolder then
-                    if not isfolder("autoexec") then pcall(makefolder, "autoexec") end
-                end
-
-                for _, path in ipairs(AUTOEXEC_PATHS) do
-                    local ok = pcall(writefile, path, payload)
-                    if ok then wroteFile = true end
-                end
-            end
-        end)
-
-        pcall(function()
-            local qot = queue_on_teleport
-                or (syn and syn.queue_on_teleport)
-                or (fluxus and fluxus.queue_on_teleport)
-                or (getgenv and getgenv().queue_on_teleport)
-            if qot then
-                qot(payload)
-            end
-        end)
-
-        return wroteFile, hasFull
-    end
-
-    local function RemoveAccountAutoStart()
-        pcall(function()
-            if isfile and delfile then
-                if isfile(ACCOUNT_DATA_FILE) then delfile(ACCOUNT_DATA_FILE) end
-                for _, path in ipairs(AUTOEXEC_PATHS) do
-                    if isfile(path) then delfile(path) end
-                end
-            elseif writefile then
-                writefile(ACCOUNT_DATA_FILE, '{"enabled":false}')
-                for _, path in ipairs(AUTOEXEC_PATHS) do
-                    pcall(writefile, path, "-- disabled")
-                end
-            end
-        end)
-    end
-
-    task.defer(function()
-        DetectLiveSource()
-        if IsAccountCreated() then
-            SaveAccountAutoStart()
-        end
-    end)
 
     if _CG:FindFirstChild("LMM_Final_V400") then _CG.LMM_Final_V400:Destroy() end
     local _S = Instance.new("ScreenGui", _CG); _S.Name = "LMM_Final_V400"
@@ -364,7 +188,7 @@ end
     _LoadText.Size = UDim2.new(1, 0, 0, 30)
     _LoadText.Position = UDim2.new(0, 0, 0, 28)
     _LoadText.BackgroundTransparency = 1
-    _LoadText.Text = "刘某某脚本 V4.2.32 (beta) 加载中..."
+    _LoadText.Text = "刘某某脚本 V4.2.33 (beta) 加载中..."
     _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
     _LoadText.Font = Enum.Font.GothamBold
     _LoadText.TextSize = 16
@@ -406,10 +230,10 @@ end
         end
     end)
 
-    -- ==================== 主界面容器（严格圆角裁剪，无直角露出） ====================
+    -- ==================== 主界面容器（强化背景猫咪图片可见度） ====================
     local _M = Instance.new("Frame", _S)
     _M.Size = UDim2.new(0, 595, 0, 390); _M.Position = UDim2.new(0.5, -297.5, 0.5, -195)
-    _M.BackgroundColor3 = Color3.fromRGB(11, 12, 20); _M.BackgroundTransparency = 0.22; _M.BorderSizePixel = 0; _M.Visible = false
+    _M.BackgroundColor3 = Color3.fromRGB(11, 12, 20); _M.BackgroundTransparency = 0.38; _M.BorderSizePixel = 0; _M.Visible = false
     _M.ClipsDescendants = true
     Instance.new("UICorner", _M).CornerRadius = UDim.new(0, 20)
 
@@ -421,7 +245,7 @@ end
 
     local _BgImage = Instance.new("ImageLabel", _M)
     _BgImage.Size = UDim2.new(1, 0, 1, 0); _BgImage.BackgroundTransparency = 1; _BgImage.BorderSizePixel = 0
-    _BgImage.Image = "rbxassetid://5430597512"; _BgImage.ImageTransparency = 0.22
+    _BgImage.Image = "rbxassetid://5430597512"; _BgImage.ImageTransparency = 0.04
     _BgImage.ScaleType = Enum.ScaleType.Crop; _BgImage.ZIndex = 0
     Instance.new("UICorner", _BgImage).CornerRadius = UDim.new(0, 20)
 
@@ -429,7 +253,7 @@ end
     _TopGlow.Size = UDim2.new(1, 0, 0, 54)
     _TopGlow.Position = UDim2.new(0, 0, 0, 0)
     _TopGlow.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-    _TopGlow.BackgroundTransparency = 0.94
+    _TopGlow.BackgroundTransparency = 0.96
     _TopGlow.BorderSizePixel = 0
     _TopGlow.ZIndex = 1
     Instance.new("UICorner", _TopGlow).CornerRadius = UDim.new(0, 20)
@@ -473,7 +297,7 @@ end
     _BrandLetter.ZIndex = 4
 
     local _Title = Instance.new("TextLabel", _TB)
-    _Title.Size = UDim2.new(1, -185, 1, 0); _Title.Position = UDim2.new(0, 52, 0, 0); _Title.Text = "刘某某脚本 V4.2.32 <font size='11' color='rgb(165, 180, 252)'>beta</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 14.5; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+    _Title.Size = UDim2.new(1, -185, 1, 0); _Title.Position = UDim2.new(0, 52, 0, 0); _Title.Text = "刘某某脚本 V4.2.33 <font size='11' color='rgb(165, 180, 252)'>beta</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 14.5; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
     local _HeaderLine = Instance.new("Frame", _M)
     _HeaderLine.Size = UDim2.new(1, -28, 0, 1); _HeaderLine.Position = UDim2.new(0, 14, 0, 54)
@@ -517,7 +341,7 @@ end
         local b = Instance.new("TextButton", _Sidebar)
         b.LayoutOrder = order; b.Size = UDim2.new(1, 0, 0, 35)
         b.BackgroundColor3 = (order == 1) and Color3.fromRGB(36, 39, 66) or Color3.fromRGB(17, 18, 30)
-        b.BackgroundTransparency = (order == 1) and 0.25 or 0.72
+        b.BackgroundTransparency = (order == 1) and 0.35 or 0.78
         b.Text = "    " .. name; b.Font = Enum.Font.GothamBold; b.TextSize = 11.5
         b.TextColor3 = (order == 1) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(175, 180, 210)
         b.TextXAlignment = Enum.TextXAlignment.Left; b.ZIndex = 2; b.AutoButtonColor = false
@@ -539,12 +363,12 @@ end
         
         b.MouseEnter:Connect(function()
             if _Tabs[b].page.Visible then return end
-            Tween(b, {BackgroundColor3 = Color3.fromRGB(26, 28, 46), BackgroundTransparency = 0.45, TextColor3 = Color3.fromRGB(230, 234, 255)}, 0.2)
+            Tween(b, {BackgroundColor3 = Color3.fromRGB(26, 28, 46), BackgroundTransparency = 0.52, TextColor3 = Color3.fromRGB(230, 234, 255)}, 0.2)
             Tween(bStroke, {Transparency = 0.7}, 0.2)
         end)
         b.MouseLeave:Connect(function()
             if _Tabs[b].page.Visible then return end
-            Tween(b, {BackgroundColor3 = Color3.fromRGB(17, 18, 30), BackgroundTransparency = 0.72, TextColor3 = Color3.fromRGB(175, 180, 210)}, 0.2)
+            Tween(b, {BackgroundColor3 = Color3.fromRGB(17, 18, 30), BackgroundTransparency = 0.78, TextColor3 = Color3.fromRGB(175, 180, 210)}, 0.2)
             Tween(bStroke, {Transparency = 0.92}, 0.2)
         end)
         b.MouseButton1Click:Connect(function()
@@ -552,11 +376,11 @@ end
             for btn, data in pairs(_Tabs) do
                 data.page.Visible = (btn == b)
                 if btn == b then
-                    Tween(btn, {BackgroundColor3 = Color3.fromRGB(36, 39, 66), BackgroundTransparency = 0.25, TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2)
+                    Tween(btn, {BackgroundColor3 = Color3.fromRGB(36, 39, 66), BackgroundTransparency = 0.35, TextColor3 = Color3.fromRGB(255, 255, 255)}, 0.2)
                     Tween(data.stroke, {Transparency = 0.45}, 0.2)
                     Tween(data.indicator, {BackgroundTransparency = 0, Size = UDim2.new(0, 3.5, 0.62, 0), Position = UDim2.new(0, 2, 0.19, 0)}, 0.2)
                 else
-                    Tween(btn, {BackgroundColor3 = Color3.fromRGB(17, 18, 30), BackgroundTransparency = 0.72, TextColor3 = Color3.fromRGB(175, 180, 210)}, 0.2)
+                    Tween(btn, {BackgroundColor3 = Color3.fromRGB(17, 18, 30), BackgroundTransparency = 0.78, TextColor3 = Color3.fromRGB(175, 180, 210)}, 0.2)
                     Tween(data.stroke, {Transparency = 0.92}, 0.2)
                     Tween(data.indicator, {BackgroundTransparency = 1, Size = UDim2.new(0, 3.5, 0.45, 0), Position = UDim2.new(0, 2, 0.275, 0)}, 0.2)
                 end
@@ -649,12 +473,12 @@ end
         end)
     end
 
-    -- ==================== “账号”页面：玩家信息、当前游戏与自动启动管理 ====================
+    -- ==================== “账号”页面：玩家信息与当前游戏 ====================
     local _DataCard = Instance.new("Frame", _Page1)
     _DataCard.LayoutOrder = 1
     _DataCard.Size = UDim2.new(0.98, 0, 0, 126)
     _DataCard.BackgroundColor3 = Color3.fromRGB(16, 17, 28)
-    _DataCard.BackgroundTransparency = 0.42
+    _DataCard.BackgroundTransparency = 0.54
     _DataCard.ZIndex = 2
     Instance.new("UICorner", _DataCard).CornerRadius = UDim.new(0, 14)
     local _DataStroke = Instance.new("UIStroke", _DataCard)
@@ -737,7 +561,7 @@ end
     _GameCard.LayoutOrder = 2
     _GameCard.Size = UDim2.new(0.98, 0, 0, 82)
     _GameCard.BackgroundColor3 = Color3.fromRGB(16, 17, 28)
-    _GameCard.BackgroundTransparency = 0.42
+    _GameCard.BackgroundTransparency = 0.54
     _GameCard.ZIndex = 2
     Instance.new("UICorner", _GameCard).CornerRadius = UDim.new(0, 14)
     local _GameCardStroke = Instance.new("UIStroke", _GameCard)
@@ -787,193 +611,11 @@ end
         end)
     end)
 
-    local _CreateAccBtn = Instance.new("TextButton", _Page1)
-    _CreateAccBtn.LayoutOrder = 3
-    _CreateAccBtn.Size = UDim2.new(0.98, 0, 0, 52)
-    _CreateAccBtn.BackgroundColor3 = Color3.fromRGB(16, 17, 28)
-    _CreateAccBtn.BackgroundTransparency = 0.42
-    _CreateAccBtn.Text = ""
-    _CreateAccBtn.ZIndex = 2
-    _CreateAccBtn.AutoButtonColor = false
-    Instance.new("UICorner", _CreateAccBtn).CornerRadius = UDim.new(0, 14)
-    local _CreateAccStroke = Instance.new("UIStroke", _CreateAccBtn)
-    _CreateAccStroke.Thickness = 1
-    _CreateAccStroke.Color = IsAccountCreated() and Color3.fromRGB(34, 197, 94) or Color3.fromRGB(70, 75, 110)
-
-    local _CreateAccIcon = Instance.new("Frame", _CreateAccBtn)
-    _CreateAccIcon.Size = UDim2.new(0, 32, 0, 32)
-    _CreateAccIcon.Position = UDim2.new(0, 12, 0.5, -16)
-    _CreateAccIcon.BackgroundColor3 = IsAccountCreated() and Color3.fromRGB(22, 101, 52) or Color3.fromRGB(49, 46, 129)
-    _CreateAccIcon.BackgroundTransparency = 0.25
-    _CreateAccIcon.BorderSizePixel = 0
-    _CreateAccIcon.ZIndex = 3
-    Instance.new("UICorner", _CreateAccIcon).CornerRadius = UDim.new(0, 9)
-
-    local _CreateAccIconTxt = Instance.new("TextLabel", _CreateAccIcon)
-    _CreateAccIconTxt.Size = UDim2.new(1, 0, 1, 0)
-    _CreateAccIconTxt.BackgroundTransparency = 1
-    _CreateAccIconTxt.Text = "＋"
-    _CreateAccIconTxt.TextColor3 = IsAccountCreated() and Color3.fromRGB(74, 222, 128) or Color3.fromRGB(165, 180, 252)
-    _CreateAccIconTxt.Font = Enum.Font.Gotham
-    _CreateAccIconTxt.TextSize = 17
-    _CreateAccIconTxt.ZIndex = 4
-
-    local _CreateAccLabel = Instance.new("TextLabel", _CreateAccBtn)
-    _CreateAccLabel.Size = UDim2.new(1, -155, 0, 20)
-    _CreateAccLabel.Position = UDim2.new(0, 54, 0, 8)
-    _CreateAccLabel.BackgroundTransparency = 1
-    _CreateAccLabel.RichText = true
-    _CreateAccLabel.Text = "创建账号 <font size='10' color='rgb(165, 180, 252)'>beta</font>"
-    _CreateAccLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    _CreateAccLabel.Font = Enum.Font.GothamBold
-    _CreateAccLabel.TextSize = 13
-    _CreateAccLabel.TextXAlignment = Enum.TextXAlignment.Left
-    _CreateAccLabel.ZIndex = 3
-
-    local _CreateAccSub = Instance.new("TextLabel", _CreateAccBtn)
-    _CreateAccSub.Size = UDim2.new(1, -155, 0, 16)
-    _CreateAccSub.Position = UDim2.new(0, 54, 0, 28)
-    _CreateAccSub.BackgroundTransparency = 1
-    _CreateAccSub.Text = "Delta 重进自动开启主界面（需开启 Auto Execute）"
-    _CreateAccSub.TextColor3 = Color3.fromRGB(165, 170, 200)
-    _CreateAccSub.Font = Enum.Font.GothamMedium
-    _CreateAccSub.TextSize = 10.5
-    _CreateAccSub.TextXAlignment = Enum.TextXAlignment.Left
-    _CreateAccSub.ZIndex = 3
-
-    local _CreateAccTag = Instance.new("TextLabel", _CreateAccBtn)
-    _CreateAccTag.Size = UDim2.new(0, 84, 0, 26)
-    _CreateAccTag.Position = UDim2.new(1, -96, 0.5, -13)
-    _CreateAccTag.BackgroundColor3 = IsAccountCreated() and Color3.fromRGB(20, 83, 45) or Color3.fromRGB(36, 39, 66)
-    _CreateAccTag.BackgroundTransparency = 0.2
-    _CreateAccTag.Text = IsAccountCreated() and "已开启自启" or "点击创建"
-    _CreateAccTag.TextColor3 = IsAccountCreated() and Color3.fromRGB(74, 222, 128) or Color3.fromRGB(190, 196, 240)
-    _CreateAccTag.Font = Enum.Font.GothamBold
-    _CreateAccTag.TextSize = 11
-    _CreateAccTag.ZIndex = 3
-    Instance.new("UICorner", _CreateAccTag).CornerRadius = UDim.new(0, 8)
-
-    local _DeleteAccBtn = Instance.new("TextButton", _Page1)
-    _DeleteAccBtn.LayoutOrder = 4
-    _DeleteAccBtn.Size = UDim2.new(0.98, 0, 0, 52)
-    _DeleteAccBtn.BackgroundColor3 = Color3.fromRGB(16, 17, 28)
-    _DeleteAccBtn.BackgroundTransparency = 0.42
-    _DeleteAccBtn.Text = ""
-    _DeleteAccBtn.ZIndex = 2
-    _DeleteAccBtn.AutoButtonColor = false
-    Instance.new("UICorner", _DeleteAccBtn).CornerRadius = UDim.new(0, 14)
-    local _DeleteAccStroke = Instance.new("UIStroke", _DeleteAccBtn)
-    _DeleteAccStroke.Thickness = 1
-    _DeleteAccStroke.Color = Color3.fromRGB(70, 75, 110)
-
-    local _DeleteAccIcon = Instance.new("Frame", _DeleteAccBtn)
-    _DeleteAccIcon.Size = UDim2.new(0, 32, 0, 32)
-    _DeleteAccIcon.Position = UDim2.new(0, 12, 0.5, -16)
-    _DeleteAccIcon.BackgroundColor3 = Color3.fromRGB(127, 29, 29)
-    _DeleteAccIcon.BackgroundTransparency = 0.3
-    _DeleteAccIcon.BorderSizePixel = 0
-    _DeleteAccIcon.ZIndex = 3
-    Instance.new("UICorner", _DeleteAccIcon).CornerRadius = UDim.new(0, 9)
-
-    local _DeleteAccIconTxt = Instance.new("TextLabel", _DeleteAccIcon)
-    _DeleteAccIconTxt.Size = UDim2.new(1, 0, 1, 0)
-    _DeleteAccIconTxt.BackgroundTransparency = 1
-    _DeleteAccIconTxt.Text = "X"
-    _DeleteAccIconTxt.TextColor3 = Color3.fromRGB(248, 113, 113)
-    _DeleteAccIconTxt.Font = Enum.Font.GothamBold
-    _DeleteAccIconTxt.TextSize = 16
-    _DeleteAccIconTxt.ZIndex = 4
-
-    local _DeleteAccLabel = Instance.new("TextLabel", _DeleteAccBtn)
-    _DeleteAccLabel.Size = UDim2.new(1, -155, 0, 20)
-    _DeleteAccLabel.Position = UDim2.new(0, 54, 0, 8)
-    _DeleteAccLabel.BackgroundTransparency = 1
-    _DeleteAccLabel.Text = "删除账号"
-    _DeleteAccLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    _DeleteAccLabel.Font = Enum.Font.GothamBold
-    _DeleteAccLabel.TextSize = 13
-    _DeleteAccLabel.TextXAlignment = Enum.TextXAlignment.Left
-    _DeleteAccLabel.ZIndex = 3
-
-    local _DeleteAccSub = Instance.new("TextLabel", _DeleteAccBtn)
-    _DeleteAccSub.Size = UDim2.new(1, -155, 0, 16)
-    _DeleteAccSub.Position = UDim2.new(0, 54, 0, 28)
-    _DeleteAccSub.BackgroundTransparency = 1
-    _DeleteAccSub.Text = "清除本地自动启动配置，下次进游戏不再自动运行"
-    _DeleteAccSub.TextColor3 = Color3.fromRGB(165, 170, 200)
-    _DeleteAccSub.Font = Enum.Font.GothamMedium
-    _DeleteAccSub.TextSize = 10.5
-    _DeleteAccSub.TextXAlignment = Enum.TextXAlignment.Left
-    _DeleteAccSub.ZIndex = 3
-
-    local _DeleteAccTag = Instance.new("TextLabel", _DeleteAccBtn)
-    _DeleteAccTag.Size = UDim2.new(0, 84, 0, 26)
-    _DeleteAccTag.Position = UDim2.new(1, -96, 0.5, -13)
-    _DeleteAccTag.BackgroundColor3 = Color3.fromRGB(69, 26, 26)
-    _DeleteAccTag.BackgroundTransparency = 0.25
-    _DeleteAccTag.Text = "取消自启"
-    _DeleteAccTag.TextColor3 = Color3.fromRGB(252, 165, 165)
-    _DeleteAccTag.Font = Enum.Font.GothamBold
-    _DeleteAccTag.TextSize = 11
-    _DeleteAccTag.ZIndex = 3
-    Instance.new("UICorner", _DeleteAccTag).CornerRadius = UDim.new(0, 8)
-
-    _CreateAccBtn.MouseEnter:Connect(function()
-        Tween(_CreateAccBtn, {BackgroundColor3 = Color3.fromRGB(26, 28, 46), BackgroundTransparency = 0.25}, 0.2)
-        Tween(_CreateAccStroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.2)
-    end)
-    _CreateAccBtn.MouseLeave:Connect(function()
-        Tween(_CreateAccBtn, {BackgroundColor3 = Color3.fromRGB(16, 17, 28), BackgroundTransparency = 0.42}, 0.2)
-        Tween(_CreateAccStroke, {Color = IsAccountCreated() and Color3.fromRGB(34, 197, 94) or Color3.fromRGB(70, 75, 110)}, 0.2)
-    end)
-
-    _DeleteAccBtn.MouseEnter:Connect(function()
-        Tween(_DeleteAccBtn, {BackgroundColor3 = Color3.fromRGB(26, 28, 46), BackgroundTransparency = 0.25}, 0.2)
-        Tween(_DeleteAccStroke, {Color = Color3.fromRGB(239, 68, 68)}, 0.2)
-    end)
-    _DeleteAccBtn.MouseLeave:Connect(function()
-        Tween(_DeleteAccBtn, {BackgroundColor3 = Color3.fromRGB(16, 17, 28), BackgroundTransparency = 0.42}, 0.2)
-        Tween(_DeleteAccStroke, {Color = Color3.fromRGB(70, 75, 110)}, 0.2)
-    end)
-
-    _CreateAccBtn.MouseButton1Click:Connect(function()
-        PlaySound("click")
-        local wroteFile, hasFull = SaveAccountAutoStart()
-        _CreateAccTag.Text = "已开启自启"
-        _CreateAccTag.BackgroundColor3 = Color3.fromRGB(20, 83, 45)
-        _CreateAccTag.TextColor3 = Color3.fromRGB(74, 222, 128)
-        _CreateAccIcon.BackgroundColor3 = Color3.fromRGB(22, 101, 52)
-        _CreateAccIconTxt.TextColor3 = Color3.fromRGB(74, 222, 128)
-        _CreateAccStroke.Color = Color3.fromRGB(34, 197, 94)
-
-        if wroteFile and hasFull then
-            ShowNotification("账号创建成功", "已写入完整主界面自启，Delta 重进将直接弹出 UI")
-        elseif wroteFile then
-            ShowNotification("账号已创建", "请从 Delta 脚本文件运行本脚本，重进即可弹出 UI")
-        else
-            ShowNotification("账号已绑定", "已开启重进自启，请确认 Auto Execute 已开启")
-        end
-    end)
-
-    _DeleteAccBtn.MouseButton1Click:Connect(function()
-        PlaySound("click")
-        _OpenConfirmDialog("确定要删除账号吗？", "删除后进入游戏将不再自动启动刘某某脚本", "确认删除", function()
-            RemoveAccountAutoStart()
-            _CreateAccTag.Text = "点击创建"
-            _CreateAccTag.BackgroundColor3 = Color3.fromRGB(36, 39, 66)
-            _CreateAccTag.TextColor3 = Color3.fromRGB(190, 196, 240)
-            _CreateAccIcon.BackgroundColor3 = Color3.fromRGB(49, 46, 129)
-            _CreateAccIconTxt.TextColor3 = Color3.fromRGB(165, 180, 252)
-            _CreateAccStroke.Color = Color3.fromRGB(70, 75, 110)
-            ShowNotification("账号已删除", "已取消进入游戏自动启动刘某某脚本")
-        end)
-    end)
-
     local _StatsContainer = Instance.new("Frame", _TB)
     _StatsContainer.Size = UDim2.new(0, 172, 0, 28)
     _StatsContainer.Position = UDim2.new(1, -335, 0.5, -14)
     _StatsContainer.BackgroundColor3 = Color3.fromRGB(18, 20, 34)
-    _StatsContainer.BackgroundTransparency = 0.35
+    _StatsContainer.BackgroundTransparency = 0.45
     _StatsContainer.ZIndex = 2
     Instance.new("UICorner", _StatsContainer).CornerRadius = UDim.new(0, 9)
     local _StatsStroke = Instance.new("UIStroke", _StatsContainer)
@@ -1035,7 +677,7 @@ end
         row.LayoutOrder = order
         row.Size = UDim2.new(0.98, 0, 0, 44)
         row.BackgroundColor3 = Color3.fromRGB(16, 17, 28)
-        row.BackgroundTransparency = 0.42
+        row.BackgroundTransparency = 0.54
         row.ZIndex = 2
         Instance.new("UICorner", row).CornerRadius = UDim.new(0, 12)
         local s = Instance.new("UIStroke", row); s.Thickness = 1; s.Color = Color3.fromRGB(68, 72, 105)
@@ -1058,7 +700,7 @@ end
         copyBtn.Size = UDim2.new(0, 62, 0, 28)
         copyBtn.Position = UDim2.new(1, -144, 0.5, -14)
         copyBtn.BackgroundColor3 = Color3.fromRGB(32, 34, 56)
-        copyBtn.BackgroundTransparency = 0.2
+        copyBtn.BackgroundTransparency = 0.25
         copyBtn.Text = "Copy"
         copyBtn.Font = Enum.Font.GothamBold
         copyBtn.TextSize = 11
@@ -1082,16 +724,16 @@ end
         Instance.new("UICorner", execBtn).CornerRadius = UDim.new(0, 8)
 
         row.MouseEnter:Connect(function()
-            Tween(row, {BackgroundColor3 = Color3.fromRGB(25, 27, 45), BackgroundTransparency = 0.25}, 0.2)
+            Tween(row, {BackgroundColor3 = Color3.fromRGB(25, 27, 45), BackgroundTransparency = 0.35}, 0.2)
             Tween(s, {Color = Color3.fromRGB(129, 140, 248)}, 0.2)
         end)
         row.MouseLeave:Connect(function()
-            Tween(row, {BackgroundColor3 = Color3.fromRGB(16, 17, 28), BackgroundTransparency = 0.42}, 0.2)
+            Tween(row, {BackgroundColor3 = Color3.fromRGB(16, 17, 28), BackgroundTransparency = 0.54}, 0.2)
             Tween(s, {Color = Color3.fromRGB(68, 72, 105)}, 0.2)
         end)
 
         copyBtn.MouseEnter:Connect(function() Tween(copyBtn, {BackgroundColor3 = Color3.fromRGB(52, 56, 88), BackgroundTransparency = 0.08}, 0.15) end)
-        copyBtn.MouseLeave:Connect(function() Tween(copyBtn, {BackgroundColor3 = Color3.fromRGB(32, 34, 56), BackgroundTransparency = 0.2}, 0.15) end)
+        copyBtn.MouseLeave:Connect(function() Tween(copyBtn, {BackgroundColor3 = Color3.fromRGB(32, 34, 56), BackgroundTransparency = 0.25}, 0.15) end)
 
         execBtn.MouseEnter:Connect(function() Tween(execBtn, {BackgroundColor3 = Color3.fromRGB(99, 102, 241), BackgroundTransparency = 0.08}, 0.15) end)
         execBtn.MouseLeave:Connect(function() Tween(execBtn, {BackgroundColor3 = Color3.fromRGB(79, 70, 229), BackgroundTransparency = 0.25}, 0.15) end)
@@ -1121,7 +763,7 @@ end
         row.LayoutOrder = order
         row.Size = UDim2.new(0.98, 0, 0, 44)
         row.BackgroundColor3 = Color3.fromRGB(16, 17, 28)
-        row.BackgroundTransparency = 0.42
+        row.BackgroundTransparency = 0.54
         row.ZIndex = 2
         Instance.new("UICorner", row).CornerRadius = UDim.new(0, 12)
         local s = Instance.new("UIStroke", row); s.Thickness = 1; s.Color = Color3.fromRGB(68, 72, 105)
@@ -1154,11 +796,11 @@ end
         Instance.new("UICorner", execBtn).CornerRadius = UDim.new(0, 8)
 
         row.MouseEnter:Connect(function()
-            Tween(row, {BackgroundColor3 = Color3.fromRGB(25, 27, 45), BackgroundTransparency = 0.25}, 0.2)
+            Tween(row, {BackgroundColor3 = Color3.fromRGB(25, 27, 45), BackgroundTransparency = 0.35}, 0.2)
             Tween(s, {Color = Color3.fromRGB(129, 140, 248)}, 0.2)
         end)
         row.MouseLeave:Connect(function()
-            Tween(row, {BackgroundColor3 = Color3.fromRGB(16, 17, 28), BackgroundTransparency = 0.42}, 0.2)
+            Tween(row, {BackgroundColor3 = Color3.fromRGB(16, 17, 28), BackgroundTransparency = 0.54}, 0.2)
             Tween(s, {Color = Color3.fromRGB(68, 72, 105)}, 0.2)
         end)
 
@@ -1184,7 +826,7 @@ end
     end
 
     local _SearchBox = Instance.new("TextBox", _Page2)
-    _SearchBox.LayoutOrder = 1; _SearchBox.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _SearchBox.BackgroundTransparency = 0.42
+    _SearchBox.LayoutOrder = 1; _SearchBox.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _SearchBox.BackgroundTransparency = 0.54
     _SearchBox.PlaceholderText = "搜索 keyless 脚本..."; _SearchBox.Text = ""; _SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
     _SearchBox.PlaceholderColor3 = Color3.fromRGB(155, 160, 190); _SearchBox.Font = Enum.Font.GothamMedium; _SearchBox.TextSize = 13; _SearchBox.ZIndex = 2
     Instance.new("UICorner", _SearchBox).CornerRadius = UDim.new(0, 12)
@@ -1219,7 +861,7 @@ end
     _CreateS(_Page2, "Slap battles/fly", "https://scriptblox.com/raw/UPDATE-Slap-Battles-OP-ARBIX-HUB-SLAP-AURA-AND-MUCH-MORE-227489", 16)
 
     local _SearchBox2 = Instance.new("TextBox", _Page5)
-    _SearchBox2.LayoutOrder = 1; _SearchBox2.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox2.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _SearchBox2.BackgroundTransparency = 0.42
+    _SearchBox2.LayoutOrder = 1; _SearchBox2.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox2.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _SearchBox2.BackgroundTransparency = 0.54
     _SearchBox2.PlaceholderText = "搜索 key 脚本..."; _SearchBox2.Text = ""; _SearchBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
     _SearchBox2.PlaceholderColor3 = Color3.fromRGB(155, 160, 190); _SearchBox2.Font = Enum.Font.GothamMedium; _SearchBox2.TextSize = 13; _SearchBox2.ZIndex = 2
     Instance.new("UICorner", _SearchBox2).CornerRadius = UDim.new(0, 12)
@@ -1242,7 +884,7 @@ end
     _CreateS(_Page5, "King hub", "https://scriptblox.com/raw/Universal-Script-King-Hub-91820", 4)
 
     local _SearchBox3 = Instance.new("TextBox", _Page6)
-    _SearchBox3.LayoutOrder = 1; _SearchBox3.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox3.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _SearchBox3.BackgroundTransparency = 0.42
+    _SearchBox3.LayoutOrder = 1; _SearchBox3.Size = UDim2.new(0.98, 0, 0, 40); _SearchBox3.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _SearchBox3.BackgroundTransparency = 0.54
     _SearchBox3.PlaceholderText = "搜索我的专属脚本..."; _SearchBox3.Text = ""; _SearchBox3.TextColor3 = Color3.fromRGB(255, 255, 255)
     _SearchBox3.PlaceholderColor3 = Color3.fromRGB(155, 160, 190); _SearchBox3.Font = Enum.Font.GothamMedium; _SearchBox3.TextSize = 13; _SearchBox3.ZIndex = 2
     Instance.new("UICorner", _SearchBox3).CornerRadius = UDim.new(0, 12)
@@ -1268,7 +910,7 @@ end
     local function _CreateLogEntry(version, date, desc, order)
         local f = Instance.new("Frame", _Page3)
         f.LayoutOrder = order; f.Size = UDim2.new(0.98, 0, 0, 0); f.AutomaticSize = Enum.AutomaticSize.Y
-        f.BackgroundColor3 = Color3.fromRGB(16, 17, 28); f.BackgroundTransparency = 0.42; f.ZIndex = 2
+        f.BackgroundColor3 = Color3.fromRGB(16, 17, 28); f.BackgroundTransparency = 0.54; f.ZIndex = 2
         Instance.new("UICorner", f).CornerRadius = UDim.new(0, 12)
         
         local stroke = Instance.new("UIStroke", f); stroke.Thickness = 1; stroke.Color = Color3.fromRGB(68, 72, 105)
@@ -1294,12 +936,12 @@ end
         f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(68, 72, 105)}, 0.25) end)
     end
 
-    _CreateLogEntry("V4.2.32", "2026-11-20", "【创建账号 beta 标识】“创建账号”旁新增 beta 标识，持续优化 Delta 重进自启。", 1)
-    _CreateLogEntry("V4.2.31", "2026-11-20", "【专注 Delta 自启】强化 Delta 环境下创建账号后重进自动开启主界面逻辑。", 2)
-    _CreateLogEntry("V4.2.30", "2026-11-20", "【重进直开主界面】修复创建账号重进仅弹提示不弹界面的问题，自动启动写入完整主界面源码。", 3)
+    _CreateLogEntry("V4.2.33", "2026-11-20", "【精简账号页 & 猫咪背景强化】移除创建/删除账号按钮；调高背景猫咪图片可见度。", 1)
+    _CreateLogEntry("V4.2.32", "2026-11-20", "【创建账号 beta 标识】新增 beta 标识。", 2)
+    _CreateLogEntry("V4.2.31", "2026-11-20", "【专注 Delta 自启】强化 Delta 自启逻辑。", 3)
 
     local _FpsInput = Instance.new("TextBox", _Page4)
-    _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 42); _FpsInput.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _FpsInput.BackgroundTransparency = 0.42
+    _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 42); _FpsInput.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _FpsInput.BackgroundTransparency = 0.54
     _FpsInput.Text = "   设置FPS解锁 15到240: 60"; _FpsInput.TextColor3 = Color3.fromRGB(242, 244, 255); _FpsInput.Font = Enum.Font.GothamMedium; _FpsInput.TextSize = 13; _FpsInput.TextXAlignment = Enum.TextXAlignment.Left; _FpsInput.ZIndex = 2
     Instance.new("UICorner", _FpsInput).CornerRadius = UDim.new(0, 12)
     local _FpsStroke = Instance.new("UIStroke", _FpsInput); _FpsStroke.Thickness = 1; _FpsStroke.Color = Color3.fromRGB(68, 72, 105)
@@ -1319,7 +961,7 @@ end
         row.LayoutOrder = order
         row.Size = UDim2.new(0.98, 0, 0, 42)
         row.BackgroundColor3 = Color3.fromRGB(16, 17, 28)
-        row.BackgroundTransparency = 0.42
+        row.BackgroundTransparency = 0.54
         row.ZIndex = 2
         Instance.new("UICorner", row).CornerRadius = UDim.new(0, 12)
         local stroke = Instance.new("UIStroke", row)
@@ -1382,13 +1024,13 @@ end
 
         row.MouseEnter:Connect(function()
             if not state then
-                Tween(row, {BackgroundColor3 = Color3.fromRGB(25, 27, 45), BackgroundTransparency = 0.25}, 0.2)
+                Tween(row, {BackgroundColor3 = Color3.fromRGB(25, 27, 45), BackgroundTransparency = 0.35}, 0.2)
                 Tween(stroke, {Color = Color3.fromRGB(129, 140, 248)}, 0.2)
             end
         end)
         row.MouseLeave:Connect(function()
             if not state then
-                Tween(row, {BackgroundColor3 = Color3.fromRGB(16, 17, 28), BackgroundTransparency = 0.42}, 0.2)
+                Tween(row, {BackgroundColor3 = Color3.fromRGB(16, 17, 28), BackgroundTransparency = 0.54}, 0.2)
                 Tween(stroke, {Color = Color3.fromRGB(68, 72, 105)}, 0.2)
             end
         end)
@@ -1826,7 +1468,7 @@ end
 
     -- 关闭按钮 大号 X
     _Ctrl("X", -46, Color3.fromRGB(239, 68, 68), Color3.fromRGB(255, 90, 90), function() 
-        _OpenConfirmDialog("确定要退出此脚本吗？", "刘某某脚本 V4.2.32 (beta)", "确认退出", function()
+        _OpenConfirmDialog("确定要退出此脚本吗？", "刘某某脚本 V4.2.33 (beta)", "确认退出", function()
             PlaySound("close")
             HideFullscreenBlack()
             pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
