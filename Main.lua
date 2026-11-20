@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.30 (beta) | 重进直接自动启动主界面（非仅弹窗） ]]
+-- [[ 刘某某脚本 V4.2.31 (beta) | 专注 Delta 自启修复：创建账号后重进直接自动开启主界面 ]]
 
 local function _LMM_BOOT()
     if not game:IsLoaded() then
@@ -26,7 +26,8 @@ local function _LMM_BOOT()
     local SELF_SOURCE_CACHE = "LMM_SelfSource.lua"
     local AUTOEXEC_PATHS = {
         "autoexec/LMM_AutoStart.lua",
-        "Autoexec/LMM_AutoStart.lua"
+        "Autoexec/LMM_AutoStart.lua",
+        "Delta/autoexec/LMM_AutoStart.lua"
     }
 
     local _G_LMM_88 = { 
@@ -78,7 +79,7 @@ local function _LMM_BOOT()
         end)
     end
 
-    -- ==================== 完整源码提取与一进游戏自动启动 ====================
+    -- ==================== Delta 自动启动持久化 ====================
     local function DetectLiveSource()
         local found = nil
         pcall(function()
@@ -132,20 +133,18 @@ local function _LMM_BOOT()
         return nil, false
     end
 
-    local function BuildDirectAutoRunPayload()
+    local function BuildDeltaAutoStartPayload()
         local fullCode, hasFull = GetFullScriptCode()
         if hasFull and fullCode then
-            local wrapper = [[
+            return [[
 if not game:IsLoaded() then game.Loaded:Wait() end
-repeat task.wait(0.15) until game:GetService("Players").LocalPlayer
-]] .. fullCode
-            return wrapper, true
+repeat task.wait(0.2) until game:GetService("Players").LocalPlayer
+]] .. fullCode, true
         end
 
-        -- 兜底：若当前执行环境无法读取自身源码，则保留状态文件并在重进时尝试读取缓存源码
         local fallbackLoader = [[
 if not game:IsLoaded() then game.Loaded:Wait() end
-repeat task.wait(0.15) until game:GetService("Players").LocalPlayer
+repeat task.wait(0.2) until game:GetService("Players").LocalPlayer
 local _Http = game:GetService("HttpService")
 local okCfg, rawCfg = pcall(function()
     if isfile and isfile("LMM_Account_AutoStart.json") then
@@ -185,7 +184,7 @@ end
     end
 
     local function SaveAccountAutoStart()
-        local payload, hasFull = BuildDirectAutoRunPayload()
+        local payload, hasFull = BuildDeltaAutoStartPayload()
         local wroteFile = false
 
         pcall(function()
@@ -365,7 +364,7 @@ end
     _LoadText.Size = UDim2.new(1, 0, 0, 30)
     _LoadText.Position = UDim2.new(0, 0, 0, 28)
     _LoadText.BackgroundTransparency = 1
-    _LoadText.Text = "刘某某脚本 V4.2.30 (beta) 加载中..."
+    _LoadText.Text = "刘某某脚本 V4.2.31 (beta) 加载中..."
     _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
     _LoadText.Font = Enum.Font.GothamBold
     _LoadText.TextSize = 16
@@ -474,7 +473,7 @@ end
     _BrandLetter.ZIndex = 4
 
     local _Title = Instance.new("TextLabel", _TB)
-    _Title.Size = UDim2.new(1, -185, 1, 0); _Title.Position = UDim2.new(0, 52, 0, 0); _Title.Text = "刘某某脚本 V4.2.30 <font size='11' color='rgb(165, 180, 252)'>beta</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 14.5; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+    _Title.Size = UDim2.new(1, -185, 1, 0); _Title.Position = UDim2.new(0, 52, 0, 0); _Title.Text = "刘某某脚本 V4.2.31 <font size='11' color='rgb(165, 180, 252)'>beta</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 14.5; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
     local _HeaderLine = Instance.new("Frame", _M)
     _HeaderLine.Size = UDim2.new(1, -28, 0, 1); _HeaderLine.Position = UDim2.new(0, 14, 0, 54)
@@ -834,7 +833,7 @@ end
     _CreateAccSub.Size = UDim2.new(1, -155, 0, 16)
     _CreateAccSub.Position = UDim2.new(0, 54, 0, 28)
     _CreateAccSub.BackgroundTransparency = 1
-    _CreateAccSub.Text = "一进游戏自动开启主界面（需开启 Auto Execute）"
+    _CreateAccSub.Text = "Delta 重进自动开启主界面（需开启 Auto Execute）"
     _CreateAccSub.TextColor3 = Color3.fromRGB(165, 170, 200)
     _CreateAccSub.Font = Enum.Font.GothamMedium
     _CreateAccSub.TextSize = 10.5
@@ -947,11 +946,11 @@ end
         _CreateAccStroke.Color = Color3.fromRGB(34, 197, 94)
 
         if wroteFile and hasFull then
-            ShowNotification("账号创建成功", "已写入完整主界面自启，重进将直接弹出 UI")
+            ShowNotification("账号创建成功", "已写入完整主界面自启，Delta 重进将直接弹出 UI")
         elseif wroteFile then
-            ShowNotification("账号已创建", "请从脚本列表运行本脚本，重进即可自动弹出 UI")
+            ShowNotification("账号已创建", "请从 Delta 脚本文件运行本脚本，重进即可弹出 UI")
         else
-            ShowNotification("账号已绑定", "已开启重进自动启动，请确认 Auto Execute 已开")
+            ShowNotification("账号已绑定", "已开启重进自启，请确认 Auto Execute 已开启")
         end
     end)
 
@@ -1294,9 +1293,9 @@ end
         f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(68, 72, 105)}, 0.25) end)
     end
 
-    _CreateLogEntry("V4.2.30", "2026-11-20", "【重进直开主界面】修复创建账号重进仅弹提示不弹界面的问题，自动启动写入完整主界面源码。", 1)
-    _CreateLogEntry("V4.2.29", "2026-11-20", "【纯白L强化 & 自启兜底】悬浮球 L 改为独立置顶纯白字+描边；修复直接粘贴执行时重进自启提示兜底。", 2)
-    _CreateLogEntry("V4.2.28", "2026-11-20", "【重进自启强化 & 悬浮球徽标 & 大X】强化 autoexec 与传送自启写入；悬浮球改为紫蓝渐变圆角方形 L 徽标；关闭按钮改为大号 X。", 3)
+    _CreateLogEntry("V4.2.31", "2026-11-20", "【专注 Delta 自启】强化 Delta 环境下创建账号后重进自动开启主界面逻辑。", 1)
+    _CreateLogEntry("V4.2.30", "2026-11-20", "【重进直开主界面】修复创建账号重进仅弹提示不弹界面的问题，自动启动写入完整主界面源码。", 2)
+    _CreateLogEntry("V4.2.29", "2026-11-20", "【纯白L强化 & 自启兜底】悬浮球 L 改为独立置顶纯白字+描边。", 3)
 
     local _FpsInput = Instance.new("TextBox", _Page4)
     _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 42); _FpsInput.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _FpsInput.BackgroundTransparency = 0.42
@@ -1826,7 +1825,7 @@ end
 
     -- 关闭按钮 大号 X
     _Ctrl("X", -46, Color3.fromRGB(239, 68, 68), Color3.fromRGB(255, 90, 90), function() 
-        _OpenConfirmDialog("确定要退出此脚本吗？", "刘某某脚本 V4.2.30 (beta)", "确认退出", function()
+        _OpenConfirmDialog("确定要退出此脚本吗？", "刘某某脚本 V4.2.31 (beta)", "确认退出", function()
             PlaySound("close")
             HideFullscreenBlack()
             pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
