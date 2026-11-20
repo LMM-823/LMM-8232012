@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.31 (beta) | 专注 Delta 自启修复：创建账号后重进直接自动开启主界面 ]]
+-- [[ 刘某某脚本 V4.2.32 (beta) | 创建账号带 beta 标识 + Delta 重进自启修复 ]]
 
 local function _LMM_BOOT()
     if not game:IsLoaded() then
@@ -364,7 +364,7 @@ end
     _LoadText.Size = UDim2.new(1, 0, 0, 30)
     _LoadText.Position = UDim2.new(0, 0, 0, 28)
     _LoadText.BackgroundTransparency = 1
-    _LoadText.Text = "刘某某脚本 V4.2.31 (beta) 加载中..."
+    _LoadText.Text = "刘某某脚本 V4.2.32 (beta) 加载中..."
     _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
     _LoadText.Font = Enum.Font.GothamBold
     _LoadText.TextSize = 16
@@ -473,7 +473,7 @@ end
     _BrandLetter.ZIndex = 4
 
     local _Title = Instance.new("TextLabel", _TB)
-    _Title.Size = UDim2.new(1, -185, 1, 0); _Title.Position = UDim2.new(0, 52, 0, 0); _Title.Text = "刘某某脚本 V4.2.31 <font size='11' color='rgb(165, 180, 252)'>beta</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 14.5; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
+    _Title.Size = UDim2.new(1, -185, 1, 0); _Title.Position = UDim2.new(0, 52, 0, 0); _Title.Text = "刘某某脚本 V4.2.32 <font size='11' color='rgb(165, 180, 252)'>beta</font>"; _Title.RichText = true; _Title.Font = Enum.Font.GothamBold; _Title.TextSize = 14.5; _Title.TextColor3 = Color3.fromRGB(255, 255, 255); _Title.BackgroundTransparency = 1; _Title.TextXAlignment = Enum.TextXAlignment.Left; _Title.ZIndex = 2
 
     local _HeaderLine = Instance.new("Frame", _M)
     _HeaderLine.Size = UDim2.new(1, -28, 0, 1); _HeaderLine.Position = UDim2.new(0, 14, 0, 54)
@@ -822,7 +822,8 @@ end
     _CreateAccLabel.Size = UDim2.new(1, -155, 0, 20)
     _CreateAccLabel.Position = UDim2.new(0, 54, 0, 8)
     _CreateAccLabel.BackgroundTransparency = 1
-    _CreateAccLabel.Text = "创建账号"
+    _CreateAccLabel.RichText = true
+    _CreateAccLabel.Text = "创建账号 <font size='10' color='rgb(165, 180, 252)'>beta</font>"
     _CreateAccLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     _CreateAccLabel.Font = Enum.Font.GothamBold
     _CreateAccLabel.TextSize = 13
@@ -1293,9 +1294,9 @@ end
         f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(68, 72, 105)}, 0.25) end)
     end
 
-    _CreateLogEntry("V4.2.31", "2026-11-20", "【专注 Delta 自启】强化 Delta 环境下创建账号后重进自动开启主界面逻辑。", 1)
-    _CreateLogEntry("V4.2.30", "2026-11-20", "【重进直开主界面】修复创建账号重进仅弹提示不弹界面的问题，自动启动写入完整主界面源码。", 2)
-    _CreateLogEntry("V4.2.29", "2026-11-20", "【纯白L强化 & 自启兜底】悬浮球 L 改为独立置顶纯白字+描边。", 3)
+    _CreateLogEntry("V4.2.32", "2026-11-20", "【创建账号 beta 标识】“创建账号”旁新增 beta 标识，持续优化 Delta 重进自启。", 1)
+    _CreateLogEntry("V4.2.31", "2026-11-20", "【专注 Delta 自启】强化 Delta 环境下创建账号后重进自动开启主界面逻辑。", 2)
+    _CreateLogEntry("V4.2.30", "2026-11-20", "【重进直开主界面】修复创建账号重进仅弹提示不弹界面的问题，自动启动写入完整主界面源码。", 3)
 
     local _FpsInput = Instance.new("TextBox", _Page4)
     _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 42); _FpsInput.BackgroundColor3 = Color3.fromRGB(16, 17, 28); _FpsInput.BackgroundTransparency = 0.42
@@ -1825,7 +1826,7 @@ end
 
     -- 关闭按钮 大号 X
     _Ctrl("X", -46, Color3.fromRGB(239, 68, 68), Color3.fromRGB(255, 90, 90), function() 
-        _OpenConfirmDialog("确定要退出此脚本吗？", "刘某某脚本 V4.2.31 (beta)", "确认退出", function()
+        _OpenConfirmDialog("确定要退出此脚本吗？", "刘某某脚本 V4.2.32 (beta)", "确认退出", function()
             PlaySound("close")
             HideFullscreenBlack()
             pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
