@@ -1,4 +1,4 @@
--- [[ 刘某某脚本 V4.2.50 (beta) | 顶部胶囊半透明 + 加载动画仅保留一个音效 ]]
+-- [[ 刘某某脚本 V4.2.53 (beta) | 去掉语言选择弹窗顶部亮光条 ]]
 
 local function _LMM_BOOT()
     if not game:IsLoaded() then
@@ -27,6 +27,20 @@ local function _LMM_BOOT()
         v_freeze = false, v_infjump = false,
         c_esp = Color3.fromRGB(99, 102, 241), c_line = Color3.fromRGB(99, 102, 241), c_box = Color3.fromRGB(99, 102, 241)
     }
+
+    local currentLang = "zh"
+    local languageListeners = {}
+
+    local function T(zhText, enText)
+        if currentLang == "en" then
+            return enText
+        end
+        return zhText
+    end
+
+    local function RegisterLangListener(fn)
+        table.insert(languageListeners, fn)
+    end
 
     local function Tween(obj, props, time, style, dir)
         if not obj then return end
@@ -244,7 +258,7 @@ local function _LMM_BOOT()
     _LoadText.Size = UDim2.new(1, -32, 0, 28)
     _LoadText.Position = UDim2.new(0, 16, 0, 24)
     _LoadText.BackgroundTransparency = 1
-    _LoadText.Text = "刘某某脚本 V4.2.50 (beta)"
+    _LoadText.Text = "刘某某脚本 V4.2.53 (beta)"
     _LoadText.TextColor3 = Color3.fromRGB(255, 255, 255)
     _LoadText.Font = Enum.Font.GothamBold
     _LoadText.TextSize = 17
@@ -384,6 +398,8 @@ local function _LMM_BOOT()
     })
     _TopCapBorderGrad.Rotation = 0
 
+    local langModalBorderGrad = nil
+
     task.spawn(function()
         local rot = 0
         while _S and _S.Parent do
@@ -396,6 +412,9 @@ local function _LMM_BOOT()
             end
             if _TopCapBgGrad and _TopCapBgGrad.Parent then
                 _TopCapBgGrad.Rotation = (rot * 0.85) % 360
+            end
+            if langModalBorderGrad and langModalBorderGrad.Parent then
+                langModalBorderGrad.Rotation = (rot * 1.15) % 360
             end
             task.wait(0.025)
         end
@@ -510,7 +529,219 @@ local function _LMM_BOOT()
         ToggleMainUI()
     end)
 
-    -- ==================== 双加载动画流程（仅动画1结束时播放一次音效） ====================
+    -- ==================== 华丽双语选择弹窗（无顶部亮光条） ====================
+    local function ShowLanguagePicker(onSelected)
+        local pickerGui = Instance.new("ScreenGui", _CG)
+        pickerGui.Name = "LMM_Language_Picker"
+        pickerGui.ResetOnSpawn = false
+        pickerGui.DisplayOrder = 2147483646
+        pickerGui.IgnoreGuiInset = true
+
+        local backdrop = Instance.new("Frame", pickerGui)
+        backdrop.Size = UDim2.new(1, 0, 1, 0)
+        backdrop.BackgroundColor3 = Color3.fromRGB(6, 8, 16)
+        backdrop.BackgroundTransparency = 1
+        backdrop.BorderSizePixel = 0
+        backdrop.ZIndex = 20
+
+        local glowAura = Instance.new("Frame", pickerGui)
+        glowAura.Size = UDim2.new(0, 426, 0, 256)
+        glowAura.Position = UDim2.new(0.5, -213, 0.5, -128)
+        glowAura.BackgroundColor3 = Color3.fromRGB(139, 92, 246)
+        glowAura.BackgroundTransparency = 1
+        glowAura.BorderSizePixel = 0
+        glowAura.ZIndex = 21
+        Instance.new("UICorner", glowAura).CornerRadius = UDim.new(0, 28)
+        ApplyAccentGradient(glowAura, Color3.fromRGB(99, 102, 241), Color3.fromRGB(236, 72, 153), 45)
+
+        local modalCard = Instance.new("Frame", pickerGui)
+        modalCard.Size = UDim2.new(0, 408, 0, 238)
+        modalCard.Position = UDim2.new(0.5, -204, 0.5, 42)
+        modalCard.BackgroundColor3 = Color3.fromRGB(14, 16, 30)
+        modalCard.BackgroundTransparency = 0.05
+        modalCard.BorderSizePixel = 0
+        modalCard.ClipsDescendants = true
+        modalCard.ZIndex = 22
+        Instance.new("UICorner", modalCard).CornerRadius = UDim.new(0, 22)
+
+        local modalStroke = Instance.new("UIStroke", modalCard)
+        modalStroke.Thickness = 2.0
+        modalStroke.Color = Color3.fromRGB(255, 255, 255)
+        modalStroke.Transparency = 0.08
+
+        langModalBorderGrad = Instance.new("UIGradient", modalStroke)
+        langModalBorderGrad.Color = ColorSequence.new({
+            ColorSequenceKeypoint.new(0.00, Color3.fromRGB(99, 102, 241)),
+            ColorSequenceKeypoint.new(0.33, Color3.fromRGB(236, 72, 153)),
+            ColorSequenceKeypoint.new(0.66, Color3.fromRGB(34, 211, 238)),
+            ColorSequenceKeypoint.new(1.00, Color3.fromRGB(99, 102, 241))
+        })
+        langModalBorderGrad.Rotation = 0
+
+        local badgeBox = Instance.new("Frame", modalCard)
+        badgeBox.Size = UDim2.new(0, 38, 0, 38)
+        badgeBox.Position = UDim2.new(0.5, -19, 0, 18)
+        badgeBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        badgeBox.BorderSizePixel = 0
+        badgeBox.ZIndex = 23
+        Instance.new("UICorner", badgeBox).CornerRadius = UDim.new(0, 12)
+        ApplyAccentGradient(badgeBox, Color3.fromRGB(99, 102, 241), Color3.fromRGB(236, 72, 153), 45)
+
+        local badgeTxt = Instance.new("TextLabel", badgeBox)
+        badgeTxt.Size = UDim2.new(1, 0, 1, 0)
+        badgeTxt.BackgroundTransparency = 1
+        badgeTxt.Text = "A/文"
+        badgeTxt.TextColor3 = Color3.fromRGB(255, 255, 255)
+        badgeTxt.Font = Enum.Font.GothamBold
+        badgeTxt.TextSize = 14
+        badgeTxt.ZIndex = 24
+
+        local mainPrompt = Instance.new("TextLabel", modalCard)
+        mainPrompt.Size = UDim2.new(1, -32, 0, 26)
+        mainPrompt.Position = UDim2.new(0, 16, 0, 64)
+        mainPrompt.BackgroundTransparency = 1
+        mainPrompt.Text = "请选择语言 / Choose Language"
+        mainPrompt.TextColor3 = Color3.fromRGB(255, 255, 255)
+        mainPrompt.Font = Enum.Font.GothamBold
+        mainPrompt.TextSize = 16
+        mainPrompt.ZIndex = 23
+
+        local subPrompt = Instance.new("TextLabel", modalCard)
+        subPrompt.Size = UDim2.new(1, -36, 0, 20)
+        subPrompt.Position = UDim2.new(0, 18, 0, 91)
+        subPrompt.BackgroundTransparency = 1
+        subPrompt.Text = "选择后进入对应语言主界面 · Select your preferred interface"
+        subPrompt.TextColor3 = Color3.fromRGB(178, 186, 226)
+        subPrompt.Font = Enum.Font.GothamMedium
+        subPrompt.TextSize = 11.5
+        subPrompt.ZIndex = 23
+
+        local zhBtn = Instance.new("TextButton", modalCard)
+        zhBtn.Size = UDim2.new(0, 174, 0, 66)
+        zhBtn.Position = UDim2.new(0, 20, 0, 134)
+        zhBtn.BackgroundColor3 = Color3.fromRGB(28, 32, 62)
+        zhBtn.BackgroundTransparency = 0.08
+        zhBtn.Text = ""
+        zhBtn.AutoButtonColor = false
+        zhBtn.ZIndex = 23
+        Instance.new("UICorner", zhBtn).CornerRadius = UDim.new(0, 15)
+
+        local zhStroke = Instance.new("UIStroke", zhBtn)
+        zhStroke.Thickness = 1.4
+        zhStroke.Color = Color3.fromRGB(129, 140, 248)
+        zhStroke.Transparency = 0.25
+
+        local zhTitle = Instance.new("TextLabel", zhBtn)
+        zhTitle.Size = UDim2.new(1, -16, 0, 24)
+        zhTitle.Position = UDim2.new(0, 8, 0, 11)
+        zhTitle.BackgroundTransparency = 1
+        zhTitle.Text = "中文 (简体)"
+        zhTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        zhTitle.Font = Enum.Font.GothamBold
+        zhTitle.TextSize = 15
+        zhTitle.ZIndex = 24
+
+        local zhSub = Instance.new("TextLabel", zhBtn)
+        zhSub.Size = UDim2.new(1, -16, 0, 18)
+        zhSub.Position = UDim2.new(0, 8, 0, 36)
+        zhSub.BackgroundTransparency = 1
+        zhSub.Text = "简体中文主页面"
+        zhSub.TextColor3 = Color3.fromRGB(175, 184, 232)
+        zhSub.Font = Enum.Font.GothamMedium
+        zhSub.TextSize = 11
+        zhSub.ZIndex = 24
+
+        local enBtn = Instance.new("TextButton", modalCard)
+        enBtn.Size = UDim2.new(0, 174, 0, 66)
+        enBtn.Position = UDim2.new(1, -194, 0, 134)
+        enBtn.BackgroundColor3 = Color3.fromRGB(28, 32, 62)
+        enBtn.BackgroundTransparency = 0.08
+        enBtn.Text = ""
+        enBtn.AutoButtonColor = false
+        enBtn.ZIndex = 23
+        Instance.new("UICorner", enBtn).CornerRadius = UDim.new(0, 15)
+
+        local enStroke = Instance.new("UIStroke", enBtn)
+        enStroke.Thickness = 1.4
+        enStroke.Color = Color3.fromRGB(236, 72, 153)
+        enStroke.Transparency = 0.25
+
+        local enTitle = Instance.new("TextLabel", enBtn)
+        enTitle.Size = UDim2.new(1, -16, 0, 24)
+        enTitle.Position = UDim2.new(0, 8, 0, 11)
+        enTitle.BackgroundTransparency = 1
+        enTitle.Text = "English"
+        enTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+        enTitle.Font = Enum.Font.GothamBold
+        enTitle.TextSize = 15
+        enTitle.ZIndex = 24
+
+        local enSub = Instance.new("TextLabel", enBtn)
+        enSub.Size = UDim2.new(1, -16, 0, 18)
+        enSub.Position = UDim2.new(0, 8, 0, 36)
+        enSub.BackgroundTransparency = 1
+        enSub.Text = "English Main UI"
+        enSub.TextColor3 = Color3.fromRGB(175, 184, 232)
+        enSub.Font = Enum.Font.GothamMedium
+        enSub.TextSize = 11
+        enSub.ZIndex = 24
+
+        zhBtn.MouseEnter:Connect(function()
+            Tween(zhBtn, {BackgroundColor3 = Color3.fromRGB(79, 70, 229), Position = UDim2.new(0, 20, 0, 131)}, 0.18, Enum.EasingStyle.Back)
+            Tween(zhStroke, {Color = Color3.fromRGB(196, 181, 253), Transparency = 0.05, Thickness = 1.8}, 0.18)
+        end)
+        zhBtn.MouseLeave:Connect(function()
+            Tween(zhBtn, {BackgroundColor3 = Color3.fromRGB(28, 32, 62), Position = UDim2.new(0, 20, 0, 134)}, 0.18)
+            Tween(zhStroke, {Color = Color3.fromRGB(129, 140, 248), Transparency = 0.25, Thickness = 1.4}, 0.18)
+        end)
+
+        enBtn.MouseEnter:Connect(function()
+            Tween(enBtn, {BackgroundColor3 = Color3.fromRGB(190, 24, 93), Position = UDim2.new(1, -194, 0, 131)}, 0.18, Enum.EasingStyle.Back)
+            Tween(enStroke, {Color = Color3.fromRGB(249, 168, 212), Transparency = 0.05, Thickness = 1.8}, 0.18)
+        end)
+        enBtn.MouseLeave:Connect(function()
+            Tween(enBtn, {BackgroundColor3 = Color3.fromRGB(28, 32, 62), Position = UDim2.new(1, -194, 0, 134)}, 0.18)
+            Tween(enStroke, {Color = Color3.fromRGB(236, 72, 153), Transparency = 0.25, Thickness = 1.4}, 0.18)
+        end)
+
+        Tween(backdrop, {BackgroundTransparency = 0.48}, 0.28)
+        Tween(glowAura, {BackgroundTransparency = 0.76}, 0.34)
+        Tween(modalCard, {Position = UDim2.new(0.5, -204, 0.5, -119)}, 0.42, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+        local picked = false
+        local function chooseLang(langCode)
+            if picked then return end
+            picked = true
+            PlaySound("click")
+            currentLang = langCode
+
+            Tween(modalCard, {Position = UDim2.new(0.5, -204, 0.5, -155), BackgroundTransparency = 1}, 0.26, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+            Tween(glowAura, {BackgroundTransparency = 1}, 0.25)
+            Tween(backdrop, {BackgroundTransparency = 1}, 0.26)
+            for _, desc in ipairs(modalCard:GetDescendants()) do
+                if desc:IsA("TextLabel") then
+                    Tween(desc, {TextTransparency = 1}, 0.2)
+                elseif desc:IsA("UIStroke") then
+                    Tween(desc, {Transparency = 1}, 0.2)
+                end
+            end
+            task.wait(0.27)
+            langModalBorderGrad = nil
+            pcall(function() pickerGui:Destroy() end)
+            if onSelected then
+                onSelected(langCode)
+            end
+        end
+
+        zhBtn.MouseButton1Click:Connect(function()
+            chooseLang("zh")
+        end)
+        enBtn.MouseButton1Click:Connect(function()
+            chooseLang("en")
+        end)
+    end
+
+    -- ==================== 双加载动画流程（动画1结束播放一次音效，动画2后弹出语言选择） ====================
     task.spawn(function()
         local shineRunning = true
         task.spawn(function()
@@ -648,17 +879,28 @@ local function _LMM_BOOT()
         Tween(splashBadge, {BackgroundTransparency = 1}, 0.28)
         Tween(splashGlow, {BackgroundTransparency = 1}, 0.28)
         Tween(splashLetter, {TextTransparency = 1}, 0.28)
-        Tween(blurEffect, {Size = 0}, 0.3)
         task.wait(0.3)
         pcall(function() introGui:Destroy() end)
-        pcall(function() blurEffect:Destroy() end)
 
-        _M.Visible = true
-        _M.Size = UDim2.new(0, 565, 0, 369)
-        Tween(_M, {Size = UDim2.new(0, 628, 0, 410)}, 0.38, Enum.EasingStyle.Back)
-        _TopCapsule.Visible = true
+        ShowLanguagePicker(function(chosenLang)
+            for _, fn in ipairs(languageListeners) do
+                pcall(fn, chosenLang)
+            end
 
-        ShowNotification("刘某某脚本", "刘某某脚本开启完毕", 3.0)
+            Tween(blurEffect, {Size = 0}, 0.3)
+            _M.Visible = true
+            _M.Size = UDim2.new(0, 565, 0, 369)
+            Tween(_M, {Size = UDim2.new(0, 628, 0, 410)}, 0.38, Enum.EasingStyle.Back)
+            _TopCapsule.Visible = true
+            task.wait(0.3)
+            pcall(function() blurEffect:Destroy() end)
+
+            ShowNotification(
+                T("刘某某脚本", "LMM Script"),
+                T("刘某某脚本开启完毕", "LMM Script loaded successfully"),
+                3.0
+            )
+        end)
     end)
 
     local _TB = Instance.new("Frame", _M); _TB.Size = UDim2.new(1, 0, 0, 56); _TB.BackgroundTransparency = 1; _TB.Active = true; _TB.ZIndex = 2
@@ -684,13 +926,11 @@ local function _LMM_BOOT()
     local titleX = 50
     local titleFont = Enum.Font.GothamBold
     local titleSize = 17
-    local titleStr = "刘某某脚本"
-    local measuredTitleW = math.ceil(game:GetService("TextService"):GetTextSize(titleStr, titleSize, titleFont, Vector2.new(400, 56)).X)
 
     _Title = Instance.new("TextLabel", _TB)
-    _Title.Size = UDim2.new(0, measuredTitleW + 2, 1, 0)
+    _Title.Size = UDim2.new(0, 140, 1, 0)
     _Title.Position = UDim2.new(0, titleX, 0, 0)
-    _Title.Text = titleStr
+    _Title.Text = "刘某某脚本"
     _Title.Font = titleFont
     _Title.TextSize = titleSize
     _Title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -700,15 +940,14 @@ local function _LMM_BOOT()
     _Title.TextXAlignment = Enum.TextXAlignment.Left
     _Title.ZIndex = 3
 
-    local verX = titleX + measuredTitleW + 5
     local verW = 64
+    local betaW = 44
     local _VerPill = Instance.new("TextLabel", _TB)
     _VerPill.Size = UDim2.new(0, verW, 0, 22)
-    _VerPill.Position = UDim2.new(0, verX, 0.5, -11)
     _VerPill.BackgroundColor3 = Color3.fromRGB(18, 21, 38)
     _VerPill.BackgroundTransparency = 0
     _VerPill.BorderSizePixel = 0
-    _VerPill.Text = "V4.2.50"
+    _VerPill.Text = "V4.2.53"
     _VerPill.TextColor3 = Color3.fromRGB(255, 255, 255)
     _VerPill.TextStrokeColor3 = Color3.fromRGB(5, 7, 16)
     _VerPill.TextStrokeTransparency = 0.25
@@ -721,11 +960,8 @@ local function _LMM_BOOT()
     _VerStroke.Color = Color3.fromRGB(129, 140, 248)
     _VerStroke.Transparency = 0.25
 
-    local betaX = verX + verW + 5
-    local betaW = 44
     local _BetaPill = Instance.new("TextLabel", _TB)
     _BetaPill.Size = UDim2.new(0, betaW, 0, 22)
-    _BetaPill.Position = UDim2.new(0, betaX, 0.5, -11)
     _BetaPill.BackgroundColor3 = Color3.fromRGB(28, 32, 58)
     _BetaPill.BackgroundTransparency = 0
     _BetaPill.BorderSizePixel = 0
@@ -741,6 +977,18 @@ local function _LMM_BOOT()
     _BetaStroke.Thickness = 1.2
     _BetaStroke.Color = Color3.fromRGB(148, 163, 255)
     _BetaStroke.Transparency = 0.35
+
+    local function RefreshHeaderLayout()
+        local titleStr = T("刘某某脚本", "LMM Script")
+        _Title.Text = titleStr
+        local measuredTitleW = math.ceil(game:GetService("TextService"):GetTextSize(titleStr, titleSize, titleFont, Vector2.new(400, 56)).X)
+        _Title.Size = UDim2.new(0, measuredTitleW + 2, 1, 0)
+        local verX = titleX + measuredTitleW + 5
+        _VerPill.Position = UDim2.new(0, verX, 0.5, -11)
+        _BetaPill.Position = UDim2.new(0, verX + verW + 5, 0.5, -11)
+    end
+    RefreshHeaderLayout()
+    RegisterLangListener(RefreshHeaderLayout)
 
     _HeaderLine = Instance.new("Frame", _M)
     _HeaderLine.Size = UDim2.new(1, -28, 0, 1); _HeaderLine.Position = UDim2.new(0, 14, 0, 56)
@@ -780,12 +1028,12 @@ local function _LMM_BOOT()
     local _Page1 = _CreatePage(1); local _Page2 = _CreatePage(2); local _Page5 = _CreatePage(3); local _Page6 = _CreatePage(4); local _Page3 = _CreatePage(5); local _Page4 = _CreatePage(6)
     local _Tabs = {}
 
-    local function _CreateTabBtn(name, order, targetPage)
+    local function _CreateTabBtn(zhName, enName, order, targetPage)
         local b = Instance.new("TextButton", _Sidebar)
         b.LayoutOrder = order; b.Size = UDim2.new(1, 0, 0, 36)
         b.BackgroundColor3 = (order == 1) and Color3.fromRGB(58, 62, 112) or Color3.fromRGB(16, 18, 32)
         b.BackgroundTransparency = (order == 1) and 0.24 or 0.62
-        b.Text = "    " .. name; b.Font = Enum.Font.GothamBold; b.TextSize = 11.5
+        b.Text = "    " .. T(zhName, enName); b.Font = Enum.Font.GothamBold; b.TextSize = 11.5
         b.TextColor3 = (order == 1) and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(202, 208, 240)
         b.TextXAlignment = Enum.TextXAlignment.Left; b.ZIndex = 2; b.AutoButtonColor = false
         Instance.new("UICorner", b).CornerRadius = UDim.new(0, 11)
@@ -801,6 +1049,10 @@ local function _LMM_BOOT()
         indicator.BackgroundTransparency = (order == 1) and 0 or 1
         Instance.new("UICorner", indicator).CornerRadius = UDim.new(1, 0)
         ApplyAccentGradient(indicator, Color3.fromRGB(129, 140, 248), Color3.fromRGB(217, 70, 239), 90)
+
+        RegisterLangListener(function()
+            b.Text = "    " .. T(zhName, enName)
+        end)
 
         _Tabs[b] = {page = targetPage, indicator = indicator, stroke = bStroke, order = order}
         
@@ -831,15 +1083,15 @@ local function _LMM_BOOT()
         end)
     end
 
-    _CreateTabBtn("账号", 1, _Page1)
-    _CreateTabBtn("脚本合集(keyless)", 2, _Page2)
-    _CreateTabBtn("脚本合集(key)", 3, _Page5)
-    _CreateTabBtn("LMM script", 4, _Page6)
-    _CreateTabBtn("更新日志", 5, _Page3)
-    _CreateTabBtn("设定中心", 6, _Page4)
+    _CreateTabBtn("账号", "Account", 1, _Page1)
+    _CreateTabBtn("脚本合集(keyless)", "脚本合集(keyless)", 2, _Page2)
+    _CreateTabBtn("脚本合集(key)", "脚本合集(key)", 3, _Page5)
+    _CreateTabBtn("LMM script", "LMM script", 4, _Page6)
+    _CreateTabBtn("更新日志", "Changelog", 5, _Page3)
+    _CreateTabBtn("设定中心", "Settings", 6, _Page4)
 
     -- ==================== 通用确认弹窗 ====================
-    local function _OpenConfirmDialog(titleMsg, subMsg, confirmText, onConfirm)
+    local function _OpenConfirmDialog(titleMsg, subMsg, confirmText, cancelText, onConfirm)
         local topScreen = Instance.new("ScreenGui", _CG)
         topScreen.Name = "LMM_Ultimate_Top_Overlay"
         topScreen.ResetOnSpawn = false
@@ -882,12 +1134,12 @@ local function _LMM_BOOT()
         alertText.TextColor3 = Color3.fromRGB(255, 255, 255); alertText.Font = Enum.Font.GothamBold; alertText.TextSize = 14; alertText.TextWrapped = true
 
         local yesBtn = Instance.new("TextButton", alertBox)
-        yesBtn.Size = UDim2.new(0, 150, 0, 38); yesBtn.Position = UDim2.new(0.055, 0, 0.65, 0); yesBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241); yesBtn.BackgroundTransparency = 0.08; yesBtn.Text = confirmText or "确认"; yesBtn.TextColor3 = Color3.fromRGB(255, 255, 255); yesBtn.Font = Enum.Font.GothamBold; yesBtn.TextSize = 13; yesBtn.ZIndex = 1000002
+        yesBtn.Size = UDim2.new(0, 150, 0, 38); yesBtn.Position = UDim2.new(0.055, 0, 0.65, 0); yesBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241); yesBtn.BackgroundTransparency = 0.08; yesBtn.Text = confirmText; yesBtn.TextColor3 = Color3.fromRGB(255, 255, 255); yesBtn.Font = Enum.Font.GothamBold; yesBtn.TextSize = 13; yesBtn.ZIndex = 1000002
         yesBtn.AutoButtonColor = false
         Instance.new("UICorner", yesBtn).CornerRadius = UDim.new(0, 11)
 
         local noBtn = Instance.new("TextButton", alertBox)
-        noBtn.Size = UDim2.new(0, 150, 0, 38); noBtn.Position = UDim2.new(0.525, 0, 0.65, 0); noBtn.BackgroundColor3 = Color3.fromRGB(26, 28, 44); noBtn.BackgroundTransparency = 0.12; noBtn.Text = "取消"; noBtn.TextColor3 = Color3.fromRGB(190, 194, 225); noBtn.Font = Enum.Font.GothamBold; noBtn.TextSize = 13; noBtn.ZIndex = 1000002
+        noBtn.Size = UDim2.new(0, 150, 0, 38); noBtn.Position = UDim2.new(0.525, 0, 0.65, 0); noBtn.BackgroundColor3 = Color3.fromRGB(26, 28, 44); noBtn.BackgroundTransparency = 0.12; noBtn.Text = cancelText; noBtn.TextColor3 = Color3.fromRGB(190, 194, 225); noBtn.Font = Enum.Font.GothamBold; noBtn.TextSize = 13; noBtn.ZIndex = 1000002
         noBtn.AutoButtonColor = false
         Instance.new("UICorner", noBtn).CornerRadius = UDim.new(0, 11)
 
@@ -916,7 +1168,14 @@ local function _LMM_BOOT()
         end)
     end
 
-    -- ==================== “账号”页面：玩家信息与当前游戏 ====================
+    local function _DecorateInput(input)
+        input.MouseEnter:Connect(function() Tween(input.UIStroke, {Color = Color3.fromRGB(129, 140, 248), Transparency = 0.15}, 0.2) end)
+        input.MouseLeave:Connect(function() if not input:IsFocused() then Tween(input.UIStroke, {Color = Color3.fromRGB(110, 120, 180), Transparency = 0.32}, 0.2) end end)
+        input.Focused:Connect(function() Tween(input.UIStroke, {Color = Color3.fromRGB(192, 132, 252), Transparency = 0.08}, 0.2) end)
+        input.FocusLost:Connect(function() Tween(input.UIStroke, {Color = Color3.fromRGB(110, 120, 180), Transparency = 0.32}, 0.2) end)
+    end
+
+    -- ==================== “账号”页面：玩家信息、当前游戏、搜索玩家并传送 ====================
     local _DataCard = Instance.new("Frame", _Page1)
     _DataCard.LayoutOrder = 1
     _DataCard.Size = UDim2.new(0.98, 0, 0, 124)
@@ -953,7 +1212,6 @@ local function _LMM_BOOT()
     _NameLabel.Size = UDim2.new(1, -114, 0, 22)
     _NameLabel.Position = UDim2.new(0, 110, 0, 17)
     _NameLabel.BackgroundTransparency = 1
-    _NameLabel.Text = "玩家: " .. _LP.DisplayName .. " (@" .. _LP.Name .. ")"
     _NameLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     _NameLabel.Font = Enum.Font.GothamBold
     _NameLabel.TextSize = 13.5
@@ -964,42 +1222,59 @@ local function _LMM_BOOT()
     _RobuxLabel.Size = UDim2.new(1, -114, 0, 20)
     _RobuxLabel.Position = UDim2.new(0, 110, 0, 46)
     _RobuxLabel.BackgroundTransparency = 1
-    _RobuxLabel.Text = "Robux 余额: 获取中..."
     _RobuxLabel.TextColor3 = Color3.fromRGB(165, 180, 252)
     _RobuxLabel.Font = Enum.Font.GothamBold
     _RobuxLabel.TextSize = 12
     _RobuxLabel.TextXAlignment = Enum.TextXAlignment.Left
     _RobuxLabel.ZIndex = 3
 
+    local robuxLoaded = false
+    local robuxValue = nil
+
+    local function RefreshPlayerCardTexts()
+        _NameLabel.Text = T("玩家: ", "Player: ") .. _LP.DisplayName .. " (@" .. _LP.Name .. ")"
+        if robuxLoaded and robuxValue then
+            _RobuxLabel.Text = T("Robux 余额: R$ ", "Robux Balance: R$ ") .. tostring(robuxValue)
+        elseif robuxLoaded then
+            _RobuxLabel.Text = T("Robux 余额: R$ (受API限制/未登录)", "Robux Balance: R$ (API Restricted)")
+        else
+            _RobuxLabel.Text = T("Robux 余额: 获取中...", "Robux Balance: Loading...")
+        end
+    end
+    RefreshPlayerCardTexts()
+    RegisterLangListener(RefreshPlayerCardTexts)
+
     task.spawn(function()
         local success, result = pcall(function()
             return game:GetService("MarketplaceService"):GetRobuxBalance()
         end)
+        robuxLoaded = true
         if success and result then
-            _RobuxLabel.Text = "Robux 余额: R$ " .. tostring(result)
-        else
-            _RobuxLabel.Text = "Robux 余额: R$ (受API限制/未登录)"
+            robuxValue = result
         end
+        RefreshPlayerCardTexts()
     end)
 
     local _ServerLabel = Instance.new("TextLabel", _DataCard)
     _ServerLabel.Size = UDim2.new(1, -114, 0, 20)
     _ServerLabel.Position = UDim2.new(0, 110, 0, 73)
     _ServerLabel.BackgroundTransparency = 1
-    _ServerLabel.Text = "服务器人数: 正在统计..."
     _ServerLabel.TextColor3 = Color3.fromRGB(204, 210, 240)
     _ServerLabel.Font = Enum.Font.GothamMedium
     _ServerLabel.TextSize = 12
     _ServerLabel.TextXAlignment = Enum.TextXAlignment.Left
     _ServerLabel.ZIndex = 3
 
-    task.spawn(function()
-        while task.wait(1) do
-            pcall(function()
-                _ServerLabel.Text = string.format("服务器人数: %d / %d 人", #_P:GetPlayers(), _P.MaxPlayers)
-            end)
-        end
-    end)
+    local function RefreshServerCountText()
+        pcall(function()
+            _ServerLabel.Text = T(
+                string.format("服务器人数: %d / %d 人", #_P:GetPlayers(), _P.MaxPlayers),
+                string.format("Server Players: %d / %d", #_P:GetPlayers(), _P.MaxPlayers)
+            )
+        end)
+    end
+    RefreshServerCountText()
+    RegisterLangListener(RefreshServerCountText)
 
     local _GameCard = Instance.new("Frame", _Page1)
     _GameCard.LayoutOrder = 2
@@ -1024,7 +1299,6 @@ local function _LMM_BOOT()
     _GameTitleLabel.Size = UDim2.new(1, -84, 0, 21)
     _GameTitleLabel.Position = UDim2.new(0, 78, 0, 16)
     _GameTitleLabel.BackgroundTransparency = 1
-    _GameTitleLabel.Text = "当前游戏: 获取中..."
     _GameTitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     _GameTitleLabel.Font = Enum.Font.GothamBold
     _GameTitleLabel.TextSize = 13
@@ -1042,11 +1316,23 @@ local function _LMM_BOOT()
     _GameIdLabel.TextXAlignment = Enum.TextXAlignment.Left
     _GameIdLabel.ZIndex = 3
 
+    local fetchedGameName = nil
+    local function RefreshGameCardText()
+        if fetchedGameName then
+            _GameTitleLabel.Text = T("当前游戏: ", "Current Game: ") .. fetchedGameName
+        else
+            _GameTitleLabel.Text = T("当前游戏: 获取中...", "Current Game: Loading...")
+        end
+    end
+    RefreshGameCardText()
+    RegisterLangListener(RefreshGameCardText)
+
     task.spawn(function()
         pcall(function()
             local info = _MP:GetProductInfo(game.PlaceId)
             if info and info.Name then
-                _GameTitleLabel.Text = "当前游戏: " .. info.Name
+                fetchedGameName = info.Name
+                RefreshGameCardText()
             end
             if info and info.IconImageAssetId and info.IconImageAssetId ~= 0 then
                 _GameIconImg.Image = "rbxassetid://" .. tostring(info.IconImageAssetId)
@@ -1056,28 +1342,235 @@ local function _LMM_BOOT()
         end)
     end)
 
-    local function _ExecuteScriptUrl(name, url)
-        ShowNotification("正在开启中...", name, 2.5)
+    -- 搜索服务器玩家并传送到他身边
+    local _PlayerSearchBox = Instance.new("TextBox", _Page1)
+    _PlayerSearchBox.LayoutOrder = 3
+    _PlayerSearchBox.Size = UDim2.new(0.98, 0, 0, 38)
+    _PlayerSearchBox.BackgroundColor3 = Color3.fromRGB(15, 17, 30)
+    _PlayerSearchBox.BackgroundTransparency = 0.44
+    _PlayerSearchBox.PlaceholderText = T("搜索服务器里的玩家 (显示名/用户名)...", "Search players in server (Display/Username)...")
+    _PlayerSearchBox.Text = ""
+    _PlayerSearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _PlayerSearchBox.PlaceholderColor3 = Color3.fromRGB(182, 188, 222)
+    _PlayerSearchBox.Font = Enum.Font.GothamMedium
+    _PlayerSearchBox.TextSize = 12.5
+    _PlayerSearchBox.ZIndex = 2
+    Instance.new("UICorner", _PlayerSearchBox).CornerRadius = UDim.new(0, 12)
+    local _PlayerSearchStroke = Instance.new("UIStroke", _PlayerSearchBox)
+    _PlayerSearchStroke.Thickness = 1
+    _PlayerSearchStroke.Color = Color3.fromRGB(110, 120, 180)
+    _PlayerSearchStroke.Transparency = 0.32
+    _DecorateInput(_PlayerSearchBox)
+
+    local _PlayerListFrame = Instance.new("Frame", _Page1)
+    _PlayerListFrame.LayoutOrder = 4
+    _PlayerListFrame.Size = UDim2.new(0.98, 0, 0, 0)
+    _PlayerListFrame.AutomaticSize = Enum.AutomaticSize.Y
+    _PlayerListFrame.BackgroundColor3 = Color3.fromRGB(15, 17, 30)
+    _PlayerListFrame.BackgroundTransparency = 0.44
+    _PlayerListFrame.ZIndex = 2
+    Instance.new("UICorner", _PlayerListFrame).CornerRadius = UDim.new(0, 14)
+    local _PlayerListStroke = Instance.new("UIStroke", _PlayerListFrame)
+    _PlayerListStroke.Thickness = 1
+    _PlayerListStroke.Color = Color3.fromRGB(110, 120, 180)
+    _PlayerListStroke.Transparency = 0.32
+
+    local _PlayerListPad = Instance.new("UIPadding", _PlayerListFrame)
+    _PlayerListPad.PaddingTop = UDim.new(0, 8)
+    _PlayerListPad.PaddingBottom = UDim.new(0, 8)
+    _PlayerListPad.PaddingLeft = UDim.new(0, 8)
+    _PlayerListPad.PaddingRight = UDim.new(0, 8)
+
+    local _PlayerListLayout = Instance.new("UIListLayout", _PlayerListFrame)
+    _PlayerListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    _PlayerListLayout.Padding = UDim.new(0, 6)
+
+    local _EmptyPlayerLabel = Instance.new("TextLabel", _PlayerListFrame)
+    _EmptyPlayerLabel.LayoutOrder = 9999
+    _EmptyPlayerLabel.Size = UDim2.new(1, 0, 0, 28)
+    _EmptyPlayerLabel.BackgroundTransparency = 1
+    _EmptyPlayerLabel.Text = T("暂无匹配玩家", "No matching players")
+    _EmptyPlayerLabel.TextColor3 = Color3.fromRGB(185, 192, 224)
+    _EmptyPlayerLabel.Font = Enum.Font.GothamMedium
+    _EmptyPlayerLabel.TextSize = 12
+    _EmptyPlayerLabel.Visible = false
+    _EmptyPlayerLabel.ZIndex = 3
+
+    local function _TeleportToPlayer(targetPlr)
+        if not targetPlr or not targetPlr.Parent then
+            ShowNotification(T("传送失败", "Teleport Failed"), T("目标玩家已离开服务器", "Target player has left the server"), 2.5)
+            return
+        end
+        local myChar = _LP.Character
+        local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
+        local targetChar = targetPlr.Character
+        local targetHrp = targetChar and (targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("Head"))
+
+        if not myHrp then
+            ShowNotification(T("传送失败", "Teleport Failed"), T("你的角色尚未加载完成", "Your character is not loaded yet"), 2.5)
+            return
+        end
+        if not targetHrp then
+            ShowNotification(T("传送失败", "Teleport Failed"), T("无法获取 ", "Cannot find position of ") .. targetPlr.DisplayName, 2.5)
+            return
+        end
+
+        pcall(function()
+            local offsetCFrame = targetHrp.CFrame * CFrame.new(0, 0, 3.5)
+            myHrp.CFrame = offsetCFrame
+        end)
+        PlaySound("open")
+        ShowNotification(
+            T("已传送", "Teleported"),
+            T("已传送到 ", "Teleported to ") .. targetPlr.DisplayName .. " (@" .. targetPlr.Name .. ")" .. T(" 身边", ""),
+            2.8
+        )
+    end
+
+    local function _RefreshPlayerList()
+        for _, child in ipairs(_PlayerListFrame:GetChildren()) do
+            if child:IsA("Frame") then
+                child:Destroy()
+            end
+        end
+
+        local query = _PlayerSearchBox.Text:lower():gsub("^%s+", ""):gsub("%s+$", "")
+        local matchedCount = 0
+        local orderIdx = 1
+
+        for _, plr in ipairs(_P:GetPlayers()) do
+            if plr ~= _LP then
+                local dispLower = (plr.DisplayName or ""):lower()
+                local nameLower = (plr.Name or ""):lower()
+                if query == "" or dispLower:find(query, 1, true) or nameLower:find(query, 1, true) then
+                    matchedCount = matchedCount + 1
+
+                    local itemRow = Instance.new("Frame", _PlayerListFrame)
+                    itemRow.LayoutOrder = orderIdx
+                    orderIdx = orderIdx + 1
+                    itemRow.Size = UDim2.new(1, 0, 0, 38)
+                    itemRow.BackgroundColor3 = Color3.fromRGB(22, 25, 44)
+                    itemRow.BackgroundTransparency = 0.25
+                    itemRow.ZIndex = 3
+                    Instance.new("UICorner", itemRow).CornerRadius = UDim.new(0, 10)
+
+                    local itemStroke = Instance.new("UIStroke", itemRow)
+                    itemStroke.Thickness = 1
+                    itemStroke.Color = Color3.fromRGB(115, 125, 190)
+                    itemStroke.Transparency = 0.45
+
+                    local pNameLbl = Instance.new("TextLabel", itemRow)
+                    pNameLbl.Size = UDim2.new(1, -82, 1, 0)
+                    pNameLbl.Position = UDim2.new(0, 12, 0, 0)
+                    pNameLbl.BackgroundTransparency = 1
+                    pNameLbl.Text = plr.DisplayName .. " (@" .. plr.Name .. ")"
+                    pNameLbl.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    pNameLbl.Font = Enum.Font.GothamBold
+                    pNameLbl.TextSize = 12
+                    pNameLbl.TextXAlignment = Enum.TextXAlignment.Left
+                    pNameLbl.TextTruncate = Enum.TextTruncate.AtEnd
+                    pNameLbl.ZIndex = 4
+
+                    local tpBtn = Instance.new("TextButton", itemRow)
+                    tpBtn.Size = UDim2.new(0, 64, 0, 26)
+                    tpBtn.Position = UDim2.new(1, -72, 0.5, -13)
+                    tpBtn.BackgroundColor3 = Color3.fromRGB(99, 102, 241)
+                    tpBtn.BackgroundTransparency = 0.08
+                    tpBtn.Text = T("传送", "TP")
+                    tpBtn.Font = Enum.Font.GothamBold
+                    tpBtn.TextSize = 11.5
+                    tpBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+                    tpBtn.AutoButtonColor = false
+                    tpBtn.ZIndex = 4
+                    Instance.new("UICorner", tpBtn).CornerRadius = UDim.new(0, 8)
+
+                    tpBtn.MouseEnter:Connect(function()
+                        Tween(tpBtn, {BackgroundColor3 = Color3.fromRGB(129, 140, 248)}, 0.15)
+                    end)
+                    tpBtn.MouseLeave:Connect(function()
+                        Tween(tpBtn, {BackgroundColor3 = Color3.fromRGB(99, 102, 241)}, 0.15)
+                    end)
+                    tpBtn.MouseButton1Click:Connect(function()
+                        PlaySound("click")
+                        _TeleportToPlayer(plr)
+                    end)
+                end
+            end
+        end
+
+        _EmptyPlayerLabel.Visible = (matchedCount == 0)
+    end
+
+    RegisterLangListener(function()
+        _PlayerSearchBox.PlaceholderText = T("搜索服务器里的玩家 (显示名/用户名)...", "Search players in server (Display/Username)...")
+        _EmptyPlayerLabel.Text = T("暂无匹配玩家", "No matching players")
+        _RefreshPlayerList()
+    end)
+
+    _PlayerSearchBox:GetPropertyChangedSignal("Text"):Connect(_RefreshPlayerList)
+    _P.PlayerAdded:Connect(function()
+        task.wait(0.1)
+        _RefreshPlayerList()
+        RefreshServerCountText()
+    end)
+    _P.PlayerRemoving:Connect(function()
+        task.wait(0.1)
+        _RefreshPlayerList()
+        RefreshServerCountText()
+    end)
+    _RefreshPlayerList()
+
+    task.spawn(function()
+        while task.wait(1) do
+            RefreshServerCountText()
+        end
+    end)
+
+    -- ==================== 脚本执行 / 复制 / 弹窗 ====================
+    local function _ExecuteScriptPayload(name, payload)
+        ShowNotification(T("正在开启中...", "Starting..."), name, 2.5)
         task.spawn(function()
-            local success = pcall(function()
-                loadstring(game:HttpGet(url))()
+            local ok = false
+            pcall(function()
+                if type(payload) == "function" then
+                    payload()
+                    ok = true
+                elseif type(payload) == "string" then
+                    local trimmed = payload:match("^%s*(.-)%s*$")
+                    if trimmed:find("^loadstring%(") then
+                        local fn = loadstring(trimmed)
+                        if fn then
+                            fn()
+                            ok = true
+                        end
+                    else
+                        loadstring(game:HttpGet(trimmed))()
+                        ok = true
+                    end
+                end
             end)
-            if success then
+            if ok then
                 PlaySound("open")
-                ShowNotification("开启成功", name .. " 已成功运行！", 3.0)
+                ShowNotification(T("开启成功", "Started"), name .. T(" 已成功运行！", " is now running!"), 3.0)
             else
-                ShowNotification("开启失败", "网络异常或链接失效", 3.0)
+                ShowNotification(T("开启失败", "Failed"), T("网络异常或脚本执行受限", "Network error or script blocked"), 3.0)
             end
         end)
     end
 
-    local function _PromptScriptConfirm(name, url)
-        _OpenConfirmDialog("确定要开启此脚本吗？", name, "确认开启", function()
-            _ExecuteScriptUrl(name, url)
-        end)
+    local function _PromptScriptConfirm(name, payload)
+        _OpenConfirmDialog(
+            T("确定要开启此脚本吗？", "Execute this script?"),
+            name,
+            T("确认开启", "Confirm"),
+            T("取消", "Cancel"),
+            function()
+                _ExecuteScriptPayload(name, payload)
+            end
+        )
     end
 
-    local function _CreateS(targetPage, name, url, order)
+    local function _CreateS(targetPage, name, payload, order)
         local row = Instance.new("Frame", targetPage)
         row.Name = "ScriptRow"
         row.LayoutOrder = order
@@ -1098,6 +1591,7 @@ local function _LMM_BOOT()
         mainBtn.TextSize = 13
         mainBtn.TextColor3 = Color3.fromRGB(245, 247, 255)
         mainBtn.TextXAlignment = Enum.TextXAlignment.Left
+        mainBtn.TextTruncate = Enum.TextTruncate.AtEnd
         mainBtn.ZIndex = 3
         mainBtn.AutoButtonColor = false
 
@@ -1146,24 +1640,28 @@ local function _LMM_BOOT()
 
         mainBtn.MouseButton1Click:Connect(function()
             PlaySound("click")
-            _PromptScriptConfirm(name, url)
+            _PromptScriptConfirm(name, payload)
         end)
 
         copyBtn.MouseButton1Click:Connect(function()
             PlaySound("click")
             pcall(function()
-                setclipboard('loadstring(game:HttpGet("' .. url .. '"))()')
+                if type(payload) == "string" and payload:match("^%s*loadstring%(") then
+                    setclipboard(payload)
+                elseif type(payload) == "string" then
+                    setclipboard('loadstring(game:HttpGet("' .. payload .. '"))()')
+                end
             end)
-            ShowNotification("已复制脚本", name .. " 代码已复制到剪贴板", 2.5)
+            ShowNotification(T("已复制脚本", "Copied"), name .. T(" 代码已复制到剪贴板", " copied to clipboard"), 2.5)
         end)
 
         execBtn.MouseButton1Click:Connect(function()
             PlaySound("click")
-            _PromptScriptConfirm(name, url)
+            _PromptScriptConfirm(name, payload)
         end)
     end
 
-    local function _CreateLMMButton(targetPage, name, url, order)
+    local function _CreateLMMButton(targetPage, name, payload, order)
         local row = Instance.new("Frame", targetPage)
         row.Name = "ScriptRow"
         row.LayoutOrder = order
@@ -1215,29 +1713,25 @@ local function _LMM_BOOT()
 
         mainBtn.MouseButton1Click:Connect(function()
             PlaySound("click")
-            _PromptScriptConfirm(name, url)
+            _PromptScriptConfirm(name, payload)
         end)
 
         execBtn.MouseButton1Click:Connect(function()
             PlaySound("click")
-            _PromptScriptConfirm(name, url)
+            _PromptScriptConfirm(name, payload)
         end)
-    end
-
-    local function _DecorateInput(input)
-        input.MouseEnter:Connect(function() Tween(input.UIStroke, {Color = Color3.fromRGB(129, 140, 248), Transparency = 0.15}, 0.2) end)
-        input.MouseLeave:Connect(function() if not input:IsFocused() then Tween(input.UIStroke, {Color = Color3.fromRGB(110, 120, 180), Transparency = 0.32}, 0.2) end end)
-        input.Focused:Connect(function() Tween(input.UIStroke, {Color = Color3.fromRGB(192, 132, 252), Transparency = 0.08}, 0.2) end)
-        input.FocusLost:Connect(function() Tween(input.UIStroke, {Color = Color3.fromRGB(110, 120, 180), Transparency = 0.32}, 0.2) end)
     end
 
     local _SearchBox = Instance.new("TextBox", _Page2)
     _SearchBox.LayoutOrder = 1; _SearchBox.Size = UDim2.new(0.98, 0, 0, 38); _SearchBox.BackgroundColor3 = Color3.fromRGB(15, 17, 30); _SearchBox.BackgroundTransparency = 0.44
-    _SearchBox.PlaceholderText = "搜索 keyless 脚本..."; _SearchBox.Text = ""; _SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _SearchBox.PlaceholderText = T("搜索 keyless 脚本...", "Search keyless scripts..."); _SearchBox.Text = ""; _SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
     _SearchBox.PlaceholderColor3 = Color3.fromRGB(182, 188, 222); _SearchBox.Font = Enum.Font.GothamMedium; _SearchBox.TextSize = 13; _SearchBox.ZIndex = 2
     Instance.new("UICorner", _SearchBox).CornerRadius = UDim.new(0, 12)
     local _SearchStroke = Instance.new("UIStroke", _SearchBox); _SearchStroke.Thickness = 1; _SearchStroke.Color = Color3.fromRGB(110, 120, 180); _SearchStroke.Transparency = 0.32
     _DecorateInput(_SearchBox)
+    RegisterLangListener(function()
+        _SearchBox.PlaceholderText = T("搜索 keyless 脚本...", "Search keyless scripts...")
+    end)
 
     _SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
         local query = _SearchBox.Text:lower()
@@ -1265,14 +1759,21 @@ local function _LMM_BOOT()
     _CreateS(_Page2, "Emote libary", "https://vexroscripts.com.tr/vexroemotes.luau", 14)
     _CreateS(_Page2, "Celestial", "https://raw.githubusercontent.com/marianaxx2c-glitch/ceewww/refs/heads/main/xxx", 15)
     _CreateS(_Page2, "Slap battles/fly", "https://scriptblox.com/raw/UPDATE-Slap-Battles-OP-ARBIX-HUB-SLAP-AURA-AND-MUCH-MORE-227489", 16)
+    _CreateS(_Page2, "Tower defense macro", 'loadstring(game:HttpGet("https://raw.githubusercontent.com/KeroTwT/Kero-Hub/refs/heads/main/KeroHub"))()', 17)
+    _CreateS(_Page2, "Fly", 'loadstring("\\108\\111\\97\\100\\115\\116\\114\\105\\110\\103\\40\\103\\97\\109\\101\\58\\72\\116\\116\\112\\71\\101\\116\\40\\40\\39\\104\\116\\116\\112\\115\\58\\47\\47\\103\\105\\115\\116\\46\\103\\105\\116\\104\\117\\98\\117\\115\\101\\114\\99\\111\\110\\116\\101\\110\\116\\46\\99\\111\\109\\47\\109\\101\\111\\122\\111\\110\\101\\89\\84\\47\\98\\102\\48\\51\\55\\100\\102\\102\\57\\102\\48\\97\\55\\48\\48\\49\\55\\51\\48\\52\\100\\100\\100\\54\\55\\102\\100\\99\\100\\51\\55\\48\\47\\114\\97\\119\\47\\101\\49\\52\\101\\55\\52\\102\\52\\50\\53\\98\\48\\54\\48\\100\\102\\53\\50\\51\\51\\52\\51\\99\\102\\51\\48\\98\\55\\56\\55\\48\\55\\52\\101\\98\\51\\99\\53\\100\\50\\47\\97\\114\\99\\101\\117\\115\\37\\50\\53\\50\\48\\120\\37\\50\\53\\50\\48\\102\\108\\121\\37\\50\\53\\50\\48\\50\\37\\50\\53\\50\\48\\111\\98\\102\\108\\117\\99\\97\\116\\111\\114\\39\\41\\44\\116\\114\\117\\101\\41\\41\\40\\41\\10\\10")()', 18)
+    _CreateS(_Page2, "99 nights", 'loadstring(game:HttpGet("https://files.vapevoidware.xyz/VapeVoidware/VW-Add/main/loader.lua", true))()', 19)
+    _CreateS(_Page2, "Alacrity rip -rivals-bloxstrike-ttk", 'loadstring(game:HttpGet("https://alacrity.rip/loader.lua"))()', 20)
 
     local _SearchBox2 = Instance.new("TextBox", _Page5)
     _SearchBox2.LayoutOrder = 1; _SearchBox2.Size = UDim2.new(0.98, 0, 0, 38); _SearchBox2.BackgroundColor3 = Color3.fromRGB(15, 17, 30); _SearchBox2.BackgroundTransparency = 0.44
-    _SearchBox2.PlaceholderText = "搜索 key 脚本..."; _SearchBox2.Text = ""; _SearchBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _SearchBox2.PlaceholderText = T("搜索 key 脚本...", "Search key scripts..."); _SearchBox2.Text = ""; _SearchBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
     _SearchBox2.PlaceholderColor3 = Color3.fromRGB(182, 188, 222); _SearchBox2.Font = Enum.Font.GothamMedium; _SearchBox2.TextSize = 13; _SearchBox2.ZIndex = 2
     Instance.new("UICorner", _SearchBox2).CornerRadius = UDim.new(0, 12)
     local _SearchStroke2 = Instance.new("UIStroke", _SearchBox2); _SearchStroke2.Thickness = 1; _SearchStroke2.Color = Color3.fromRGB(110, 120, 180); _SearchStroke2.Transparency = 0.32
     _DecorateInput(_SearchBox2)
+    RegisterLangListener(function()
+        _SearchBox2.PlaceholderText = T("搜索 key 脚本...", "Search key scripts...")
+    end)
 
     _SearchBox2:GetPropertyChangedSignal("Text"):Connect(function()
         local query = _SearchBox2.Text:lower()
@@ -1291,11 +1792,14 @@ local function _LMM_BOOT()
 
     local _SearchBox3 = Instance.new("TextBox", _Page6)
     _SearchBox3.LayoutOrder = 1; _SearchBox3.Size = UDim2.new(0.98, 0, 0, 38); _SearchBox3.BackgroundColor3 = Color3.fromRGB(15, 17, 30); _SearchBox3.BackgroundTransparency = 0.44
-    _SearchBox3.PlaceholderText = "搜索我的专属脚本..."; _SearchBox3.Text = ""; _SearchBox3.TextColor3 = Color3.fromRGB(255, 255, 255)
+    _SearchBox3.PlaceholderText = T("搜索我的专属脚本...", "Search my scripts..."); _SearchBox3.Text = ""; _SearchBox3.TextColor3 = Color3.fromRGB(255, 255, 255)
     _SearchBox3.PlaceholderColor3 = Color3.fromRGB(182, 188, 222); _SearchBox3.Font = Enum.Font.GothamMedium; _SearchBox3.TextSize = 13; _SearchBox3.ZIndex = 2
     Instance.new("UICorner", _SearchBox3).CornerRadius = UDim.new(0, 12)
     local _SearchStroke3 = Instance.new("UIStroke", _SearchBox3); _SearchStroke3.Thickness = 1; _SearchStroke3.Color = Color3.fromRGB(110, 120, 180); _SearchStroke3.Transparency = 0.32
     _DecorateInput(_SearchBox3)
+    RegisterLangListener(function()
+        _SearchBox3.PlaceholderText = T("搜索我的专属脚本...", "Search my scripts...")
+    end)
 
     _SearchBox3:GetPropertyChangedSignal("Text"):Connect(function()
         local query = _SearchBox3.Text:lower()
@@ -1313,7 +1817,7 @@ local function _LMM_BOOT()
     _CreateLMMButton(_Page6, "LMM MM2", "https://raw.githubusercontent.com/LMM-823/LMM-mm2/main/main.lua?v=999", 4)
     _CreateLMMButton(_Page6, "LMM VIEW", "https://raw.githubusercontent.com/LMM-823/LMM-VIEW/main/Main.lua?v=999", 5)
 
-    local function _CreateLogEntry(version, date, desc, order)
+    local function _CreateLogEntry(version, date, zhDesc, enDesc, order)
         local f = Instance.new("Frame", _Page3)
         f.LayoutOrder = order; f.Size = UDim2.new(0.98, 0, 0, 0); f.AutomaticSize = Enum.AutomaticSize.Y
         f.BackgroundColor3 = Color3.fromRGB(15, 17, 30); f.BackgroundTransparency = 0.44; f.ZIndex = 2
@@ -1335,34 +1839,66 @@ local function _LMM_BOOT()
         
         local d = Instance.new("TextLabel", f)
         d.LayoutOrder = 2; d.Size = UDim2.new(1, 0, 0, 0); d.AutomaticSize = Enum.AutomaticSize.Y
-        d.BackgroundTransparency = 1; d.Text = desc; d.TextColor3 = Color3.fromRGB(220, 226, 248)
+        d.BackgroundTransparency = 1; d.Text = T(zhDesc, enDesc); d.TextColor3 = Color3.fromRGB(220, 226, 248)
         d.Font = Enum.Font.GothamMedium; d.TextSize = 12; d.TextXAlignment = Enum.TextXAlignment.Left; d.TextWrapped = true; d.ZIndex = 2
+
+        RegisterLangListener(function()
+            d.Text = T(zhDesc, enDesc)
+        end)
 
         f.MouseEnter:Connect(function() Tween(stroke, {Color = Color3.fromRGB(165, 180, 252), Transparency = 0.1}, 0.25) end)
         f.MouseLeave:Connect(function() Tween(stroke, {Color = Color3.fromRGB(110, 120, 180), Transparency = 0.32}, 0.25) end)
     end
 
-    _CreateLogEntry("V4.2.50", "2026-11-20", "【顶部胶囊半透明 + 加载动画仅留一个音效】顶部胶囊设为50%半透明；启动双加载动画精简为只播放一次音效。", 1)
-    _CreateLogEntry("V4.2.49", "2026-11-20", "【顶部胶囊渐变提亮 + 主UI背景更清晰】调亮顶部胶囊渐变色并加快流动；降低主面板遮罩浓度，让主UI背景图更清晰可见。", 2)
-    _CreateLogEntry("V4.2.48", "2026-11-20", "【删 -/+ 按钮 + 顶部胶囊渐变流动 + 整体UI美化】移除顶栏 - 和 + 按钮；顶部胶囊加入渐变色与流动动画；优化主面板渐变遮罩与卡片层次。", 3)
+    _CreateLogEntry(
+        "V4.2.53",
+        "2026-11-21",
+        "【去掉语言弹窗顶部亮光条】移除了语言选择卡片顶部的亮光横条。",
+        "[Removed Top Bar] Removed the bright strip along the top edge of the language picker.",
+        1
+    )
+    _CreateLogEntry(
+        "V4.2.52",
+        "2026-11-21",
+        "【语言选择弹窗 + 主界面中英切换】第二段加载动画完成后弹出华丽语言选择弹窗，支持中文与英文主界面切换。",
+        "[Language Picker + Bilingual UI] Added an animated language selector after the second splash screen to switch between Chinese and English.",
+        2
+    )
+    _CreateLogEntry(
+        "V4.2.51",
+        "2026-11-21",
+        "【账号页搜人传送 + 新增4个Keyless脚本】新增服务器玩家搜索与传送功能；Keyless合集新增 Tower defense macro、Fly、99 nights、Alacrity rip。",
+        "[Player Search TP + 4 Keyless Scripts] Added server player search & teleport; added Tower defense macro, Fly, 99 nights, and Alacrity rip.",
+        3
+    )
 
+    local currentFpsCap = 60
     local _FpsInput = Instance.new("TextBox", _Page4)
     _FpsInput.LayoutOrder = 1; _FpsInput.Size = UDim2.new(0.98, 0, 0, 40); _FpsInput.BackgroundColor3 = Color3.fromRGB(15, 17, 30); _FpsInput.BackgroundTransparency = 0.44
-    _FpsInput.Text = "   设置FPS解锁 15到240: 60"; _FpsInput.TextColor3 = Color3.fromRGB(245, 247, 255); _FpsInput.Font = Enum.Font.GothamMedium; _FpsInput.TextSize = 13; _FpsInput.TextXAlignment = Enum.TextXAlignment.Left; _FpsInput.ZIndex = 2
+    _FpsInput.TextColor3 = Color3.fromRGB(245, 247, 255); _FpsInput.Font = Enum.Font.GothamMedium; _FpsInput.TextSize = 13; _FpsInput.TextXAlignment = Enum.TextXAlignment.Left; _FpsInput.ZIndex = 2
     Instance.new("UICorner", _FpsInput).CornerRadius = UDim.new(0, 12)
     local _FpsStroke = Instance.new("UIStroke", _FpsInput); _FpsStroke.Thickness = 1; _FpsStroke.Color = Color3.fromRGB(110, 120, 180); _FpsStroke.Transparency = 0.32
     _DecorateInput(_FpsInput)
+
+    local function RefreshFpsInputText(val)
+        _FpsInput.Text = T("   设置FPS解锁 15到240: ", "   Set FPS Cap 15-240: ") .. tostring(val)
+    end
+    RefreshFpsInputText(currentFpsCap)
+    RegisterLangListener(function()
+        RefreshFpsInputText(currentFpsCap)
+    end)
 
     _FpsInput.FocusLost:Connect(function()
         PlaySound("click")
         local val = tonumber(_FpsInput.Text:match("%d+")) or 60
         if val < 15 then val = 15 end if val > 240 then val = 240 end
-        _FpsInput.Text = "   设置FPS解锁 15到240: " .. val
+        currentFpsCap = val
+        RefreshFpsInputText(val)
         pcall(function() setfpscap(val) end)
-        ShowNotification("FPS 设置已更新", "当前上限已锁定为 " .. val, 2.8)
+        ShowNotification(T("FPS 设置已更新", "FPS Cap Updated"), T("当前上限已锁定为 ", "Cap locked to ") .. val, 2.8)
     end)
 
-    local function _CreateSettingToggleRow(order, titleText, onToggle)
+    local function _CreateSettingToggleRow(order, zhTitle, enTitle, onToggle)
         local row = Instance.new("Frame", _Page4)
         row.LayoutOrder = order
         row.Size = UDim2.new(0.98, 0, 0, 40)
@@ -1379,12 +1915,16 @@ local function _LMM_BOOT()
         label.Size = UDim2.new(1, -78, 1, 0)
         label.Position = UDim2.new(0, 14, 0, 0)
         label.BackgroundTransparency = 1
-        label.Text = titleText
+        label.Text = T(zhTitle, enTitle)
         label.TextColor3 = Color3.fromRGB(245, 247, 255)
         label.Font = Enum.Font.GothamMedium
         label.TextSize = 13
         label.TextXAlignment = Enum.TextXAlignment.Left
         label.ZIndex = 3
+
+        RegisterLangListener(function()
+            label.Text = T(zhTitle, enTitle)
+        end)
 
         local switchBtn = Instance.new("TextButton", row)
         switchBtn.Size = UDim2.new(0, 50, 0, 24)
@@ -1462,7 +2002,7 @@ local function _LMM_BOOT()
     end
 
     local afkConnection = nil
-    _CreateSettingToggleRow(2, "挂机AFK 防踢保护", function(enabled)
+    _CreateSettingToggleRow(2, "挂机AFK 防踢保护", "Anti-AFK Protection", function(enabled)
         if enabled then
             pcall(function()
                 local vu = game:GetService("VirtualUser")
@@ -1472,7 +2012,7 @@ local function _LMM_BOOT()
                     vu:Button2Up(Vector2.new(0,0), workspace.CurrentCamera.CFrame)
                 end)
             end)
-            ShowNotification("挂机防踢保护已开启", "系统将自动模拟操作防止被服务器踢出", 3.0)
+            ShowNotification(T("挂机防踢保护已开启", "Anti-AFK Enabled"), T("系统将自动模拟操作防止被服务器踢出", "Preventing idle kicks automatically"), 3.0)
         else
             pcall(function()
                 if afkConnection then
@@ -1480,7 +2020,7 @@ local function _LMM_BOOT()
                     afkConnection = nil
                 end
             end)
-            ShowNotification("挂机防踢保护已关闭", "已恢复正常检测", 2.5)
+            ShowNotification(T("挂机防踢保护已关闭", "Anti-AFK Disabled"), T("已恢复正常检测", "Normal idle detection restored"), 2.5)
         end
     end)
 
@@ -1561,7 +2101,7 @@ local function _LMM_BOOT()
         end
     end
 
-    fullbrightCtrl = _CreateSettingToggleRow(3, "Fullbright 全局高亮", function(enabled)
+    fullbrightCtrl = _CreateSettingToggleRow(3, "Fullbright 全局高亮", "Fullbright", function(enabled)
         if enabled then
             if fulldarkActive then StopFulldark() end
             fullbrightActive = true
@@ -1585,14 +2125,14 @@ local function _LMM_BOOT()
                     end)
                 end
             end)
-            ShowNotification("全局高亮已开启", "游戏视野已完全明亮化", 2.8)
+            ShowNotification(T("全局高亮已开启", "Fullbright Enabled"), T("游戏视野已完全明亮化", "World brightness maximized"), 2.8)
         else
             StopFullbright()
-            ShowNotification("全局高亮已关闭", "已恢复默认光照环境", 2.5)
+            ShowNotification(T("全局高亮已关闭", "Fullbright Disabled"), T("已恢复默认光照环境", "Default lighting restored"), 2.5)
         end
     end)
 
-    fulldarkCtrl = _CreateSettingToggleRow(4, "Fulldark 天空变黑", function(enabled)
+    fulldarkCtrl = _CreateSettingToggleRow(4, "Fulldark 天空变黑", "Fulldark Black Sky", function(enabled)
         if enabled then
             if fullbrightActive then StopFullbright() end
             fulldarkActive = true
@@ -1607,19 +2147,21 @@ local function _LMM_BOOT()
                     end)
                 end
             end)
-            ShowNotification("天空变黑已开启", "仅将天空设为纯黑，不影响场景亮度", 2.8)
+            ShowNotification(T("天空变黑已开启", "Fulldark Enabled"), T("仅将天空设为纯黑，不影响场景亮度", "Sky set to black without dimming scene"), 2.8)
         else
             StopFulldark()
-            ShowNotification("天空变黑已关闭", "已恢复原有天空", 2.5)
+            ShowNotification(T("天空变黑已关闭", "Fulldark Disabled"), T("已恢复原有天空", "Original sky restored"), 2.5)
         end
     end)
 
     local blackScreenGui = nil
+    local cancelBlackBtnRef = nil
 
     local function HideFullscreenBlack()
         if blackScreenGui then
             blackScreenGui:Destroy()
             blackScreenGui = nil
+            cancelBlackBtnRef = nil
         end
         if fullscreenBlackCtrl and fullscreenBlackCtrl.GetState() then
             fullscreenBlackCtrl.SetState(false)
@@ -1630,6 +2172,7 @@ local function _LMM_BOOT()
         if blackScreenGui then
             blackScreenGui:Destroy()
             blackScreenGui = nil
+            cancelBlackBtnRef = nil
         end
         blackScreenGui = Instance.new("ScreenGui", _CG)
         blackScreenGui.Name = "LMM_Fullscreen_Black"
@@ -1647,11 +2190,12 @@ local function _LMM_BOOT()
         blackBg.ZIndex = 100
 
         local cancelBlackBtn = Instance.new("TextButton", blackScreenGui)
+        cancelBlackBtnRef = cancelBlackBtn
         cancelBlackBtn.Size = UDim2.new(0, 165, 0, 46)
         cancelBlackBtn.Position = UDim2.new(0.5, -82.5, 0.5, -23)
         cancelBlackBtn.BackgroundColor3 = Color3.fromRGB(22, 24, 38)
         cancelBlackBtn.BackgroundTransparency = 0.08
-        cancelBlackBtn.Text = "取消黑屏"
+        cancelBlackBtn.Text = T("取消黑屏", "Disable Blackout")
         cancelBlackBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
         cancelBlackBtn.Font = Enum.Font.GothamBold
         cancelBlackBtn.TextSize = 14
@@ -1672,17 +2216,23 @@ local function _LMM_BOOT()
         cancelBlackBtn.MouseButton1Click:Connect(function()
             PlaySound("click")
             HideFullscreenBlack()
-            ShowNotification("全屏黑已关闭", "已恢复正常屏幕显示", 2.5)
+            ShowNotification(T("全屏黑已关闭", "Blackout Off"), T("已恢复正常屏幕显示", "Normal screen restored"), 2.5)
         end)
     end
 
-    fullscreenBlackCtrl = _CreateSettingToggleRow(5, "全屏黑", function(enabled)
+    RegisterLangListener(function()
+        if cancelBlackBtnRef and cancelBlackBtnRef.Parent then
+            cancelBlackBtnRef.Text = T("取消黑屏", "Disable Blackout")
+        end
+    end)
+
+    fullscreenBlackCtrl = _CreateSettingToggleRow(5, "全屏黑", "Fullscreen Blackout", function(enabled)
         if enabled then
             ShowFullscreenBlack()
-            ShowNotification("全屏黑已开启", "点击屏幕中央“取消黑屏”可关闭", 3.0)
+            ShowNotification(T("全屏黑已开启", "Blackout On"), T("点击屏幕中央“取消黑屏”可关闭", "Click center button to disable"), 3.0)
         else
             HideFullscreenBlack()
-            ShowNotification("全屏黑已关闭", "已恢复正常屏幕显示", 2.5)
+            ShowNotification(T("全屏黑已关闭", "Blackout Off"), T("已恢复正常屏幕显示", "Normal screen restored"), 2.5)
         end
     end)
 
@@ -1693,7 +2243,7 @@ local function _LMM_BOOT()
     _DCB.MouseButton1Click:Connect(function() 
         PlaySound("click")
         setclipboard("https://discord.gg/ATbXDtNWE") 
-        ShowNotification("Discord 链接已复制", "快去分享给好友加入社区吧", 3.0)
+        ShowNotification(T("Discord 链接已复制", "Discord Link Copied"), T("快去分享给好友加入社区吧", "Share the invite link with friends"), 3.0)
     end)
 
     _UIS.JumpRequest:Connect(function()
@@ -1874,15 +2424,21 @@ local function _LMM_BOOT()
     end
 
     _Ctrl("X", -46, Color3.fromRGB(239, 68, 68), Color3.fromRGB(255, 90, 90), function() 
-        _OpenConfirmDialog("确定要退出此脚本吗？", "刘某某脚本 V4.2.50 (beta)", "确认退出", function()
-            PlaySound("close")
-            HideFullscreenBlack()
-            _TopCapsule.Visible = false
-            pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
-            Tween(_M, {Size = UDim2.new(0, 565, 0, 369), BackgroundTransparency = 1}, 0.3)
-            for _, v in pairs(_M:GetDescendants()) do if v:IsA("UIStroke") or v:IsA("ImageLabel") or v:IsA("TextLabel") or v:IsA("TextButton") then Tween(v, {Transparency = 1}, 0.3) end end
-            task.wait(0.3); _S:Destroy()
-        end)
+        _OpenConfirmDialog(
+            T("确定要退出此脚本吗？", "Exit this script?"),
+            T("刘某某脚本 V4.2.53 (beta)", "LMM Script V4.2.53 (beta)"),
+            T("确认退出", "Confirm Exit"),
+            T("取消", "Cancel"),
+            function()
+                PlaySound("close")
+                HideFullscreenBlack()
+                _TopCapsule.Visible = false
+                pcall(function() _LP.Character.HumanoidRootPart.Anchored = false end)
+                Tween(_M, {Size = UDim2.new(0, 565, 0, 369), BackgroundTransparency = 1}, 0.3)
+                for _, v in pairs(_M:GetDescendants()) do if v:IsA("UIStroke") or v:IsA("ImageLabel") or v:IsA("TextLabel") or v:IsA("TextButton") then Tween(v, {Transparency = 1}, 0.3) end end
+                task.wait(0.3); _S:Destroy()
+            end
+        )
     end, Enum.Font.GothamBold, 20, "click")
 
     -- 右下角 ◢ 拖动缩放手柄
