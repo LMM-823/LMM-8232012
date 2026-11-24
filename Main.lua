@@ -1,4 +1,6 @@
--- [[ 刘某某脚本 V4.2.57 (beta) | 保留3个渐变格 + 补回猫猫图与透明背景格 ]]
+-- [[ 刘某某脚本 V5.1 | 性能与动画维护版 | 保留原版外观与功能 ]]
+-- V5.1 maintenance: smoother UI scheduling, lighter notification updates, safe tween lifecycle.
+-- UI-only scheduling refinements; gameplay/ESP/movement and remote-loader behavior are not modified.
 
 local function _LMM_BOOT()
     if not game:IsLoaded() then
@@ -81,9 +83,53 @@ local function _LMM_BOOT()
         return string.format("%02d:%02d:%02d", h, m, s)
     end
 
+    -- 防止对象销毁期间创建 Tween 报错，并避免同一对象的旧 Tween 堆积。
+    local activeTweens = setmetatable({}, { __mode = "k" })
     local function Tween(obj, props, time, style, dir)
-        if not obj then return end
-        _TS:Create(obj, TweenInfo.new(time or 0.22, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out), props):Play()
+        if not obj or typeof(obj) ~= "Instance" then return end
+        local ok, tween = pcall(function()
+            local previous = activeTweens[obj]
+            if previous then
+                pcall(function() previous:Cancel() end)
+            end
+            local created = _TS:Create(
+                obj,
+                TweenInfo.new(time or 0.22, style or Enum.EasingStyle.Quart, dir or Enum.EasingDirection.Out),
+                props
+            )
+            activeTweens[obj] = created
+            created.Completed:Connect(function()
+                if activeTweens[obj] == created then
+                    activeTweens[obj] = nil
+                end
+            end)
+            created:Play()
+            return created
+        end)
+        if not ok then
+            activeTweens[obj] = nil
+        end
+        return tween
+    end
+
+    -- 搜索输入做轻量防抖：快速输入时只执行最后一次过滤，不改变搜索规则。
+    local function BindDebouncedSearch(textBox, page)
+        local revision = 0
+        textBox:GetPropertyChangedSignal("Text"):Connect(function()
+            revision = revision + 1
+            local currentRevision = revision
+            task.delay(0.08, function()
+                if currentRevision ~= revision or not textBox.Parent or not page.Parent then return end
+                local query = string.lower(textBox.Text or "")
+                for _, child in ipairs(page:GetChildren()) do
+                    if child:IsA("Frame") and child.Name == "ScriptRow" then
+                        local mainBtn = child:FindFirstChild("MainBtn")
+                        local labelText = mainBtn and string.lower(mainBtn.Text or "") or ""
+                        child.Visible = (query == "" or string.find(labelText, query, 1, true) ~= nil)
+                    end
+                end
+            end)
+        end)
     end
 
     local function ApplyAccentGradient(parent, c1, c2, rot)
@@ -250,7 +296,7 @@ local function _LMM_BOOT()
                     if remain <= 0 then
                         break
                     end
-                    task.wait(0.05)
+                    task.wait(0.1)
                 end
 
                 for idx, item in ipairs(activeNotifications) do
@@ -481,8 +527,10 @@ local function _LMM_BOOT()
 
     task.spawn(function()
         local rot = 0
-        while _S and _S.Parent do
-            rot = (rot + 2.6) % 360
+        local rotationSpeed = 104 -- degrees per second; preserves the original visual speed
+        while _S.Parent do
+            local dt = task.wait(1 / 40)
+            rot = (rot + rotationSpeed * math.min(dt, 0.1)) % 360
             if _MainBorderGrad and _MainBorderGrad.Parent then
                 _MainBorderGrad.Rotation = rot
             end
@@ -495,7 +543,6 @@ local function _LMM_BOOT()
             if langModalBorderGrad and langModalBorderGrad.Parent then
                 langModalBorderGrad.Rotation = (rot * 1.15) % 360
             end
-            task.wait(0.025)
         end
     end)
 
@@ -530,24 +577,47 @@ local function _LMM_BOOT()
     _TopCapText.TextXAlignment = Enum.TextXAlignment.Left
     _TopCapText.ZIndex = 51
 
-    task.spawn(function()
-        local lastUpdate = 0
+    do
+        local lastUpdate = os.clock()
         local frameCount = 0
         local fps = 60
-        _RS.RenderStepped:Connect(function()
+        local statusAlive = true
+        local statusConn
+        statusConn = _RS.RenderStepped:Connect(function()
+            if not statusAlive then return end
             frameCount = frameCount + 1
-            if tick() - lastUpdate >= 0.5 then
-                fps = math.floor(frameCount / (tick() - lastUpdate))
-                frameCount = 0
-                lastUpdate = tick()
-            end
-            pcall(function()
-                local ping = math.floor(_LP:GetNetworkPing() * 1000 + 0.5)
-                local mem = math.floor(collectgarbage("count") / 1024)
-                _TopCapText.Text = string.format("FPS:%d | Ping:%d | %dM", fps, ping, mem)
-            end)
         end)
-    end)
+        _S.Destroying:Connect(function()
+            statusAlive = false
+            if statusConn then
+                pcall(function() statusConn:Disconnect() end)
+                statusConn = nil
+            end
+        end)
+        task.spawn(function()
+            while statusAlive and _S.Parent do
+                task.wait(0.5)
+                local now = os.clock()
+                local elapsed = now - lastUpdate
+                if elapsed > 0 then
+                    fps = math.floor(frameCount / elapsed + 0.5)
+                end
+                frameCount = 0
+                lastUpdate = now
+                if statusAlive and _TopCapText and _TopCapText.Parent then
+                    pcall(function()
+                        local ping = math.floor(_LP:GetNetworkPing() * 1000 + 0.5)
+                        local mem = math.floor(collectgarbage("count") / 1024)
+                        _TopCapText.Text = string.format("FPS:%d | Ping:%d | %dM", fps, ping, mem)
+                    end)
+                end
+            end
+            if statusConn then
+                pcall(function() statusConn:Disconnect() end)
+                statusConn = nil
+            end
+        end)
+    end
 
     local normalHeight = 414
     local normalWidth = 636
@@ -1903,16 +1973,7 @@ local function _LMM_BOOT()
             _SearchBox.PlaceholderText = T("搜索 keyless 脚本...", "Search keyless scripts...")
         end)
 
-        _SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
-            local query = _SearchBox.Text:lower()
-            for _, child in pairs(_Page2:GetChildren()) do
-                if child:IsA("Frame") and child.Name == "ScriptRow" then
-                    local mainBtn = child:FindFirstChild("MainBtn")
-                    local labelText = mainBtn and mainBtn.Text:lower() or ""
-                    child.Visible = (query == "" or labelText:find(query) ~= nil)
-                end
-            end
-        end)
+        BindDebouncedSearch(_SearchBox, _Page2)
     end
 
     _CreateS(_Page2, "Redz (Blox Fruits)", "https://raw.githubusercontent.com/bloxfruitsnokey/Redz/refs/heads/main/Redz/v3.luau", 2)
@@ -1947,16 +2008,7 @@ local function _LMM_BOOT()
             _SearchBox2.PlaceholderText = T("搜索 key 脚本...", "Search key scripts...")
         end)
 
-        _SearchBox2:GetPropertyChangedSignal("Text"):Connect(function()
-            local query = _SearchBox2.Text:lower()
-            for _, child in pairs(_Page5:GetChildren()) do
-                if child:IsA("Frame") and child.Name == "ScriptRow" then
-                    local mainBtn = child:FindFirstChild("MainBtn")
-                    local labelText = mainBtn and mainBtn.Text:lower() or ""
-                    child.Visible = (query == "" or labelText:find(query) ~= nil)
-                end
-            end
-        end)
+        BindDebouncedSearch(_SearchBox2, _Page5)
     end
 
     _CreateS(_Page5, "Blade Ball", "https://raw.githubusercontent.com/joshhhie/rise/refs/heads/main/loader.lua", 2)
@@ -1975,16 +2027,7 @@ local function _LMM_BOOT()
             _SearchBox3.PlaceholderText = T("搜索我的专属脚本...", "Search my scripts...")
         end)
 
-        _SearchBox3:GetPropertyChangedSignal("Text"):Connect(function()
-            local query = _SearchBox3.Text:lower()
-            for _, child in pairs(_Page6:GetChildren()) do
-                if child:IsA("Frame") and child.Name == "ScriptRow" then
-                    local mainBtn = child:FindFirstChild("MainBtn")
-                    local labelText = mainBtn and mainBtn.Text:lower() or ""
-                    child.Visible = (query == "" or labelText:find(query) ~= nil)
-                end
-            end
-        end)
+        BindDebouncedSearch(_SearchBox3, _Page6)
     end
 
     _CreateLMMButton(_Page6, "LMM normal script", "https://raw.githubusercontent.com/LMM-823/LMM-normal/main/main.lua?v=999", 2)
